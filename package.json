@@ -1,0 +1,33 @@
+{
+  "name": "ipx",
+  "version": "0.0.1",
+  "license": "MIT",
+  "contributors": [
+    "Pooya Parsa <pooya@fandogh.org>"
+  ],
+  "main": "src/index.js",
+  "scripts": {
+    "start": "bak start",
+    "dev": "nodemon node_modules/.bin/bak start"
+  },
+  "dependencies": {
+    "bak": "^2.0.3",
+    "config": "^1.28.1",
+    "cron": "^1.3.0",
+    "fs-extra": "^4.0.3",
+    "is-valid-path": "^0.1.1",
+    "nodemon": "^1.12.1",
+    "recursive-readdir": "^2.2.1",
+    "sharp": "^0.18.4"
+  },
+  "devDependencies": {
+    "eslint": "^4.12.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-html": "^4.0.1",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-jest": "^21.3.2",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-standard": "^3.0.1"
+  }
+}
