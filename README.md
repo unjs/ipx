@@ -1,6 +1,6 @@
 # 🖼 IPX
 
-High performance, secure and easy to use and image proxy based on [Sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/jcupitt/libvips).
+High performance, secure and easy to use image proxy based on [Sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/jcupitt/libvips).
 
 **WARNING:: THIS PROJECT AND DOCS ARE STILL WIP!**
 
@@ -26,16 +26,16 @@ Possible values for format: `jpeg`,`webp` or `png`.
 
 Just change format to `webp` and keep other things same as source:
 
-`http://cdn.example.com/webp/_/avatars/bafollo.png`
+`http://cdn.example.com/webp/_/avatars/buffalo.png`
 
 Keep original format (`png`) and set width to `200`:
 
-`http://cdn.example.com/_/w_200/avatars/bafollo.png`
+`http://cdn.example.com/_/w_200/avatars/buffalo.png`
 
 
 Resize to `200x300px` using `embed` method and change format to `jpg`:
 
-`http://cdn.example.com/jpg/s_200_300,embed/avatars/bafollo.png`
+`http://cdn.example.com/jpg/s_200_300,embed/avatars/buffalo.png`
 
 
 ## Operations
