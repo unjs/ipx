@@ -25,19 +25,44 @@ Possible values for format: `jpeg`,`webp` or `png`.
 
 ### Examples
 
-Just change format to `webp` and keep other things same as source:
+- Just change format to `webp` and keep other things same as source:
 
 `http://cdn.example.com/webp/_/avatars/buffalo.png`
 
-Keep original format (`png`) and set width to `200`:
+- Keep original format (`png`) and set width to `200`:
 
 `http://cdn.example.com/_/w_200/avatars/buffalo.png`
 
-
-Resize to `200x300px` using `embed` method and change format to `jpg`:
+- Resize to `200x300px` using `embed` method and change format to `jpg`:
 
 `http://cdn.example.com/jpg/s_200_300,embed/avatars/buffalo.png`
 
+## Docker deployment
+
+Latest docker image is automatically built under [pooya/ipx](https://hub.docker.com/r/pooya/ipx).
+
+Quick start:
+
+```bash
+docker run \
+  -it \
+  --rm \
+  --volume ./storage:/app/storage:ro \
+  --volume ./cache:/app/cache \
+  --port 3000:3000
+  pooya/ipx
+```
+
+Using docker-compose:
+
+```yml
+  image: pooya/ipx
+  volumes:
+    - ./storage:/app/storage:ro
+    - ./cache:/app/cache
+  ports:
+    - 3000:3000
+```
 
 ## Operations
 
