@@ -16,17 +16,32 @@ High performance, secure and easy to use and image proxy based on [Sharp](https:
 
 **`/{format}/{operations}/{src}`**
 
-Example: `http://cdn.example.com/webp/w:200/avatars/bafollo.png`
+Operations are separated by a colon `,` (Example: `op1,op2`) and their arguments separated using underscore `_` (Example: `s_200_300`)
 
 ََ‍‍Use `_` value in place for `{format}` or `{operations}` to keep original values of source image.
 
 Possible values for format: `jpeg`,`webp` or `png`.
 
+### Examples
+
+Just change format to `webp` and keep other things same as source:
+
+`http://cdn.example.com/webp/_/avatars/bafollo.png`
+
+Keep original format (`png`) and set width to `200`:
+
+`http://cdn.example.com/_/w_200/avatars/bafollo.png`
+
+
+Resize to `200x300px` using `embed` method and change format to `jpg`:
+
+`http://cdn.example.com/jpg/s_200_300,embed/avatars/bafollo.png`
+
+
 ## Operations
 
 Operation    |  Arguments            | Example     | Description
 -------------|-----------------------|-------------|---------------------------------------------------------
-`f`          | `format`              | f:webp      | Change format. 
 `s`          | `width`, `height`     | s:200:300   | Resize image.
 `w`          | `width`               | w:200       | Change image with.
 `h`          | `height`              | h:200       | Change image height.
