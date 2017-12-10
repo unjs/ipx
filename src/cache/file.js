@@ -1,6 +1,7 @@
 const { resolve, dirname } = require('path')
 const recursiveReadDir = require('recursive-readdir')
 const { mkdirpSync, mkdirp, exists, readFile, writeFile, stat, remove } = require('fs-extra')
+const debug = require('debug')('ipx:cache:file')
 
 module.exports = class FileCache {
   constructor (shark) {
@@ -42,7 +43,7 @@ module.exports = class FileCache {
     items = items.filter(item => item.lastAccessAgo >= maxUnusedMinutes)
 
     await Promise.all(items.map(async item => {
-      console.log('[D] ' + item.file)
+      debug('[DELETE] ' + item.file)
       await remove(item.file)
     }))
   }
@@ -52,6 +53,7 @@ module.exports = class FileCache {
     if (!(await exists(_path))) {
       return null
     }
+    debug('[HIT] ' + key)
     return readFile(_path)
   }
 

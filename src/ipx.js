@@ -3,6 +3,7 @@ const { resolve, extname } = require('path')
 const Boom = require('boom')
 const Sharp = require('sharp')
 const { CronJob } = require('cron')
+const debug = require('debug')('ipx')
 
 const operationSeparator = ','
 const argSeparator = '_'
@@ -53,6 +54,7 @@ class Shark {
         this.options.cache.cleanCron,
         () => this.cleanCache().catch(console.error)
       )
+      debug('Starting cache clean cron ' + this.options.cache.cleanCron)
       this.cacheCleanCron.start()
     }
   }
@@ -144,7 +146,6 @@ class Shark {
     // Check cache existence
     const cache = await this.cache.get(cacheKey)
     if (cache) {
-      console.log('HIT!')
       return {
         format,
         data: cache
