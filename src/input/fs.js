@@ -3,7 +3,7 @@ const isValidPath = require('is-valid-path')
 const { resolve, relative } = require('path')
 const { exists, readFile } = require('fs-extra')
 
-module.exports = class fileAdapter {
+module.exports = class FSAdapter {
   constructor (sharp) {
     this.sharp = sharp
     this.options = sharp.options

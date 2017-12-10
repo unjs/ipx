@@ -1,14 +1,14 @@
 module.exports = {
   ipx: {
     input: {
-      adapter: 'file.js',
+      adapter: 'fs.js',
       dir: 'storage'
     },
     cache: {
-      adapter: 'file.js',
+      adapter: 'fs.js',
       dir: 'cache',
-      cleanCron: '* * * * * *',
-      maxUnusedMinutes: 2
+      cleanCron: '0 0 3 * * *',
+      maxUnusedMinutes: 24 * 60
     }
   }
 }

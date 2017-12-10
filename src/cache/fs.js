@@ -3,7 +3,7 @@ const recursiveReadDir = require('recursive-readdir')
 const { mkdirpSync, mkdirp, exists, readFile, writeFile, stat, remove } = require('fs-extra')
 const debug = require('debug')('ipx:cache:file')
 
-module.exports = class FileCache {
+module.exports = class FSCache {
   constructor (shark) {
     this.shark = shark
     this.options = shark.options
