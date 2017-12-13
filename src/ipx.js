@@ -8,7 +8,7 @@ const debug = require('debug')('ipx')
 const operationSeparator = ','
 const argSeparator = '_'
 
-class Shark {
+class IPX {
   constructor (options) {
     this.options = options
     this.operations = {}
@@ -122,7 +122,13 @@ class Shark {
     }
 
     // Validate src
-    if (!src || src.indexOf('..') >= 0 || !await this.input.validate(src)) {
+    if (!src || src.indexOf('..') >= 0) {
+      throw Boom.notFound()
+    }
+
+    // Get src stat
+    const stats = await this.input.stats(src)
+    if (!stats) {
       throw Boom.notFound()
     }
 
@@ -135,20 +141,19 @@ class Shark {
       _operations.filter(o => o.operation.order === true)
     )
 
-    // Calculate unique hash key
-    const cacheKey =
-      src +
-      '/' +
-      (_operations.length ? _operations.map(o => o.cacheKey).join(argSeparator) : '_') +
-      '.' +
-      format
+    // Compute unique hash key
+    const operationsKey = _operations.length ? _operations.map(o => o.cacheKey).join(argSeparator) : '_'
+    const statsKey = stats.mtime.getTime().toString(16) + '-' + stats.size.toString(16)
+    const cacheKey = src + '/' + statsKey + '/' + operationsKey + '.' + format
 
     // Check cache existence
     const cache = await this.cache.get(cacheKey)
     if (cache) {
       return {
         format,
-        data: cache
+        data: cache,
+        stats,
+        cacheKey
       }
     }
 
@@ -184,7 +189,9 @@ class Shark {
 
     return {
       data,
-      format
+      format,
+      stats,
+      cacheKey
     }
   }
 
@@ -195,4 +202,4 @@ class Shark {
   }
 }
 
-module.exports = Shark
+module.exports = IPX

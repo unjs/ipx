@@ -1,7 +1,7 @@
 const { isAbsolute } = require('path').posix
 const isValidPath = require('is-valid-path')
 const { resolve, relative } = require('path')
-const { exists, readFile } = require('fs-extra')
+const { readFile, stat } = require('fs-extra')
 
 module.exports = class FSAdapter {
   constructor (sharp) {
@@ -17,22 +17,24 @@ module.exports = class FSAdapter {
     return resolve(this.dir, src)
   }
 
-  async validate (src) {
+  async stats (src) {
     if (isAbsolute(src) || !isValidPath(src)) {
       return false
     }
 
     const _src = this._resolve(src)
 
-    if (relative(this.dir, _src).indexOf('..') !== -1) {
+    if (relative(this.dir, _src).includes('..')) {
       return false
     }
 
-    if (!await exists(_src)) {
+    try {
+      const stats = await stat(_src)
+      return stats
+    } catch (e) {
+      // TODO: check for permission errors
       return false
     }
-
-    return true
   }
 
   /**
