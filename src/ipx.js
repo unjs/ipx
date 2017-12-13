@@ -101,13 +101,7 @@ class IPX {
     })
   }
 
-  /**
-   * Convert and get the result
-   * @param {String} format
-   * @param {String} operations
-   * @param {String} src
-   */
-  async get ({ format, operations, src }) {
+  async getInfo ({ format, operations, src }) {
     // Validate format
     if (format === '_') {
       format = extname(src).substr(1)
@@ -146,15 +140,21 @@ class IPX {
     const statsKey = stats.mtime.getTime().toString(16) + '-' + stats.size.toString(16)
     const cacheKey = src + '/' + statsKey + '/' + operationsKey + '.' + format
 
+    // Return info
+    return {
+      operations: _operations,
+      stats,
+      cacheKey,
+      format,
+      src
+    }
+  }
+
+  async getData ({ cacheKey, stats, operations, format, src }) {
     // Check cache existence
     const cache = await this.cache.get(cacheKey)
     if (cache) {
-      return {
-        format,
-        data: cache,
-        stats,
-        cacheKey
-      }
+      return cache
     }
 
     // Read buffer from input
@@ -167,7 +167,7 @@ class IPX {
       sharp = sharp.toFormat(format)
     }
 
-    _operations.forEach(({ operation, args }) => {
+    operations.forEach(({ operation, args }) => {
       try {
         sharp = operation.handler(this, sharp, ...args)
       } catch (e) {
@@ -187,12 +187,7 @@ class IPX {
       console.error(e)
     }
 
-    return {
-      data,
-      format,
-      stats,
-      cacheKey
-    }
+    return data
   }
 
   async cleanCache () {

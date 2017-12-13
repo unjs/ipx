@@ -19,19 +19,27 @@ module.exports = {
       throw Boom.badRequest('Invalid URL')
     }
 
-    const img = await ipx.get({ format, operations, src })
-    const response = h.response(img.data)
+    // Get basic info about request
+    const info = await ipx.getInfo({ format, operations, src })
 
-    if (img.cacheKey) {
-      response.etag(etag(img.cacheKey).replace(/"/g, ''), { vary: 'Origin' })
+    // Sets the response 'ETag' and 'Last-Modified' headers and
+    // checks for any conditional request headers to decide
+    // if the response is going to qualify for an HTTP 304 (Not Modified)
+    // https://hapijs.com/api#-hentityoptions
+    let response = h.entity({
+      etag: etag(info.cacheKey).replace(/"/g, ''),
+      modified: info.stats.mtime
+    })
+
+    // Get real response
+    if (!response) {
+      const data = await ipx.getData(info)
+      response = h.response(data)
     }
 
-    if (img.stats.mtime) {
-      response.header('last-modified', img.stats.mtime.toUTCString())
-    }
-
-    if (img.format) {
-      response.type('image/' + img.format)
+    // Set additional headers
+    if (info.format) {
+      response.type('image/' + info.format)
     } else {
       response.type('image')
     }
