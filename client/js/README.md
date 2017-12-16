@@ -25,8 +25,16 @@ const getImage = img({
   baseURL = 'https://cdn.example.com',
   basePath = 'uploads',
   opts = [], // Default opts
-  format = 'webp'
+  format = 'jpg',
+  presets: {
+    chrome400: {
+      format: 'png',
+      opts: { s: ['400', '400']}
+    }
+  }
 })
 
-getImage('posts/ipx.jpg', { w: 200 }) // => https://cdn.example.com/webp/w_200/uploads/posts/ipx.jpg
+getImage('posts/ipx.png', { w: 200 }) // => https://cdn.example.com/jpg/w_200/uploads/posts/ipx.png
+
+getImage.chrome400('posts/ipx.png') // => https://cdn.example.com/webp/s_400_400/uploads/posts/ipx.png
 ```
