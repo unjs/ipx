@@ -2,16 +2,17 @@
 
 High performance, secure and easy to use image proxy based on [Sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/jcupitt/libvips).
 
-**WARNING:: THIS PROJECT AND DOCS ARE STILL WIP!**
-
-## Project goals
-
 - Fast and minimal as possible.
 - Configurable operations.
 - Built-in secure cache with human readable entries and resistant against duplicates.
 - Remote agnostic cache and input adapters.
 - Smart and auto cache cleaning.
 - Twelve factor friendly.
+- Client libraries for URL generation.
+
+## Clients
+
+- [js client for NPM and Browser](./client/js/README.md)
 
 ## API
 

@@ -7,3 +7,4 @@ cache
 storage
 !src/cache
 config/local.*
+dist
