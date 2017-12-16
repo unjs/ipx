@@ -1,20 +1,27 @@
-# 🖼 IPX
+[![Docker Pulls](https://img.shields.io/docker/pulls/pooya/ipx.svg?style=for-the-badge)]()
+[![Docker Automated build](https://img.shields.io/docker/automated/pooya/ipx.svg?style=for-the-badge)]()
+[![Docker Build Status](https://img.shields.io/docker/build/pooya/ipx.svg?style=for-the-badge)]()
 
-High performance, secure and easy to use image proxy based on [Sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/jcupitt/libvips).
+<div align="center">
+<img src="./logo.png" alt="IPX Logo" />
+</div>
 
-- Fast and minimal as possible.
-- Configurable operations.
-- Built-in secure cache with human readable entries and resistant against duplicates.
-- Remote agnostic cache and input adapters.
-- Smart and auto cache cleaning.
-- Twelve factor friendly.
-- Client libraries for URL generation.
+> High performance, secure and easy to use image proxy based on [Sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/jcupitt/libvips).
 
-## Clients
+✅ Fast and minimal as possible.
+✅ Easy deployment.
+✅ Configurable operations.
+✅ Built-in secure cache with human readable entries and resistant against duplicates.
+✅ Remote agnostic cache and input adapters.
+✅ Smart and auto cache cleaning.
+✅ Twelve factor friendly.
+✅ Client libraries for URL generation.
 
-- [js client for NPM and Browser](./client/js/README.md)
+<h2 align="center">Clients</h2>
 
-## API
+- [JS Client](./client/js/README.md) (for Node.js and Browser)
+
+<h2 align="center">API</h2>
 
 **`/{format}/{operations}/{src}`**
 
@@ -38,7 +45,7 @@ Possible values for format: `jpeg`,`webp` or `png`.
 
 `http://cdn.example.com/jpg/s_200_300,embed/avatars/buffalo.png`
 
-## Docker deployment
+<h2 align="center">Docker deployment</h2>
 
 Latest docker image is automatically built under [pooya/ipx](https://hub.docker.com/r/pooya/ipx).
 
@@ -65,7 +72,7 @@ Using docker-compose:
     - 3000:3000
 ```
 
-## Operations
+<h2 align="center">Operations</h2>
 
 Operation    |  Arguments            | Example     | Description
 -------------|-----------------------|-------------|---------------------------------------------------------
@@ -76,7 +83,7 @@ Operation    |  Arguments            | Example     | Description
 `max`        | -                     | max         | Preserving aspect ratio, resize the image to be as large as possible while ensuring its dimensions are less than or equal to the `width` and `height` specified.
 `min`        | -                     | min         | Preserving aspect ratio, resize the image to be as small as possible while ensuring its dimensions are greater than or equal to the width and height specified.
 
-## Config
+<h2 align="center">Config</h2>
 
 Config can be customized using `IPX_*` environment variables or `config/local.js` file. Here are defaults:
 
@@ -95,6 +102,6 @@ Config can be customized using `IPX_*` environment variables or `config/local.js
   }
 ```
 
-## License
+<h2 align="center">License</h2>
 
 MIT - Pooya Parsa
