@@ -1,13 +1,14 @@
 {
   "name": "ipx-client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "contributors": [
     "Pooya Parsa <pooya@fandogh.org>"
   ],
   "main": "dist/ipx-client.common.js",
   "scripts": {
-    "build": "bili"
+    "build": "bili",
+    "prepare": "npm run build"
   },
   "devDependencies": {
     "bili": "^0.19.0"
