@@ -1,17 +1,17 @@
 const filterEmpty = arr => arr.filter(o => o && o.length)
 const normalizeObject = o => Object.keys(o).map(k => [].concat(k, o[k]).join('_'))
 const normalizeArray = a => a.map(normalize).join('_')
-const normalize = filterEmpty(o => typeof o === 'string' ? [o] : (Array.isArray(o) ? normalizeArray(o) : normalizeObject(o)))
+const normalize = o => filterEmpty(typeof o === 'string' ? [o] : (Array.isArray(o) ? normalizeArray(o) : normalizeObject(o)))
 
 export const img = ({
   baseURL = '',
   basePath = '',
-  opts = [],
+  opts = null,
   format = '_',
   presets = null
 }) => {
   // Normalize default opts
-  opts = normalize(opts)
+  opts = opts ? normalize(opts) : []
 
   // Create fn
   const fn = (
