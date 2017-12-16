@@ -13,6 +13,9 @@ export const img = ({
   // Normalize default opts
   opts = opts ? normalize(opts) : []
 
+  // Patch baseURL
+  baseURL = baseURL.replace('://', ':///')
+
   // Create fn
   const fn = (
     path,
