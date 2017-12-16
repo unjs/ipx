@@ -76,9 +76,9 @@ Using docker-compose:
 
 Operation    |  Arguments            | Example     | Description
 -------------|-----------------------|-------------|---------------------------------------------------------
-`s`          | `width`, `height`     | s:200:300   | Resize image.
-`w`          | `width`               | w:200       | Change image with.
-`h`          | `height`              | h:200       | Change image height.
+`s`          | `width`, `height`     | s_200_300   | Resize image.
+`w`          | `width`               | w_200       | Change image with.
+`h`          | `height`              | h_200       | Change image height.
 `embed`      | -                     | embed       | Preserving aspect ratio, resize the image to the maximum `width` or `height` specified then embed on a background of the exact `width` and `height` specified.
 `max`        | -                     | max         | Preserving aspect ratio, resize the image to be as large as possible while ensuring its dimensions are less than or equal to the `width` and `height` specified.
 `min`        | -                     | min         | Preserving aspect ratio, resize the image to be as small as possible while ensuring its dimensions are greater than or equal to the width and height specified.
