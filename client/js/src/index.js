@@ -1,7 +1,7 @@
 const filterEmpty = arr => arr.filter(o => o && o.length)
 const normalizeObject = o => Object.keys(o).map(k => [].concat(k, o[k]).join('_'))
-const normalizeArray = a => a.map(normalize).join('_')
-const normalize = o => filterEmpty(typeof o === 'string' ? [o] : (Array.isArray(o) ? normalizeArray(o) : normalizeObject(o)))
+const normalizeArray = a => a.join('_')
+const normalize = o => typeof o === 'string' ? [o] : (Array.isArray(o) ? normalizeArray(o) : normalizeObject(o))
 
 export const img = ({
   baseURL = '',
@@ -19,7 +19,7 @@ export const img = ({
     _opts,
     _format
   ) => {
-    const optsStr = [].concat(opts, _opts ? normalize(_opts) : []).join(',')
+    const optsStr = filterEmpty([].concat(opts, _opts ? normalize(_opts) : [])).join(',')
     return (baseURL + '/' + (_format || format) + '/' + optsStr + '/' + basePath + '/' + path).replace(/\/\//g, '/')
   }
 
