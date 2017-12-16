@@ -1,6 +1,6 @@
 {
   "name": "ipx",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "MIT",
   "contributors": [
     "Pooya Parsa <pooya@fandogh.org>"
@@ -10,6 +10,10 @@
     "start": "bak start",
     "dev": "DEBUG=ipx* nodemon node_modules/.bin/bak start"
   },
+  "files": [
+    "src",
+    "bin"
+  ],
   "dependencies": {
     "bak": "^2.0.3",
     "config": "^1.28.1",
