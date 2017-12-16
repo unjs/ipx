@@ -1,25 +1,25 @@
-[![Docker Pulls](https://img.shields.io/docker/pulls/pooya/ipx.svg?style=for-the-badge)]()
-[![Docker Automated build](https://img.shields.io/docker/automated/pooya/ipx.svg?style=for-the-badge)]()
-[![Docker Build Status](https://img.shields.io/docker/build/pooya/ipx.svg?style=for-the-badge)]()
-
 <div align="center">
 <img src="./logo.png" alt="IPX Logo" />
 </div>
 
+[![Docker Pulls](https://img.shields.io/docker/pulls/pooya/ipx.svg?style=flat-square)]()
+[![Docker Automated build](https://img.shields.io/docker/automated/pooya/ipx.svg?style=flat-square)]()
+[![Docker Build Status](https://img.shields.io/docker/build/pooya/ipx.svg?style=flat-square)]()
+
 > High performance, secure and easy to use image proxy based on [Sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/jcupitt/libvips).
 
-✅ Fast and minimal as possible.
-✅ Easy deployment.
-✅ Configurable operations.
-✅ Built-in secure cache with human readable entries and resistant against duplicates.
-✅ Remote agnostic cache and input adapters.
-✅ Smart and auto cache cleaning.
-✅ Twelve factor friendly.
-✅ Client libraries for URL generation.
+✅ Fast and minimal as possible.    
+✅ Easy deployment.    
+✅ Configurable operations.    
+✅ Built-in secure cache with human readable entries and resistant against duplicates.    
+✅ Remote agnostic cache and input adapters.    
+✅ Smart and auto cache cleaning.    
+✅ Twelve factor friendly.    
+✅ Client libraries for URL generation.    
 
 <h2 align="center">Clients</h2>
 
-- [JS Client](./client/js/README.md) (for Node.js and Browser)
+- [JS Client](./client/js/README.md) for Node.js and Browser.
 
 <h2 align="center">API</h2>
 
@@ -33,15 +33,15 @@ Possible values for format: `jpeg`,`webp` or `png`.
 
 ### Examples
 
-- Just change format to `webp` and keep other things same as source:
+Just change format to `webp` and keep other things same as source:
 
 `http://cdn.example.com/webp/_/avatars/buffalo.png`
 
-- Keep original format (`png`) and set width to `200`:
+Keep original format (`png`) and set width to `200`:
 
 `http://cdn.example.com/_/w_200/avatars/buffalo.png`
 
-- Resize to `200x300px` using `embed` method and change format to `jpg`:
+Resize to `200x300px` using `embed` method and change format to `jpg`:
 
 `http://cdn.example.com/jpg/s_200_300,embed/avatars/buffalo.png`
 
