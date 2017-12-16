@@ -6,9 +6,9 @@ const normalize = o => filterEmpty(typeof o === 'string' ? [o] : (Array.isArray(
 export const img = ({
   baseURL = '',
   basePath = '',
-  opts = null,
+  opts,
   format = '_',
-  presets = null
+  presets
 }) => {
   // Normalize default opts
   opts = opts ? normalize(opts) : []
@@ -16,11 +16,11 @@ export const img = ({
   // Create fn
   const fn = (
     path,
-    _opts = [],
-    _format = format
+    _opts,
+    _format
   ) => {
-    const optsStr = [].concat(opts, normalize(_opts)).join(',')
-    return (baseURL + '/' + format + '/' + optsStr + '/' + basePath + '/' + path).replace(/\/\//g, '/')
+    const optsStr = [].concat(opts, _opts ? normalize(_opts) : []).join(',')
+    return (baseURL + '/' + (_format || format) + '/' + optsStr + '/' + basePath + '/' + path).replace(/\/\//g, '/')
   }
 
   // Attach all presets
