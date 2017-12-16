@@ -9,8 +9,8 @@ export const img = ({
   format = '_'
 }) => (
   path,
-  _opts,
-  _format
+  _opts = [],
+  _format = format
 ) => {
   const optsStr = []
     .concat(normalize(opts))
