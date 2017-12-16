@@ -28,7 +28,7 @@ const getImage = img({
   format = 'jpg',
   presets: {
     chrome400: {
-      format: 'png',
+      format: 'webp',
       opts: { s: ['400', '400']}
     }
   }
