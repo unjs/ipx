@@ -1,9 +1,11 @@
 const OPERATIONS = require('./operations')
 const { resolve, extname } = require('path')
-const Boom = require('boom')
 const Sharp = require('sharp')
 const { CronJob } = require('cron')
+
 const debug = require('debug')('ipx')
+
+const { badRequest, notFound } = require('./utils')
 
 const operationSeparator = ','
 const argSeparator = '_'
@@ -75,11 +77,11 @@ class IPX {
 
       const operation = this.operations[key]
       if (!operation) {
-        throw Boom.badRequest('Invalid operation: ' + key)
+        throw badRequest('Invalid operation: ' + key)
       }
 
       if (operation.args.length !== args.length) {
-        throw Boom.badRequest('Invalid number of args for ' + key + '. Expected ' + operation.args.length + ' got ' + args.length)
+        throw badRequest('Invalid number of args for ' + key + '. Expected ' + operation.args.length + ' got ' + args.length)
       }
 
       for (let i = 0; i < operation.args.length; i++) {
@@ -88,7 +90,7 @@ class IPX {
 
       if (!operation.multiply) {
         if (ops[operation.name]) {
-          throw Boom.badRequest(key + ' can be only used once')
+          throw badRequest(key + ' can be only used once')
         }
         ops[operation.name] = true
       }
@@ -112,18 +114,18 @@ class IPX {
     }
 
     if (['jpeg', 'webp', 'png'].indexOf(format) === -1) {
-      throw Boom.badRequest('Invalid format ' + format)
+      throw badRequest(`Unkown image format ${format}`)
     }
 
     // Validate src
     if (!src || src.indexOf('..') >= 0) {
-      throw Boom.notFound()
+      throw notFound()
     }
 
     // Get src stat
     const stats = await this.input.stats(src)
     if (!stats) {
-      throw Boom.notFound()
+      throw notFound()
     }
 
     // Parse and validate operations
@@ -168,15 +170,7 @@ class IPX {
     }
 
     operations.forEach(({ operation, args }) => {
-      try {
-        sharp = operation.handler(this, sharp, ...args)
-      } catch (e) {
-        if (Boom.isBoom(e)) {
-          throw e
-        }
-        console.error(e + '')
-        throw Boom.internal()
-      }
+      sharp = operation.handler(this, sharp, ...args)
     })
     const data = await sharp.toBuffer()
 
