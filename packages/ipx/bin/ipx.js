@@ -5,13 +5,20 @@ const consola = require('consola')
 const { IPX, IPXMiddleware } = require(process.env.IPX_DIST || '..')
 
 async function main () {
+  // Create IPX instance
   const ipx = new IPX()
-  const middleware = IPXMiddleware(ipx)
+
+  // Create a HTTP server
   const app = connect()
+
+  // Create and use middleware
+  const middleware = IPXMiddleware(ipx)
   app.use('/', middleware)
 
-  app.listen(3000, () => {
-    console.log('Listening on port 3000')
+  // Start listening
+  const literner = app.listen(ipx.options.port, () => {
+    const { port } = literner.address()
+    consola.info(`Listening on port ${port}`)
   })
 }
 

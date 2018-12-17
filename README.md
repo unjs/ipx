@@ -115,11 +115,14 @@ Operation    |  Arguments            | Example     | Description
 
 Config can be customized using `IPX_*` environment variables.
 
+- `IPX_PORT` (or `PORT`)
+  Default: `3000`
+
 - `IPX_INPUT_ADAPTER`
-  Default: `fs`
+  - Default: `fs`
 
 - `IPX_INPUT_DIR`
-  Default: `storage`
+  - Default: `storage`
 
 - `IPX_CACHE_ADAPTER`
   - Default: `fs`

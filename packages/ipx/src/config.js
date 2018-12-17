@@ -3,6 +3,7 @@ function env (name, defaultValue) {
 }
 export default function getConfig () {
   return {
+    port: env('IPX_PORT', env('PORT', 3000)),
     input: {
       adapter: env('IPX_INPUT_ADAPTER', 'fs'),
       dir: env('IPX_INPUT_DIR', 'storage')
