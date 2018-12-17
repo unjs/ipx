@@ -3,8 +3,8 @@
 </div>
 
 [![Docker Pulls](https://flat.badgen.net/docker/pulls/pooya/ipx)](https://hub.docker.com/r/pooya/ipx)
-[![NPM Vernion](https://flat.badgen.net/npm/v/ipx/latest)](https://www.npmjs.com/package/ipx)
-[![NPM Downloads](https://flat.badgen.net/npm/dt/ipx/latest)](https://www.npmjs.com/package/ipx)
+[![NPM Vernion](https://flat.badgen.net/npm/v/ipx)](https://www.npmjs.com/package/ipx)
+[![NPM Downloads](https://flat.badgen.net/npm/dt/ipx)](https://www.npmjs.com/package/ipx)
 [![Package Size](https://flat.badgen.net/packagephobia/install/ipx)](https://packagephobia.now.sh/result?p=ipx)
 
 High performance, secure and easy to use image proxy based on [sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/jcupitt/libvips).
@@ -46,18 +46,21 @@ docker run \
 Using docker-compose:
 
 ```yml
-  image: pooya/ipx
-  volumes:
-    - ./storage:/app/storage:ro
-    - ./cache:/app/cache
-  ports:
-    - 3000:3000
+version: '3'
+services:
+  ipx:
+    image: pooya/ipx
+    volumes:
+      - ./storage:/app/storage:ro
+      - ./cache:/app/cache
+    ports:
+      - 3000:3000
 ```
 
 
 ### Programatic Usage
 
-You can use IPX as a Connect/Express middleware or directly IPX class.
+You can use IPX as a Connect/Express middleware or directly use IPX class.
 
 ```js
 import { IPX, IPXMiddleware } from 'ipx'
