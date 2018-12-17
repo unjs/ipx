@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   ipx: {
     input: {
       adapter: 'IPX_INPUT_ADAPTER', // Default: fs.js

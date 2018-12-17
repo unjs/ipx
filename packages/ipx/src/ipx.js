@@ -1,9 +1,8 @@
-const OPERATIONS = require('./operations')
-const { resolve, extname } = require('path')
-const Sharp = require('sharp')
-const { CronJob } = require('cron')
-
-const { badRequest, notFound, consola } = require('./utils')
+import OPERATIONS from './operations'
+import { resolve, extname } from 'path'
+import Sharp from 'sharp'
+import { CronJob } from 'cron'
+import { badRequest, notFound, consola } from './utils'
 
 const operationSeparator = ','
 const argSeparator = '_'
@@ -189,4 +188,4 @@ class IPX {
   }
 }
 
-module.exports = IPX
+export default IPX

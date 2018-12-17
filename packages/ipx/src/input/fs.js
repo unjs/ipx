@@ -1,9 +1,9 @@
+import isValidPath from 'is-valid-path'
+import { resolve, relative } from 'path'
+import { readFile, stat } from 'fs-extra'
 const { isAbsolute } = require('path').posix
-const isValidPath = require('is-valid-path')
-const { resolve, relative } = require('path')
-const { readFile, stat } = require('fs-extra')
 
-module.exports = class FSAdapter {
+export default class FSAdapter {
   constructor (sharp) {
     this.sharp = sharp
     this.options = sharp.options
@@ -46,4 +46,4 @@ module.exports = class FSAdapter {
     const buff = readFile(_src)
     return buff
   }
-}
+};

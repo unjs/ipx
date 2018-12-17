@@ -1,5 +1,5 @@
-const connect = require('connect')
-const IPXMiddleware = require('./middleware')
+import connect from 'connect'
+import IPXMiddleware from './middleware'
 
 const app = connect()
 

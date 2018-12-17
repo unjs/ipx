@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   ipx: {
     input: {
       adapter: 'fs.js',

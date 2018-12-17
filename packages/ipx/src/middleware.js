@@ -1,8 +1,7 @@
-const Config = require('config')
-const getEtag = require('etag')
-
-const IPX = require('./ipx')
-const { badRequest, checkConditionalHeaders } = require('./utils')
+import Config from 'config'
+import getEtag from 'etag'
+import IPX from './ipx'
+import { badRequest, checkConditionalHeaders } from './utils'
 
 const ipx = new IPX(Config.get('ipx'))
 
@@ -55,8 +54,8 @@ async function ipxReqHandler (req, res, next) {
   res.end(data)
 }
 
-module.exports = function ipxMiddleware (req, res, next) {
+export default function ipxMiddleware (req, res, next) {
   ipxReqHandler(req, res, next).catch(err => {
     res.end('IPX Error: ' + err)
   })
-}
+};

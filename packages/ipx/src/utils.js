@@ -1,4 +1,4 @@
-const Consola = require('consola')
+import Consola from 'consola'
 
 const MAX_SIZE = 2048
 
@@ -53,7 +53,7 @@ const VSize = VMax(MAX_SIZE)
 
 const consola = Consola.withTag('ipx')
 
-module.exports = {
+export default {
   badRequest,
   notFound,
   consola,

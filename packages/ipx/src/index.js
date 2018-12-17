@@ -1,8 +1,8 @@
-const IPX = require('./ipx')
-const Utils = require('./utils')
-const Operations = require('./operations')
+import IPX from './ipx'
+import Utils from './utils'
+import Operations from './operations'
 
-module.exports = {
+export default {
   IPX,
   Utils,
   Operations

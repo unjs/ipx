@@ -1,6 +1,6 @@
-const { VSize } = require('./utils')
+import { VSize } from './utils'
 
-module.exports = {
+export default {
   s: {
     name: 'resize',
     args: [ VSize, VSize ],
