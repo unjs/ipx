@@ -2,24 +2,75 @@
 <img src="./logo.png" alt="IPX Logo" />
 </div>
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/pooya/ipx.svg?style=flat-square)]()
-[![Docker Automated build](https://img.shields.io/docker/automated/pooya/ipx.svg?style=flat-square)]()
-[![Docker Build Status](https://img.shields.io/docker/build/pooya/ipx.svg?style=flat-square)]()
+[![Docker Pulls](https://flat.badgen.net/docker/pulls/pooya/ipx)](https://hub.docker.com/r/pooya/ipx)
+[![NPM Vernion](https://flat.badgen.net/npm/v/ipx/latest)](https://www.npmjs.com/package/ipx)
+[![NPM Downloads](https://flat.badgen.net/npm/dt/ipx/latest)](https://www.npmjs.com/package/ipx)
+[![Package Size](https://flat.badgen.net/packagephobia/install/ipx)](https://packagephobia.now.sh/result?p=ipx)
 
-> High performance, secure and easy to use image proxy based on [Sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/jcupitt/libvips).
+High performance, secure and easy to use image proxy based on [sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/jcupitt/libvips).
 
-✅ Fast and minimal as possible.
-✅ Easy deployment.
-✅ Configurable operations.
-✅ Built-in secure cache with human readable entries and resistant against duplicates.
-✅ Remote agnostic cache and input adapters.
-✅ Smart and auto cache cleaning.
-✅ Twelve factor friendly.
-✅ Client libraries for URL generation.
+- Easy deployment
+- Configurable operations
+- Built-in secure cache with human readable entries and resistant against duplicates
+- Adapter based cache and input
+- Auto cache cleaner
+- Twelve factor friendly
+- Client SDK for URL generation
+
+<h2 align="center">Usage</h2>
+
+### Using NPM package
+
+You can use `ipx` command to start server using:
+
+```bash
+$ npx ipx
+```
+
+### Docker Image
+
+Latest docker image is automatically built under [pooya/ipx](https://hub.docker.com/r/pooya/ipx).
+
+Run a test server:
+
+```bash
+docker run \
+  -it \
+  --rm \
+  --volume ./storage:/app/storage:ro \
+  --volume ./cache:/app/cache \
+  --port 3000:3000
+  pooya/ipx
+```
+
+Using docker-compose:
+
+```yml
+  image: pooya/ipx
+  volumes:
+    - ./storage:/app/storage:ro
+    - ./cache:/app/cache
+  ports:
+    - 3000:3000
+```
+
+
+### Programatic Usage
+
+You can use IPX as a Connect/Express middleware or directly IPX class.
+
+```js
+import { IPX, IPXMiddleware } from 'ipx'
+
+const ipx = new IPX(/* options */)
+
+const app = express()
+app.use('/image', IPXMiddleware(ipx))
+```
 
 <h2 align="center">Clients</h2>
 
-- [JS Client](./packages/ipx-client/README.md) for Node.js and Browser.
+See [JS Client](./packages/ipx-client/README.md) for Node.js and Browser SDK.
 
 <h2 align="center">API</h2>
 
@@ -45,32 +96,6 @@ Resize to `200x300px` using `embed` method and change format to `jpg`:
 
 `http://cdn.example.com/jpg/s_200_300,embed/avatars/buffalo.png`
 
-<h2 align="center">Docker deployment</h2>
-
-Latest docker image is automatically built under [pooya/ipx](https://hub.docker.com/r/pooya/ipx).
-
-Quick start:
-
-```bash
-docker run \
-  -it \
-  --rm \
-  --volume ./storage:/app/storage:ro \
-  --volume ./cache:/app/cache \
-  --port 3000:3000
-  pooya/ipx
-```
-
-Using docker-compose:
-
-```yml
-  image: pooya/ipx
-  volumes:
-    - ./storage:/app/storage:ro
-    - ./cache:/app/cache
-  ports:
-    - 3000:3000
-```
 
 <h2 align="center">Operations</h2>
 
@@ -85,22 +110,25 @@ Operation    |  Arguments            | Example     | Description
 
 <h2 align="center">Config</h2>
 
-Config can be customized using `IPX_*` environment variables or `config/local.js` file. Here are defaults:
+Config can be customized using `IPX_*` environment variables.
 
-```js
-  ipx: {
-    input: {
-      adapter: 'IPX_INPUT_ADAPTER', // Default: fs.js
-      dir: 'IPX_INPUT_DIR' // Default: storage
-    },
-    cache: {
-      adapter: 'IPX_CACHE_ADAPTER', // Default: fs.js
-      dir: 'IPX_CACHE_DIR', // Default: cache
-      cleanCron: 'IPX_CACHE_CLEAN_CRON', // Default: 0 0 3 * * * (every night at 3:00 AM)
-      maxUnusedMinutes: 'IPX_CACHE_CLEAN_MINUTES' // Default: 24 * 60 (24 hours)
-    }
-  }
-```
+- `IPX_INPUT_ADAPTER`
+  Default: `fs`
+
+- `IPX_INPUT_DIR`
+  Default: `storage`
+
+- `IPX_CACHE_ADAPTER`
+  - Default: `fs`
+
+- `IPX_CACHE_DIR`
+  - Default: `cache`
+
+- `IPX_CACHE_CLEAN_CRON`
+  - Default: `0 0 3 * * *` (every night at 3:00 AM)
+
+- `IPX_CACHE_CLEAN_MINUTES`
+  - Default: `24 * 60` (24 hours)
 
 <h2 align="center">License</h2>
 

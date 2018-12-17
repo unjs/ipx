@@ -1,11 +1,19 @@
-## IPX client
+<div align="center">
+<img src="../../logo.png" alt="IPX Logo" />
+</div>
+
+[![NPM Vernion](https://flat.badgen.net/npm/v/ipx-client/latest)](https://www.npmjs.com/package/ipx-client)
+[![NPM Downloads](https://flat.badgen.net/npm/dt/ipx-client/latest)](https://www.npmjs.com/package/ipx-client)
+[![Bundle Size](https://flat.badgen.net/bundlephobia/minzip/ipx-client)](https://bundlephobia.com/result?p=ipx-client)
+
+IPX Client for Node.js and Browser
 
 > See [IPX](https://github.com/pi0/ipx) for more information.
 
 Install package:
 
 ```bash
-npm i ipx-client 
+npm i ipx-client
 yarn install ipx-client
 ```
 
