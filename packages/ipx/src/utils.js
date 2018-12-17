@@ -1,3 +1,5 @@
+const Consola = require('consola')
+
 const MAX_SIZE = 2048
 
 const argRegex = /^[a-z0-9]+$/i
@@ -49,9 +51,12 @@ const VMax = max => num => {
 
 const VSize = VMax(MAX_SIZE)
 
+const consola = Consola.withTag('ipx')
+
 module.exports = {
   badRequest,
   notFound,
+  consola,
   checkConditionalHeaders,
   VArg,
   VMax,

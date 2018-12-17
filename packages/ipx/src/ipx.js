@@ -3,9 +3,7 @@ const { resolve, extname } = require('path')
 const Sharp = require('sharp')
 const { CronJob } = require('cron')
 
-const debug = require('debug')('ipx')
-
-const { badRequest, notFound } = require('./utils')
+const { badRequest, notFound, consola } = require('./utils')
 
 const operationSeparator = ','
 const argSeparator = '_'
@@ -54,9 +52,9 @@ class IPX {
     if (this.options.cache.cleanCron) {
       this.cacheCleanCron = new CronJob(
         this.options.cache.cleanCron,
-        () => this.cleanCache().catch(console.error)
+        () => this.cleanCache().catch(consola.error)
       )
-      debug('Starting cache clean cron ' + this.options.cache.cleanCron)
+      consola.info('Starting cache clean cron ' + this.options.cache.cleanCron)
       this.cacheCleanCron.start()
     }
   }
@@ -178,7 +176,7 @@ class IPX {
     try {
       await this.cache.set(cacheKey, data)
     } catch (e) {
-      console.error(e)
+      consola.error(e)
     }
 
     return data
