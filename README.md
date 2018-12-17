@@ -8,18 +8,18 @@
 
 > High performance, secure and easy to use image proxy based on [Sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/jcupitt/libvips).
 
-✅ Fast and minimal as possible.    
-✅ Easy deployment.    
-✅ Configurable operations.    
-✅ Built-in secure cache with human readable entries and resistant against duplicates.    
-✅ Remote agnostic cache and input adapters.    
-✅ Smart and auto cache cleaning.    
-✅ Twelve factor friendly.    
-✅ Client libraries for URL generation.    
+✅ Fast and minimal as possible.
+✅ Easy deployment.
+✅ Configurable operations.
+✅ Built-in secure cache with human readable entries and resistant against duplicates.
+✅ Remote agnostic cache and input adapters.
+✅ Smart and auto cache cleaning.
+✅ Twelve factor friendly.
+✅ Client libraries for URL generation.
 
 <h2 align="center">Clients</h2>
 
-- [JS Client](./client/js/README.md) for Node.js and Browser.
+- [JS Client](./packages/ipx-client/README.md) for Node.js and Browser.
 
 <h2 align="center">API</h2>
 

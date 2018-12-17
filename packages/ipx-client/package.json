@@ -1,0 +1,16 @@
+{
+  "name": "ipx-client",
+  "version": "0.4.2",
+  "license": "MIT",
+  "contributors": [
+    {
+      "name": "Pooya Parsa",
+      "email": "pooya@pi0.ir"
+    }
+  ],
+  "files": [
+    "dist",
+    "src"
+  ],
+  "main": "dist/ipx-client.common.js"
+}
