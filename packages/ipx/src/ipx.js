@@ -3,13 +3,16 @@ import { resolve, extname } from 'path'
 import Sharp from 'sharp'
 import { CronJob } from 'cron'
 import { badRequest, notFound, consola } from './utils'
+import getConfig from './config'
+import * as InputAdapters from './input'
+import * as CacheAdapters from './cache'
 
 const operationSeparator = ','
 const argSeparator = '_'
 
 class IPX {
   constructor (options) {
-    this.options = options
+    this.options = Object.assign({}, getConfig(), options)
     this.operations = {}
     this.adapter = null
 
@@ -36,16 +39,22 @@ class IPX {
     // Create instance of input
     let InputCtor = this.options.input.adapter
     if (typeof InputCtor === 'string') {
-      InputCtor = require(resolve(__dirname, 'input', InputCtor))
+      InputCtor = InputAdapters[InputCtor] || require(resolve(InputCtor))
     }
     this.input = new InputCtor(this)
+    if (typeof this.input.init === 'function') {
+      this.input.init()
+    }
 
     // Create instance of cache
     let CacheCtor = this.options.cache.adapter
     if (typeof CacheCtor === 'string') {
-      CacheCtor = require(resolve(__dirname, 'cache', CacheCtor))
+      CacheCtor = CacheAdapters[CacheCtor] || require(resolve(CacheCtor))
     }
     this.cache = new CacheCtor(this)
+    if (typeof this.cache.init === 'function') {
+      this.cache.init()
+    }
 
     // Start cache cleaning cron
     if (this.options.cache.cleanCron) {

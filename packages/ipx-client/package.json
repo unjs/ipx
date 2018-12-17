@@ -1,6 +1,7 @@
 {
   "name": "ipx-client",
   "version": "0.4.2",
+  "repository": "jeless/ipx",
   "license": "MIT",
   "contributors": [
     {
@@ -9,8 +10,12 @@
     }
   ],
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
-  "main": "dist/ipx-client.common.js"
+  "main": "dist/ipx-client.common.js",
+  "module": "dist/ipx-client.es.js",
+  "browser": "dist/ipx-client.js",
+  "scripts": {
+    "build": "bili --format umd,cjs,es src/index.js"
+  }
 }

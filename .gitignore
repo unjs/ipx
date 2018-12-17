@@ -3,8 +3,6 @@ node_modules
 .idea
 *.log
 .DS_Store
+dist
 cache
 storage
-!packages/ipx/srccache
-config/local.*
-dist

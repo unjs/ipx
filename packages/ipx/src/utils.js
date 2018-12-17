@@ -5,7 +5,7 @@ const MAX_SIZE = 2048
 const argRegex = /^[a-z0-9]+$/i
 const numRegex = /^[1-9][0-9]*$/
 
-function checkConditionalHeaders (req, lastModified, etag) {
+export function checkConditionalHeaders (req, lastModified, etag) {
   // If-None-Match header
   const ifNoneMatch = req.headers['if-none-match']
   if (ifNoneMatch === etag) {
@@ -23,42 +23,32 @@ function checkConditionalHeaders (req, lastModified, etag) {
   return false
 }
 
-function badRequest (msg) {
+export function badRequest (msg) {
   const err = new Error('Bad Request: ' + msg)
-  err.code = 400
+  err.statusCode = 400
   return err
 }
 
-function notFound () {
+export function notFound () {
   const err = new Error('Not Found')
-  err.code = 404
+  err.statusCode = 404
   return err
 }
 
-const VArg = arg => {
+export const VArg = arg => {
   if (!argRegex.test(arg)) {
     throw badRequest('Invalid argument: ' + arg)
   }
   return arg
 }
 
-const VMax = max => num => {
+export const VMax = max => num => {
   if (!numRegex.test(num)) {
     throw badRequest('Invalid numeric argument: ' + num)
   }
   return Math.min(parseInt(num), max) || null
 }
 
-const VSize = VMax(MAX_SIZE)
+export const VSize = VMax(MAX_SIZE)
 
-const consola = Consola.withTag('ipx')
-
-export default {
-  badRequest,
-  notFound,
-  consola,
-  checkConditionalHeaders,
-  VArg,
-  VMax,
-  VSize
-}
+export const consola = Consola.withTag('ipx')

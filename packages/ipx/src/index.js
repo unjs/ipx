@@ -1,9 +1,2 @@
-import IPX from './ipx'
-import Utils from './utils'
-import Operations from './operations'
-
-export default {
-  IPX,
-  Utils,
-  Operations
-}
+export { default as IPX } from './ipx'
+export { default as IPXMiddleware } from './middleware'

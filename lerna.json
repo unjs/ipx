@@ -1,8 +1,18 @@
 {
-  "version": "independent",
+  "npmClient": "yarn",
   "useWorkspaces": true,
-  "npmClient": "npm",
+  "conventionalCommits": true,
+  "exact": true,
   "packages": [
     "packages/*"
-  ]
+  ],
+  "command": {
+    "publish": {
+      "npmClient": "npm"
+    },
+    "init": {
+      "exact": true
+    }
+  },
+  "version": "independent"
 }

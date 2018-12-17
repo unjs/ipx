@@ -1,16 +1,12 @@
-import Config from 'config'
 import getEtag from 'etag'
-import IPX from './ipx'
 import { badRequest, checkConditionalHeaders } from './utils'
 
-const ipx = new IPX(Config.get('ipx'))
-
-async function ipxReqHandler (req, res, next) {
+async function IPXReqHandler (req, res, ipx) {
   // Parse URL
-  const urlArgs = decodeURIComponent(req.url.substr(1)).split('/')
-  const format = urlArgs.shift()
-  const operations = urlArgs.shift()
-  const src = urlArgs.join('/')
+  const urlArgs = req.url.substr(1).split('/')
+  const format = decodeURIComponent(urlArgs.shift())
+  const operations = decodeURIComponent(urlArgs.shift())
+  const src = urlArgs.map(c => decodeURIComponent(c)).join('/')
 
   // Validate params
   if (!format) {
@@ -54,8 +50,13 @@ async function ipxReqHandler (req, res, next) {
   res.end(data)
 }
 
-export default function ipxMiddleware (req, res, next) {
-  ipxReqHandler(req, res, next).catch(err => {
-    res.end('IPX Error: ' + err)
-  })
-};
+export default function IPXMiddleware (ipx) {
+  return function IPXMiddleware (req, res) {
+    IPXReqHandler(req, res, ipx).catch(err => {
+      if (err.statusCode) {
+        res.statusCode = err.statusCode
+      }
+      res.end('IPX Error: ' + err)
+    })
+  }
+}

@@ -4,9 +4,8 @@ import { readFile, stat } from 'fs-extra'
 const { isAbsolute } = require('path').posix
 
 export default class FSAdapter {
-  constructor (sharp) {
-    this.sharp = sharp
-    this.options = sharp.options
+  constructor (ipx) {
+    this.options = ipx.options
   }
 
   get dir () {
