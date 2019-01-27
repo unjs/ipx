@@ -7,7 +7,8 @@
     "start": "cross-env DEBUG=1 IPX_DIST=../src node -r esm packages/ipx/bin/ipx.js",
     "dev": "nodemon",
     "build": "lerna run build",
-    "prepublish": "yarn build"
+    "prepublish": "yarn build",
+    "release": "lerna publish --conventional-commits"
   },
   "devDependencies": {
     "bili": "^3.4.2",
