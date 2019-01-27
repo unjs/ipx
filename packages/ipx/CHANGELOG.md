@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.1](https://github.com/jsless/ipx/compare/ipx@0.3.0...ipx@0.3.1) (2019-01-27)
+
+**Note:** Version bump only for package ipx
+
+
+
+
+
 # 0.3.0 (2018-12-17)
 
 
