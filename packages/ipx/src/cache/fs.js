@@ -3,7 +3,7 @@ import recursiveReadDir from 'recursive-readdir'
 import { mkdirpSync, mkdirp, exists, readFile, writeFile, stat, remove } from 'fs-extra'
 import consola from 'consola'
 
-module.exports = class FSCache {
+export default class FSCache {
   constructor (ipx) {
     this.ipx = ipx
     this.options = ipx.options
