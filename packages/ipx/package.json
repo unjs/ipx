@@ -16,16 +16,26 @@
   "module": "dist/ipx.es.js",
   "bin": "bin/ipx.js",
   "scripts": {
-    "build": "bili --format cjs,es src/index.js"
+    "build": "bili --format cjs,es src/index.ts"
   },
   "dependencies": {
+    "@types/etag": "^1.8.0",
     "connect": "^3.7.0",
     "consola": "^2.15.0",
     "cron": "^1.8.2",
+    "defu": "^3.1.0",
     "etag": "^1.8.1",
     "fs-extra": "^9.0.1",
     "is-valid-path": "^0.1.1",
     "recursive-readdir": "^2.2.2",
     "sharp": "^0.26.0"
+  },
+  "devDependencies": {
+    "@types/connect": "^3.4.33",
+    "@types/cron": "^1.7.2",
+    "@types/fs-extra": "^9.0.1",
+    "@types/is-valid-path": "^0.1.0",
+    "@types/recursive-readdir": "^2.2.0",
+    "@types/sharp": "^0.25.1"
   }
 }

@@ -1,18 +1,31 @@
 import OPERATIONS from './operations'
 import { resolve, extname } from 'path'
 import Sharp from 'sharp'
+import defu from 'defu'
 import { CronJob } from 'cron'
 import { badRequest, notFound, consola } from './utils'
 import getConfig from './config'
 import * as InputAdapters from './input'
 import * as CacheAdapters from './cache'
+import { IPXImage, IPXImageInfo, IPXOperations, IPXOptions, IPXParsedOperation } from './types'
+import { Stats } from 'fs-extra'
+import BaseInputAdapter from './input/BaseInputAdapter'
+import BaseCacheAdapter from './cache/BaseCacheAdapter'
 
 const operationSeparator = ','
 const argSeparator = '_'
 
 class IPX {
-  constructor (options) {
-    this.options = Object.assign({}, getConfig(), options)
+  options: IPXOptions
+  operations: IPXOperations
+  adapter: any
+  input: BaseInputAdapter | undefined
+  cache: BaseCacheAdapter | undefined
+
+  private cacheCleanCron: CronJob | undefined
+
+  constructor (options: IPXOptions) {
+    this.options = defu(options, getConfig())
     this.operations = {}
     this.adapter = null
 
@@ -26,7 +39,8 @@ class IPX {
       .filter(_key => _operations[_key])
       .forEach(_key => {
         const operation = _operations[_key]
-        const key = _key || operation.key
+        const key = _key || operation.key!
+        
         this.operations[key] = {
           name: operation.name || key,
           handler: operation.handler || operation,
@@ -37,9 +51,13 @@ class IPX {
       })
 
     // Create instance of input
-    let InputCtor = this.options.input.adapter
-    if (typeof InputCtor === 'string') {
-      InputCtor = InputAdapters[InputCtor] || require(resolve(InputCtor))
+    let InputCtor: { new(ipx: IPX): BaseInputAdapter }
+    if (typeof this.options.input.adapter === 'string') {
+      const adapter = this.options.input.adapter
+
+      InputCtor = (InputAdapters as any)[adapter] || require(resolve(adapter))
+    } else {
+      InputCtor = this.options.input.adapter
     }
     this.input = new InputCtor(this)
     if (typeof this.input.init === 'function') {
@@ -47,9 +65,12 @@ class IPX {
     }
 
     // Create instance of cache
-    let CacheCtor = this.options.cache.adapter
-    if (typeof CacheCtor === 'string') {
-      CacheCtor = CacheAdapters[CacheCtor] || require(resolve(CacheCtor))
+    let CacheCtor: { new(ipx: IPX): BaseCacheAdapter }
+    if (typeof this.options.cache.adapter === 'string') {
+      const adapter = this.options.cache.adapter
+      CacheCtor = (CacheAdapters as any)[adapter] || require(resolve(adapter))
+    } else {
+      CacheCtor = this.options.cache.adapter
     }
     this.cache = new CacheCtor(this)
     if (typeof this.cache.init === 'function') {
@@ -71,8 +92,8 @@ class IPX {
    * Parse operations
    * @param {String} operations
    */
-  parseOperations (operations) {
-    const ops = {}
+  parseOperations (operations: string): IPXParsedOperation[] {
+    const ops: { [key: string]: true } = {}
 
     if (operations === '_') {
       return []
@@ -109,7 +130,7 @@ class IPX {
     })
   }
 
-  async getInfo ({ format, operations, src }) {
+  async getInfo ({ format, operations, src }: IPXImage): Promise<IPXImageInfo> {
     // Validate format
     if (format === '_') {
       format = extname(src).substr(1)
@@ -129,7 +150,7 @@ class IPX {
     }
 
     // Get src stat
-    const stats = await this.input.stats(src)
+    const stats = await this.input!.stats(src)
     if (!stats) {
       throw notFound()
     }
@@ -138,10 +159,10 @@ class IPX {
     let _operations = this.parseOperations(operations)
 
     // Reorder operations
-    _operations = [].concat(
-      _operations.filter(o => o.operation.order !== true).sort(),
-      _operations.filter(o => o.operation.order === true)
-    )
+    _operations = [
+      ..._operations.filter(o => o.operation.order !== true).sort(),
+      ..._operations.filter(o => o.operation.order === true)
+    ]
 
     // Compute unique hash key
     const operationsKey = _operations.length ? _operations.map(o => o.cacheKey).join(argSeparator) : '_'
@@ -158,18 +179,18 @@ class IPX {
     }
   }
 
-  async getData ({ cacheKey, stats, operations, format, src }) {
+  async getData ({ cacheKey, stats, operations, format, src }: IPXImageInfo) {
     // Check cache existence
-    const cache = await this.cache.get(cacheKey)
+    const cache = await this.cache!.get(cacheKey)
     if (cache) {
       return cache
     }
 
     // Read buffer from input
-    const srcBuff = await this.input.get(src)
+    const srcBuff = await this.input!.get(src)
 
     // Process using Sharp
-    let sharp = new Sharp(srcBuff)
+    let sharp = Sharp(srcBuff)
 
     if (format !== '_') {
       sharp = sharp.toFormat(format)
@@ -182,7 +203,7 @@ class IPX {
 
     // Put data into cache
     try {
-      await this.cache.set(cacheKey, data)
+      await this.cache!.set(cacheKey, data)
     } catch (e) {
       consola.error(e)
     }

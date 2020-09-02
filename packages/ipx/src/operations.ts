@@ -1,6 +1,7 @@
+import { IPXOperation, IPXOperations } from './types'
 import { VSize } from './utils'
 
-export default {
+export default <IPXOperations>{
   s: {
     name: 'resize',
     args: [ VSize, VSize ],
@@ -21,16 +22,19 @@ export default {
 
   embed: {
     name: 'embed',
+    args: [],
     handler: (context, pipe) => pipe.embed()
   },
 
   max: {
     name: 'max',
+    args: [],
     handler: (context, pipe) => pipe.max()
   },
 
   min: {
     name: 'min',
+    args: [],
     handler: (context, pipe) => pipe.min()
   }
 }
