@@ -106,8 +106,10 @@ class IPX {
       if (!operation) {
         throw badRequest('Invalid operation: ' + key)
       }
-
-      if (operation.args.length !== args.length) {
+      /**
+       * allow optional arguments for operations
+       */
+      if (operation.args.length > args.length) {
         throw badRequest('Invalid number of args for ' + key + '. Expected ' + operation.args.length + ' got ' + args.length)
       }
 
