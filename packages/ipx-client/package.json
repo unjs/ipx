@@ -1,6 +1,6 @@
 {
   "name": "ipx-client",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "repository": "nuxt-contrib/ipx",
   "license": "MIT",
   "main": "dist/ipx-client.cjs.js",
