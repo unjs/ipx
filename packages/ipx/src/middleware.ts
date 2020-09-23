@@ -1,11 +1,14 @@
+import { ServerResponse, IncomingMessage } from 'http'
 import getEtag from 'etag'
+import IPX from './ipx'
 import { badRequest, checkConditionalHeaders } from './utils'
 
-async function IPXReqHandler (req, res, ipx) {
+async function IPXReqHandler (req: IncomingMessage, res: ServerResponse, ipx: IPX) {
   // Parse URL
-  const urlArgs = req.url.substr(1).split('/')
-  const format = decodeURIComponent(urlArgs.shift())
-  const operations = decodeURIComponent(urlArgs.shift())
+  const url = req.url || '/'
+  const urlArgs = url.substr(1).split('/')
+  const format = decodeURIComponent(urlArgs.shift() || '')
+  const operations = decodeURIComponent(urlArgs.shift() || '')
   const src = urlArgs.map(c => decodeURIComponent(c)).join('/')
 
   // Validate params
@@ -29,18 +32,20 @@ async function IPXReqHandler (req, res, ipx) {
     res.setHeader('Content-Type', 'image')
   }
 
-  // Set Last-Modified Header
-  const lastModified = info.stats.mtime || new Date()
-  res.setHeader('Last-Modified', lastModified)
-
   // Set Etag header
   const etag = getEtag(info.cacheKey)
   res.setHeader('Etag', etag)
 
-  // Check conditional headers for 304
-  if (checkConditionalHeaders(req, lastModified, etag)) {
-    res.statusCode = 304
-    return res.end()
+  if (info.stats) {
+    // Set Last-Modified Header
+    const lastModified = info.stats.mtime || new Date()
+    res.setHeader('Last-Modified', +lastModified)
+
+    // Check conditional headers for 304
+    if (checkConditionalHeaders(req, lastModified, etag)) {
+      res.statusCode = 304
+      return res.end()
+    }
   }
 
   // Process request to get image
@@ -50,9 +55,9 @@ async function IPXReqHandler (req, res, ipx) {
   res.end(data)
 }
 
-export default function IPXMiddleware (ipx) {
-  return function IPXMiddleware (req, res) {
-    IPXReqHandler(req, res, ipx).catch(err => {
+export default function IPXMiddleware (ipx: IPX) {
+  return function IPXMiddleware (req: IncomingMessage, res: ServerResponse) {
+    IPXReqHandler(req, res, ipx).catch((err) => {
       if (err.statusCode) {
         res.statusCode = err.statusCode
       }

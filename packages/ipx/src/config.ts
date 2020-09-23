@@ -1,7 +1,9 @@
-function env (name, defaultValue) {
+import { IPXOptions } from './types'
+
+function env (name: string, defaultValue: any) {
   return process.env[name] || defaultValue
 }
-export default function getConfig () {
+export default function getConfig (): IPXOptions {
   return {
     port: env('IPX_PORT', env('PORT', 3000)),
     input: {

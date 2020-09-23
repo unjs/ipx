@@ -25,7 +25,7 @@ export const img = ({
 
   // Attach all presets
   if (presets) {
-    Object.keys(presets).forEach(key => {
+    Object.keys(presets).forEach((key) => {
       const preset = presets[key]
       const presetOpts = normalize(preset.opts)
       fn[key] = (path, _opts, _format) => fn(path, _opts || presetOpts, _format || preset.format)
