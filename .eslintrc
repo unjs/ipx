@@ -1,12 +1,5 @@
 {
   "extends": [
-    "standard"
-  ],
-  "env": {
-    "node": true
-  },
-  "parserOptions": {
-    "ecmaVersion": 8,
-    "sourceType": "module"
-  }
+    "@nuxtjs/eslint-config-typescript"
+  ]
 }

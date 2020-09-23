@@ -4,7 +4,7 @@ const consola = require('consola')
 
 const { IPX, IPXMiddleware } = require(process.env.IPX_DIST || '..')
 
-async function main () {
+function main () {
   // Create IPX instance
   const ipx = new IPX()
 
@@ -22,4 +22,4 @@ async function main () {
   })
 }
 
-main().catch(consola.error)
+main()

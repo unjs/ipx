@@ -1,14 +1,13 @@
-import OPERATIONS from './operations'
 import { resolve, extname } from 'path'
 import Sharp from 'sharp'
 import defu from 'defu'
 import { CronJob } from 'cron'
+import OPERATIONS from './operations'
 import { badRequest, notFound, consola } from './utils'
 import getConfig from './config'
 import * as InputAdapters from './input'
 import * as CacheAdapters from './cache'
 import { IPXImage, IPXImageInfo, IPXOperations, IPXOptions, IPXParsedOperation } from './types'
-import { Stats } from 'fs-extra'
 import BaseInputAdapter from './input/BaseInputAdapter'
 import BaseCacheAdapter from './cache/BaseCacheAdapter'
 
@@ -37,10 +36,10 @@ class IPX {
     const _operations = Object.assign({}, OPERATIONS, this.options.operations)
     Object.keys(_operations)
       .filter(_key => _operations[_key])
-      .forEach(_key => {
+      .forEach((_key) => {
         const operation = _operations[_key]
         const key = _key || operation.key!
-        
+
         this.operations[key] = {
           name: operation.name || key,
           handler: operation.handler || operation,
@@ -99,8 +98,8 @@ class IPX {
       return []
     }
 
-    return operations.split(operationSeparator).map(_o => {
-      let [key, ...args] = _o.split(argSeparator)
+    return operations.split(operationSeparator).map((_o) => {
+      const [key, ...args] = _o.split(argSeparator)
 
       const operation = this.operations[key]
       if (!operation) {
@@ -142,12 +141,12 @@ class IPX {
       format = 'jpeg'
     }
 
-    if (['jpeg', 'webp', 'png'].indexOf(format) === -1) {
+    if (!['jpeg', 'webp', 'png'].includes(format)) {
       throw badRequest(`Unkown image format ${format}`)
     }
 
     // Validate src
-    if (!src || src.indexOf('..') >= 0) {
+    if (!src || src.includes('..')) {
       throw notFound()
     }
 
@@ -181,7 +180,7 @@ class IPX {
     }
   }
 
-  async getData ({ cacheKey, stats, operations, format, src }: IPXImageInfo) {
+  async getData ({ cacheKey, operations, format, src }: IPXImageInfo) {
     // Check cache existence
     const cache = await this.cache!.get(cacheKey)
     if (cache) {

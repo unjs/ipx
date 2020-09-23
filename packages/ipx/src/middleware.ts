@@ -1,11 +1,11 @@
-import getEtag from 'etag'
-import IPX from './IPX'
-import { badRequest, checkConditionalHeaders } from './utils'
 import { ServerResponse, IncomingMessage } from 'http'
+import getEtag from 'etag'
+import IPX from './ipx'
+import { badRequest, checkConditionalHeaders } from './utils'
 
 async function IPXReqHandler (req: IncomingMessage, res: ServerResponse, ipx: IPX) {
   // Parse URL
-  const url = req.url || "/"
+  const url = req.url || '/'
   const urlArgs = url.substr(1).split('/')
   const format = decodeURIComponent(urlArgs.shift() || '')
   const operations = decodeURIComponent(urlArgs.shift() || '')
@@ -48,7 +48,6 @@ async function IPXReqHandler (req: IncomingMessage, res: ServerResponse, ipx: IP
     }
   }
 
-
   // Process request to get image
   const data = await ipx.getData(info)
 
@@ -58,7 +57,7 @@ async function IPXReqHandler (req: IncomingMessage, res: ServerResponse, ipx: IP
 
 export default function IPXMiddleware (ipx: IPX) {
   return function IPXMiddleware (req: IncomingMessage, res: ServerResponse) {
-    IPXReqHandler(req, res, ipx).catch(err => {
+    IPXReqHandler(req, res, ipx).catch((err) => {
       if (err.statusCode) {
         res.statusCode = err.statusCode
       }

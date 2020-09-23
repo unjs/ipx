@@ -1,7 +1,7 @@
-import { Stats } from "fs-extra";
-import BaseCacheAdapter from "./cache/BaseCacheAdapter";
-import BaseInputAdapter from "./input/BaseInputAdapter";
-import IPX from "./IPX";
+import { Stats } from 'fs-extra'
+import BaseCacheAdapter from './cache/BaseCacheAdapter'
+import BaseInputAdapter from './input/BaseInputAdapter'
+import IPX from './ipx'
 
 export type IPXOperationHandler = (context: any, pipe: any, ...args:any[]) => any
 
@@ -26,7 +26,7 @@ export interface IPXParsedOperation {
 export interface IPXOptions {
     port: number;
     input: {
-        adapter: string  | { new(ipx: IPX): BaseInputAdapter };
+        adapter: string | { new(ipx: IPX): BaseInputAdapter };
         dir: string;
     },
     cache: {

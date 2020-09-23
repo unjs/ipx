@@ -1,25 +1,18 @@
 {
   "name": "ipx",
   "version": "0.3.1",
+  "repository": "nuxt-contrib/ipx",
   "license": "MIT",
-  "contributors": [
-    {
-      "name": "Pooya Parsa",
-      "email": "pooya@pi0.ir"
-    }
-  ],
+  "main": "dist/ipx.cjs.js",
+  "bin": "bin/ipx.js",
   "files": [
     "dist",
     "bin"
   ],
-  "main": "dist/ipx.cjs.js",
-  "module": "dist/ipx.es.js",
-  "bin": "bin/ipx.js",
   "scripts": {
-    "build": "bili --format cjs,es src/index.ts"
+    "build": "bili --format cjs src/index.ts"
   },
   "dependencies": {
-    "@types/etag": "^1.8.0",
     "connect": "^3.7.0",
     "consola": "^2.15.0",
     "cron": "^1.8.2",
@@ -29,13 +22,5 @@
     "is-valid-path": "^0.1.1",
     "recursive-readdir": "^2.2.2",
     "sharp": "^0.26.0"
-  },
-  "devDependencies": {
-    "@types/connect": "^3.4.33",
-    "@types/cron": "^1.7.2",
-    "@types/fs-extra": "^9.0.1",
-    "@types/is-valid-path": "^0.1.0",
-    "@types/recursive-readdir": "^2.2.0",
-    "@types/sharp": "^0.25.1"
   }
 }

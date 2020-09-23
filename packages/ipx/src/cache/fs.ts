@@ -5,7 +5,6 @@ import consola from 'consola'
 import BaseCacheAdapter from './BaseCacheAdapter'
 
 export default class FSCache extends BaseCacheAdapter {
-
   init () {
     // Ensure cacheDir exists
     if (this.options.cache.dir) {
@@ -13,7 +12,7 @@ export default class FSCache extends BaseCacheAdapter {
     }
   }
 
-  async resolve (key: string) {
+  resolve (key: string) {
     return resolve(this.options.cache.dir, key)
   }
 
@@ -25,7 +24,7 @@ export default class FSCache extends BaseCacheAdapter {
     const files = await recursiveReadDir(this.options.cache.dir)
 
     // Stat all files
-    let items = await Promise.all(files.map(async file => {
+    let items = await Promise.all(files.map(async (file) => {
       const stats = await stat(file)
       return {
         file,
@@ -37,7 +36,7 @@ export default class FSCache extends BaseCacheAdapter {
     const maxUnusedMinutes = +this.options.cache.maxUnusedMinutes
     items = items.filter(item => item.lastAccessAgo >= maxUnusedMinutes)
 
-    await Promise.all(items.map(async item => {
+    await Promise.all(items.map(async (item) => {
       consola.debug('[DELETE] ' + item.file)
       await remove(item.file)
     }))
