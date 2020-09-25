@@ -1,27 +1,23 @@
+import { resolve, posix, relative } from 'path'
 import isValidPath from 'is-valid-path'
-import { resolve, relative } from 'path'
-import { readFile, stat } from 'fs-extra'
-const { isAbsolute } = require('path').posix
+import { readFile, stat, Stats } from 'fs-extra'
+import BaseInputAdapter from './BaseInputAdapter'
 
-export default class FSAdapter {
-  constructor (ipx) {
-    this.options = ipx.options
-  }
-
+export default class FSAdapter extends BaseInputAdapter {
   get dir () {
     return this.options.input.dir
   }
 
-  _resolve (src) {
+  _resolve (src: string) {
     return resolve(this.dir, src)
   }
 
-  async stats (src) {
-    if (isAbsolute(src) || !isValidPath(src)) {
+  async stats (src: string): Promise<Stats | false> {
+    if (posix.isAbsolute(src) || !isValidPath(src)) {
       return false
     }
 
-    const _src = this._resolve(src)
+    const _src = await this._resolve(src)
 
     if (relative(this.dir, _src).includes('..')) {
       return false
@@ -40,8 +36,8 @@ export default class FSAdapter {
    * @param {String} src
    * @returns Promise<Buffer>
    */
-  get (src) {
-    const _src = this._resolve(src)
+  async get (src: string) {
+    const _src = await this._resolve(src)
     const buff = readFile(_src)
     return buff
   }

@@ -2,15 +2,9 @@ import { resolve, dirname } from 'path'
 import recursiveReadDir from 'recursive-readdir'
 import { mkdirpSync, mkdirp, exists, readFile, writeFile, stat, remove } from 'fs-extra'
 import consola from 'consola'
+import BaseCacheAdapter from './BaseCacheAdapter'
 
-export default class FSCache {
-  constructor (ipx) {
-    this.ipx = ipx
-    this.options = ipx.options
-
-    this.init()
-  }
-
+export default class FSCache extends BaseCacheAdapter {
   init () {
     // Ensure cacheDir exists
     if (this.options.cache.dir) {
@@ -18,19 +12,19 @@ export default class FSCache {
     }
   }
 
-  resolve (key) {
+  resolve (key: string) {
     return resolve(this.options.cache.dir, key)
   }
 
   async clean () {
     const now = new Date()
-    const diffMins = t => ((now - t) / (1000 * 60))
+    const diffMins = (t: Date) => ((+now - +t) / (1000 * 60))
 
     // Scan all files
     const files = await recursiveReadDir(this.options.cache.dir)
 
     // Stat all files
-    let items = await Promise.all(files.map(async file => {
+    let items = await Promise.all(files.map(async (file) => {
       const stats = await stat(file)
       return {
         file,
@@ -39,17 +33,18 @@ export default class FSCache {
     }))
 
     // Filter items to be invalidated from cache
-    const maxUnusedMinutes = parseInt(this.options.cache.maxUnusedMinutes)
+    const maxUnusedMinutes = +this.options.cache.maxUnusedMinutes
     items = items.filter(item => item.lastAccessAgo >= maxUnusedMinutes)
 
-    await Promise.all(items.map(async item => {
+    await Promise.all(items.map(async (item) => {
       consola.debug('[DELETE] ' + item.file)
       await remove(item.file)
     }))
   }
 
-  async get (key) {
-    const _path = this.resolve(key)
+  async get (key: string) {
+    const _path = await this.resolve(key)
+    // @ts-ignore
     if (!(await exists(_path))) {
       return null
     }
@@ -57,8 +52,8 @@ export default class FSCache {
     return readFile(_path)
   }
 
-  async set (key, data) {
-    const _path = this.resolve(key)
+  async set (key: string, data: Buffer) {
+    const _path = await this.resolve(key)
     await mkdirp(dirname(_path))
     return writeFile(_path, data)
   }

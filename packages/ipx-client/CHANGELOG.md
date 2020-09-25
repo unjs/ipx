@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.5.2](https://github.com/nuxt-contrib/ipx/compare/ipx-client@0.5.1...ipx-client@0.5.2) (2020-09-23)
+
+**Note:** Version bump only for package ipx-client
+
+
+
+
+
 ## [0.5.1](https://github.com/jeless/ipx/compare/ipx-client@0.5.0...ipx-client@0.5.1) (2019-01-27)
 
 **Note:** Version bump only for package ipx-client
