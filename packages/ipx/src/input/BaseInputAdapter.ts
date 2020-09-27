@@ -14,6 +14,7 @@ export default abstract class BaseInputAdapter {
     }
 
     init (): void {}
+    abstract test(src: string): Boolean;
     abstract get (src: string): Promise<Buffer>;
     abstract stats (src: string): Promise<Stats | false>;
 }

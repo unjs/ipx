@@ -2,14 +2,9 @@ import { stat, Stats } from 'fs-extra'
 import fetch from 'node-fetch'
 import BaseInputAdapter from './BaseInputAdapter'
 
-function isRemote(url: string) {
-  return url.startsWith('http');
-}
-
 export default class RemoteAdapter extends BaseInputAdapter {
-  
   async _retrive (src: string) {
-    const cacheKey = src.split(/[\?#]/).shift()?.split('//').pop()!;
+    const cacheKey = src.split(/[?#]/).shift()?.split('//').pop()!
     const cache = await this.ipx.cache?.get(cacheKey)
     if (cache) {
       return {
@@ -19,15 +14,23 @@ export default class RemoteAdapter extends BaseInputAdapter {
     }
     const response = await fetch(src)
     const buffer = await response.buffer()
-    this.ipx.cache?.set(cacheKey, buffer)
+
+    if (this.ipx.cache) {
+      this.ipx.cache.set(cacheKey, buffer)
+    }
+
     return {
       cache: await this.ipx.cache?.resolve(cacheKey),
       buffer
     }
   }
 
+  test (src: string) {
+    return src.startsWith('http')
+  }
+
   async stats (src: string): Promise<Stats | false> {
-    if (!isRemote(src)) {
+    if (!this.test(src)) {
       return false
     }
     const _src = await this._retrive(src)

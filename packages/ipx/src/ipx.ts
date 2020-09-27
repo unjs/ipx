@@ -2,6 +2,7 @@ import { resolve, extname } from 'path'
 import Sharp from 'sharp'
 import defu from 'defu'
 import { CronJob } from 'cron'
+import { Stats } from 'fs-extra'
 import OPERATIONS from './operations'
 import { badRequest, notFound, consola } from './utils'
 import getConfig from './config'
@@ -18,7 +19,7 @@ class IPX {
   options: IPXOptions
   operations: IPXOperations
   adapter: any
-  input: BaseInputAdapter | undefined
+  inputs: BaseInputAdapter[] = []
   cache: BaseCacheAdapter | undefined
 
   private cacheCleanCron: CronJob | undefined
@@ -49,19 +50,8 @@ class IPX {
         }
       })
 
-    // Create instance of input
-    let InputCtor: { new(ipx: IPX): BaseInputAdapter }
-    if (typeof this.options.input.adapter === 'string') {
-      const adapter = this.options.input.adapter
-
-      InputCtor = (InputAdapters as any)[adapter] || require(resolve(adapter))
-    } else {
-      InputCtor = this.options.input.adapter
-    }
-    this.input = new InputCtor(this)
-    if (typeof this.input.init === 'function') {
-      this.input.init()
-    }
+    const adapters: any[] = Array.isArray(this.options.input.adapter) ? this.options.input.adapter : [this.options.input.adapter]
+    this.initInputAdapters(adapters)
 
     // Create instance of cache
     let CacheCtor: { new(ipx: IPX): BaseCacheAdapter }
@@ -151,7 +141,7 @@ class IPX {
     }
 
     // Get src stat
-    const stats = await this.input!.stats(src)
+    const stats = await this.stats(src)
     if (!stats) {
       throw notFound()
     }
@@ -188,7 +178,7 @@ class IPX {
     }
 
     // Read buffer from input
-    const srcBuff = await this.input!.get(src)
+    const srcBuff = await this.get(src)
 
     // Process using Sharp
     let sharp = Sharp(srcBuff)
@@ -216,6 +206,37 @@ class IPX {
     if (this.cache) {
       await this.cache.clean()
     }
+  }
+
+  private initInputAdapters (adapters: any) {
+    this.inputs = adapters.map((adapter: any): BaseInputAdapter => {
+      // Create instance of input
+      let InputCtor: { new(ipx: IPX): BaseInputAdapter }
+      if (typeof adapter === 'string') {
+        InputCtor = (InputAdapters as any)[adapter] || require(resolve(adapter))
+      } else {
+        InputCtor = adapter
+      }
+      const input = new InputCtor(this)
+      if (typeof input.init === 'function') {
+        input.init()
+      }
+      return input
+    })
+  }
+
+  private async stats (src: string): Promise<Stats | false> {
+    const input = this.inputs.find(inp => inp.test(src))
+    if (input) {
+      return await input.stats(src)
+    }
+    return false
+  }
+
+  private async get (src: string) {
+    const input = this.inputs.find(inp => inp.test(src))
+
+    return await input!.get(src)
   }
 }
 

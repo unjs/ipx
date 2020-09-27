@@ -12,8 +12,15 @@ export default class FSAdapter extends BaseInputAdapter {
     return resolve(this.dir, src)
   }
 
-  async stats (src: string): Promise<Stats | false> {
+  test (src: string) {
     if (posix.isAbsolute(src) || !isValidPath(src)) {
+      return false
+    }
+    return true
+  }
+
+  async stats (src: string): Promise<Stats | false> {
+    if (!this.test(src)) {
       return false
     }
 
