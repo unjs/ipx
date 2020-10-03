@@ -3,6 +3,8 @@ import fetch from 'node-fetch'
 import BaseInputAdapter from './BaseInputAdapter'
 
 export default class RemoteAdapter extends BaseInputAdapter {
+  name: string = 'remote'
+
   async _retrive (src: string) {
     const cacheKey = src.split(/[?#]/).shift()?.split('//').pop()!
     const cache = await this.ipx.cache?.get(cacheKey)
@@ -25,12 +27,8 @@ export default class RemoteAdapter extends BaseInputAdapter {
     }
   }
 
-  test (src: string) {
-    return src.startsWith('http')
-  }
-
   async stats (src: string): Promise<Stats | false> {
-    if (!this.test(src)) {
+    if (!src.startsWith('http')) {
       return false
     }
     const _src = await this._retrive(src)

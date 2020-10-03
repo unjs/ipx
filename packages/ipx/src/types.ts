@@ -42,6 +42,7 @@ export interface IPXImage {
     format: string;
     operations: string;
     src: string;
+    adapter: string;
 }
 export interface IPXImageInfo{
     cacheKey: string;
@@ -49,4 +50,5 @@ export interface IPXImageInfo{
     operations: IPXParsedOperation[];
     format: string;
     src: string;
+    adapter: string;
 }

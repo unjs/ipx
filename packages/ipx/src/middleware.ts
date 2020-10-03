@@ -7,11 +7,15 @@ async function IPXReqHandler (req: IncomingMessage, res: ServerResponse, ipx: IP
   // Parse URL
   const url = req.url || '/'
   const urlArgs = url.substr(1).split('/')
+  const adapter = decodeURIComponent(urlArgs.shift() || '')
   const format = decodeURIComponent(urlArgs.shift() || '')
   const operations = decodeURIComponent(urlArgs.shift() || '')
   const src = urlArgs.map(c => decodeURIComponent(c)).join('/')
 
   // Validate params
+  if (!adapter) {
+    throw badRequest('Missing adapter')
+  }
   if (!format) {
     throw badRequest('Missing format')
   }
@@ -23,7 +27,7 @@ async function IPXReqHandler (req: IncomingMessage, res: ServerResponse, ipx: IP
   }
 
   // Get basic info about request
-  const info = await ipx.getInfo({ format, operations, src })
+  const info = await ipx.getInfo({ adapter, format, operations, src })
 
   // Set Content-Type header
   if (info.format) {

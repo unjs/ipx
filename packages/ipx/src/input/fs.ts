@@ -4,6 +4,8 @@ import { readFile, stat, Stats } from 'fs-extra'
 import BaseInputAdapter from './BaseInputAdapter'
 
 export default class FSAdapter extends BaseInputAdapter {
+  name: string = 'fs'
+
   get dir () {
     return this.options.input.dir
   }
@@ -12,15 +14,8 @@ export default class FSAdapter extends BaseInputAdapter {
     return resolve(this.dir, src)
   }
 
-  test (src: string) {
-    if (posix.isAbsolute(src) || !isValidPath(src)) {
-      return false
-    }
-    return true
-  }
-
   async stats (src: string): Promise<Stats | false> {
-    if (!this.test(src)) {
+    if (posix.isAbsolute(src) || !isValidPath(src)) {
       return false
     }
 

@@ -121,7 +121,7 @@ class IPX {
     })
   }
 
-  async getInfo ({ format, operations, src }: IPXImage): Promise<IPXImageInfo> {
+  async getInfo ({ adapter, format, operations, src }: IPXImage): Promise<IPXImageInfo> {
     // Validate format
     if (format === '_') {
       format = extname(src).substr(1)
@@ -141,7 +141,7 @@ class IPX {
     }
 
     // Get src stat
-    const stats = await this.stats(src)
+    const stats = await this.stats(src, adapter)
     if (!stats) {
       throw notFound()
     }
@@ -165,12 +165,13 @@ class IPX {
       operations: _operations,
       stats,
       cacheKey,
+      adapter,
       format,
       src
     }
   }
 
-  async getData ({ cacheKey, operations, format, src }: IPXImageInfo) {
+  async getData ({ cacheKey, operations, format, src, adapter }: IPXImageInfo) {
     // Check cache existence
     const cache = await this.cache!.get(cacheKey)
     if (cache) {
@@ -178,7 +179,7 @@ class IPX {
     }
 
     // Read buffer from input
-    const srcBuff = await this.get(src)
+    const srcBuff = await this.get(src, adapter)
 
     // Process using Sharp
     let sharp = Sharp(srcBuff)
@@ -225,16 +226,16 @@ class IPX {
     })
   }
 
-  private async stats (src: string): Promise<Stats | false> {
-    const input = this.inputs.find(inp => inp.test(src))
+  private async stats (src: string, adapter: string): Promise<Stats | false> {
+    const input = this.inputs.find(inp => inp.name === adapter)
     if (input) {
       return await input.stats(src)
     }
     return false
   }
 
-  private async get (src: string) {
-    const input = this.inputs.find(inp => inp.test(src))
+  private async get (src: string, adapter: string) {
+    const input = this.inputs.find(inp => inp.name === adapter)
 
     return await input!.get(src)
   }
