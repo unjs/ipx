@@ -194,11 +194,17 @@ class IPX {
     let sharp = Sharp(srcBuff)
 
     if (format !== '_') {
-      sharp = sharp.toFormat(format)
+      operations.push({
+        operation: this.operations.format,
+        args: [format],
+        cacheKey: ''
+      })
     }
 
+    // shared context for operations batch
+    const process = {}
     operations.forEach(({ operation, args }) => {
-      sharp = operation.handler(this, sharp, ...args)
+      sharp = operation.handler(process, sharp, ...args)
     })
     const data = await sharp.toBuffer()
 
