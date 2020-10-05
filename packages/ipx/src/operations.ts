@@ -5,11 +5,9 @@ export default <IPXOperations>{
   format: {
     name: 'format',
     args: [VArg],
-    handler: (_context, pipe, format) => {
-      return pipe.toFormat(format, {
-        quality: _context.quality || 80
-      })
-    }
+    handler: (_context, pipe, format) => pipe.toFormat(format, {
+      quality: _context.quality || 80
+    })
   },
   s: {
     name: 'resize',
