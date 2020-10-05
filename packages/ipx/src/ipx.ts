@@ -202,9 +202,9 @@ class IPX {
     }
 
     // shared context for operations batch
-    const process = {}
+    const context = {}
     operations.forEach(({ operation, args }) => {
-      sharp = operation.handler(process, sharp, ...args)
+      sharp = operation.handler(context, sharp, ...args)
     })
     const data = await sharp.toBuffer()
 
