@@ -196,8 +196,7 @@ class IPX {
     if (format !== '_') {
       operations.push({
         operation: this.operations.format,
-        args: [format],
-        cacheKey: ''
+        args: [format]
       })
     }
 
