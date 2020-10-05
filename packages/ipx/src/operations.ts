@@ -22,17 +22,15 @@ export default <IPXOperations>{
   q: {
     name: 'quality',
     args: [VMax(100)],
-    handler: (_context, pipe, quality) => {
+    handler: (_context, _pipe, quality) => {
       _context.quality = quality
-      return pipe
     }
   },
   f: {
     name: 'fit',
     args: [VArg],
-    handler: (_context, pipe, fit) => {
+    handler: (_context, _pipe, fit) => {
       _context.fit = fit
-      return pipe
     }
   },
   w: {
