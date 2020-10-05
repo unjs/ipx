@@ -14,8 +14,8 @@ export default <IPXOperations>{
   s: {
     name: 'resize',
     args: [VSize, VSize],
-    handler: (_context, pipe, width, height) => pipe.resize(width, height, {
-      fit: _context.fit || 'cover',
+    handler: (_context, pipe, width, height, fit) => pipe.resize(width, height, {
+      fit: fit || _context.fit || 'cover',
       background: { r: 0, g: 0, b: 0, alpha: 0 }
     })
   },
