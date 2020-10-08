@@ -6,10 +6,13 @@ function env (name: string, defaultValue: any) {
 export default function getConfig (): IPXOptions {
   return {
     port: env('IPX_PORT', env('PORT', 3000)),
-    input: {
-      adapter: env('IPX_INPUT_ADAPTER', 'fs'),
-      dir: env('IPX_INPUT_DIR', 'storage')
-    },
+    inputs: [
+      {
+        name: env('IPX_INPUT_NAME', 'local'),
+        adapter: env('IPX_INPUT_ADAPTER', 'fs'),
+        dir: env('IPX_INPUT_DIR', 'storage')
+      }
+    ],
     cache: {
       adapter: env('IPX_CACHE_ADAPTER', 'fs'),
       dir: env('IPX_CACHE_DIR', 'cache'),

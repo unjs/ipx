@@ -20,14 +20,18 @@ export interface IPXOperation {
 export interface IPXParsedOperation {
     operation: IPXOperation;
     args: string[]
+    cacheKey?: string;
+}
+
+export interface IPXInputOption {
+    name: string;
+    adapter: string | { new(ipx: IPX): BaseInputAdapter };
+    [key: string]: any;
 }
 
 export interface IPXOptions {
     port: number;
-    input: {
-        adapter: string | { new(ipx: IPX): BaseInputAdapter };
-        dir: string;
-    },
+    inputs: IPXInputOption[],
     cache: {
         adapter: string | { new(ipx: IPX): BaseCacheAdapter };
         dir: string;
@@ -50,4 +54,9 @@ export interface IPXImageInfo{
     format: string;
     src: string;
     adapter: string;
+}
+
+export interface IPXAdapterOptions {
+    name: string;
+    [key: string]: any;
 }

@@ -4,10 +4,8 @@ import { readFile, stat, Stats } from 'fs-extra'
 import BaseInputAdapter from './BaseInputAdapter'
 
 export default class FSAdapter extends BaseInputAdapter {
-  name: string = 'fs'
-
   get dir () {
-    return this.options.input.dir
+    return this.options.dir
   }
 
   _resolve (src: string) {

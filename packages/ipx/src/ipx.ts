@@ -8,7 +8,7 @@ import { badRequest, notFound, consola } from './utils'
 import getConfig from './config'
 import * as InputAdapters from './input'
 import * as CacheAdapters from './cache'
-import { IPXImage, IPXImageInfo, IPXOperations, IPXOptions, IPXParsedOperation } from './types'
+import { IPXImage, IPXImageInfo, IPXInputOption, IPXOperations, IPXOptions, IPXParsedOperation, IPXAdapterOptions } from './types'
 import BaseInputAdapter from './input/BaseInputAdapter'
 import BaseCacheAdapter from './cache/BaseCacheAdapter'
 
@@ -50,8 +50,8 @@ class IPX {
         }
       })
 
-    const adapters: any[] = Array.isArray(this.options.input.adapter) ? this.options.input.adapter : [this.options.input.adapter]
-    this.initInputAdapters(adapters)
+    const inputs: any[] = this.options.inputs
+    this.initInputs(inputs)
 
     // Create instance of cache
     let CacheCtor: { new(ipx: IPX): BaseCacheAdapter }
@@ -214,16 +214,16 @@ class IPX {
     }
   }
 
-  private initInputAdapters (adapters: any) {
-    this.inputs = adapters.map((adapter: any): BaseInputAdapter => {
+  private initInputs (inputs: any) {
+    this.inputs = inputs.map(({ adapter, ...options }: IPXInputOption): BaseInputAdapter => {
       // Create instance of input
-      let InputCtor: { new(ipx: IPX): BaseInputAdapter }
+      let InputCtor: { new(ipx: IPX, options: IPXAdapterOptions): BaseInputAdapter }
       if (typeof adapter === 'string') {
         InputCtor = (InputAdapters as any)[adapter] || require(resolve(adapter))
       } else {
         InputCtor = adapter
       }
-      const input = new InputCtor(this)
+      const input = new InputCtor(this, options)
       if (typeof input.init === 'function') {
         input.init()
       }
@@ -233,6 +233,7 @@ class IPX {
 
   private async stats (src: string, adapter: string): Promise<Stats | false> {
     const input = this.inputs.find(inp => inp.name === adapter)
+
     if (input) {
       return await input.stats(src)
     }
