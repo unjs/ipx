@@ -19,8 +19,7 @@ export interface IPXOperation {
 }
 export interface IPXParsedOperation {
     operation: IPXOperation;
-    args: string[];
-    cacheKey: string;
+    args: string[]
 }
 
 export interface IPXOptions {
