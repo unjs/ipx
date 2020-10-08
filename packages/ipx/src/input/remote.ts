@@ -11,6 +11,7 @@ export default class RemoteAdapter extends BaseInputAdapter {
       // maxSockets: Infinity, // default
       keepAlive: true
     })
+    this.options.accept = this.options.accept || []
   }
 
   async _retrive (src: string) {
@@ -37,8 +38,18 @@ export default class RemoteAdapter extends BaseInputAdapter {
     }
   }
 
-  async stats (src: string): Promise<Stats | false> {
+  accept (src: string) {
     if (!src.startsWith('http')) {
+      return false
+    }
+    if (!this.options.accept.some((rule: string) => src.match(rule))) {
+      return false
+    }
+    return true
+  }
+
+  async stats (src: string): Promise<Stats | false> {
+    if (!this.accept(src)) {
       return false
     }
     const _src = await this._retrive(src)
