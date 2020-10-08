@@ -1,8 +1,18 @@
+import https from 'https'
 import { stat, Stats } from 'fs-extra'
 import fetch from 'node-fetch'
 import BaseInputAdapter from './BaseInputAdapter'
 
 export default class RemoteAdapter extends BaseInputAdapter {
+  agent?: https.Agent = undefined
+  init () {
+    this.agent = new https.Agent({
+      // keepAliveMsecs: 1000, // default
+      // maxSockets: Infinity, // default
+      keepAlive: true
+    })
+  }
+
   async _retrive (src: string) {
     const cacheKey = src.split(/[?#]/).shift()?.split('//').pop()!
     const cache = await this.ipx.cache?.get(cacheKey)
@@ -12,7 +22,9 @@ export default class RemoteAdapter extends BaseInputAdapter {
         buffer: cache
       }
     }
-    const response = await fetch(src)
+    const response = await fetch(src, {
+      agent: this.agent
+    })
     const buffer = await response.buffer()
 
     if (this.ipx.cache) {
