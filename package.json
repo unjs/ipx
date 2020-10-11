@@ -7,25 +7,24 @@
     "start": "cross-env DEBUG=1 IPX_DIST=../src node packages/ipx/bin/ipx.js",
     "dev": "nodemon",
     "lint": "eslint --ext .ts .",
-    "build": "lerna run build",
+    "build": "siroc build",
     "prepublish": "yarn build",
     "release": "lerna publish --conventional-commits"
   },
   "devDependencies": {
-    "@types/etag": "^1.8.0",
+    "@nuxtjs/eslint-config-typescript": "^3.0.0",
     "@types/connect": "^3.4.33",
     "@types/cron": "^1.7.2",
+    "@types/etag": "^1.8.0",
     "@types/fs-extra": "^9.0.1",
     "@types/is-valid-path": "^0.1.0",
     "@types/recursive-readdir": "^2.2.0",
     "@types/sharp": "^0.25.1",
-    "@nuxtjs/eslint-config-typescript": "^3.0.0",
-    "bili": "^3.4.2",
     "cross-env": "^5.2.0",
     "eslint": "^5.12.1",
     "lerna": "3.10.7",
     "nodemon": "^1.18.9",
-    "rollup-plugin-typescript2": "^0.27.2",
+    "siroc": "^0.4.0",
     "typescript": "^4.0.2"
   }
 }

@@ -4,13 +4,15 @@
   "repository": "nuxt-contrib/ipx",
   "license": "MIT",
   "main": "dist/ipx.cjs.js",
-  "bin": "bin/ipx.js",
+  "bin": {
+    "ipx": "bin/cli.js"
+  },
   "files": [
     "dist",
     "bin"
   ],
   "scripts": {
-    "build": "bili --format cjs src/index.ts"
+    "build": "siroc build"
   },
   "dependencies": {
     "connect": "^3.7.0",

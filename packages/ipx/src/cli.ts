@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 const connect = require('connect')
 const consola = require('consola')
 
