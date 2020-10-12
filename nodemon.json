@@ -1,9 +1,8 @@
 {
   "watch": [ "src" ],
   "ext": "ts,json",
-  "exec": "ts-node ./bin/ipx.js",
+  "exec": "ts-node ./src/cli.ts",
   "env": {
-    "DEBUG": 1,
-    "IPX_DIST": "../src/index.ts"
+    "DEBUG": 1
   }
 }

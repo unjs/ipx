@@ -1,7 +1,7 @@
 import { Stats } from 'fs-extra'
-import BaseCacheAdapter from 'src/cache/BaseCacheAdapter' /* TODO */
-import BaseInputAdapter from 'src/input/BaseInputAdapter' /* TODO */
-import IPX from 'src/ipx' /* TODO */
+import BaseCacheAdapter from './cache/BaseCacheAdapter' /* TODO */
+import BaseInputAdapter from './input/BaseInputAdapter' /* TODO */
+import IPX from './ipx' /* TODO */
 
 export type IPXOperationHandler = (context: any, pipe: any, ...args: any[]) => any
 

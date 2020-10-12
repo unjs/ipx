@@ -1,5 +1,5 @@
-import { IPXOptions } from 'types'
-import IPX from 'src/ipx'
+import { IPXOptions } from '../types'
+import IPX from '../ipx'
 
 export default abstract class BaseCacheAdapter {
     ipx: IPX

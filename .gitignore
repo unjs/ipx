@@ -3,7 +3,9 @@ node_modules
 .idea
 *.log
 .DS_Store
-dist
 storage
 /cache
 /client
+dist
+lib
+bin

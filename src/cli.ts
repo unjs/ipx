@@ -1,12 +1,11 @@
-#!/usr/bin/env node
-const connect = require('connect')
-const consola = require('consola')
+import connect from 'connect'
+import consola from 'consola'
 
-const { IPX, IPXMiddleware } = require(process.env.IPX_DIST || '..')
+import { IPX, IPXMiddleware } from './index'
 
 function main () {
   // Create IPX instance
-  const ipx = new IPX()
+  const ipx = new IPX({})
 
   // Create a HTTP server
   const app = connect()
@@ -17,7 +16,7 @@ function main () {
 
   // Start listening
   const literner = app.listen(ipx.options.port, () => {
-    const { port } = literner.address()
+    const { port } = literner.address() as any
     consola.info(`Listening on port ${port}`)
   })
 }

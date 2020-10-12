@@ -5,11 +5,10 @@
     "esModuleInterop": true,
     "allowJs": true,
     "strict": false,
-    "baseUrl": ".",
     "outDir": "dist",
     "types": [
       "@types/node"
-    ],
+    ]
   },
   "include": [
     "src"
