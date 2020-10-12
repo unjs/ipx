@@ -26,11 +26,18 @@ async function IPXReqHandler (req: IncomingMessage, res: ServerResponse, ipx: IP
     throw badRequest('Missing src')
   }
 
+  let [fileFormat, responseFormat] = format === '_' ? ['_', 'image'] : format.split('_')
+  if (fileFormat === 'json') {
+    fileFormat = '_'
+    responseFormat = 'json'
+  }
   // Get basic info about request
-  const info = await ipx.getInfo({ adapter, format, operations, src })
+  const info = await ipx.getInfo({ adapter, format: fileFormat, operations, src })
 
   // Set Content-Type header
-  if (info.format) {
+  if (responseFormat === 'json') {
+    res.setHeader('Content-Type', 'application/json')
+  } else if (info.format) {
     res.setHeader('Content-Type', 'image/' + info.format)
   } else {
     res.setHeader('Content-Type', 'image')
@@ -53,7 +60,12 @@ async function IPXReqHandler (req: IncomingMessage, res: ServerResponse, ipx: IP
   }
 
   // Process request to get image
-  const data = await ipx.getData(info)
+  let data
+  if (responseFormat === 'json') {
+    data = await ipx.getJSONData(info)
+  } else {
+    data = await ipx.getData(info)
+  }
 
   // Send image
   res.end(data)

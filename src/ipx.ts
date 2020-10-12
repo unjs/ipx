@@ -171,13 +171,7 @@ class IPX {
     }
   }
 
-  async getData ({ cacheKey, operations, format, src, adapter }: IPXImageInfo) {
-    // Check cache existence
-    const cache = await this.cache!.get(cacheKey)
-    if (cache) {
-      return cache
-    }
-
+  async applyOperations ({ adapter, operations, format, src }: IPXImageInfo): Promise<Sharp.Sharp> {
     // Read buffer from input
     const srcBuff = await this.get(src, adapter)
 
@@ -196,7 +190,43 @@ class IPX {
     operations.forEach(({ operation, args }) => {
       sharp = operation.handler(context, sharp, ...args) || sharp
     })
+    return sharp
+  }
+
+  async getData (info: IPXImageInfo) {
+    // Check cache existence
+    const cache = await this.cache!.get(info.cacheKey)
+    if (cache) {
+      return cache
+    }
+    const sharp = await this.applyOperations(info)
     const data = await sharp.toBuffer()
+
+    // Put data into cache
+    try {
+      await this.cache!.set(info.cacheKey, data)
+    } catch (e) {
+      consola.error(e)
+    }
+
+    return data
+  }
+
+  async getJSONData (info: IPXImageInfo) {
+    const cacheKey = info.cacheKey + '.json'
+    // Check cache existence
+    const cache = await this.cache!.get(cacheKey)
+    if (cache) {
+      return cache
+    }
+    const sharp = await this.applyOperations(info)
+    const metadata = await sharp.metadata()
+    const buffer = await sharp.toBuffer()
+    const data = Buffer.from(JSON.stringify({
+      data: `data:image/${info.format};base64,${buffer.toString('base64')}`,
+      width: metadata.width,
+      height: metadata.height
+    }))
 
     // Put data into cache
     try {
