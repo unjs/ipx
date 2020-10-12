@@ -1,6 +1,5 @@
 import { resolve, extname } from 'path'
 import Sharp from 'sharp'
-import defu from 'defu'
 import { CronJob } from 'cron'
 import { Stats } from 'fs-extra'
 import { IPXImage, IPXImageInfo, IPXInputOption, IPXOperations, IPXOptions, IPXParsedOperation, IPXAdapterOptions } from './types'
@@ -25,7 +24,7 @@ class IPX {
   private cacheCleanCron: CronJob | undefined
 
   constructor (options?: Partial<IPXOptions>) {
-    this.options = defu(options, getConfig())
+    this.options = getConfig(options)
     this.operations = {}
     this.adapter = null
 
@@ -122,6 +121,10 @@ class IPX {
   }
 
   async getInfo ({ adapter, format, operations, src }: IPXImage): Promise<IPXImageInfo> {
+    const [fileFormat, responseType = 'image'] = format.split('.')
+
+    format = fileFormat || '_'
+
     // Validate format
     if (format === '_') {
       format = extname(src).substr(1)
@@ -131,9 +134,16 @@ class IPX {
       format = 'jpeg'
     }
 
-    if (!['jpeg', 'webp', 'png'].includes(format)) {
+    if (!format.match(/(jpeg|webp|png)(\.json)?/)) {
       throw badRequest(`Unkown image format ${format}`)
     }
+
+    if (!['image', 'json'].includes(responseType)) {
+      throw badRequest(`Unkown response format ${responseType}`)
+    }
+
+    // Generate response content type
+    const mimeType = responseType === 'json' ? 'application/json' : 'image/' + format
 
     // Validate src
     if (!src || src.includes('..')) {
@@ -158,7 +168,7 @@ class IPX {
     // Compute unique hash key
     const operationsKey = _operations.length ? _operations.map(o => o.cacheKey).join(argSeparator) : '_'
     const statsKey = stats.mtime.getTime().toString(16) + '-' + stats.size.toString(16)
-    const cacheKey = src + '/' + statsKey + '/' + operationsKey + '.' + format
+    const cacheKey = src + '/' + statsKey + '/' + operationsKey + '/' + responseType + '.' + format
 
     // Return info
     return {
@@ -167,6 +177,8 @@ class IPX {
       cacheKey,
       adapter,
       format,
+      mimeType,
+      responseType,
       src
     }
   }
@@ -200,37 +212,21 @@ class IPX {
       return cache
     }
     const sharp = await this.applyOperations(info)
-    const data = await sharp.toBuffer()
+    const buffer = await sharp.toBuffer()
+
+    let data = buffer
+    if (info.responseType === 'json') {
+      const metadata = await sharp.metadata()
+      data = Buffer.from(JSON.stringify({
+        data: `data:image/${info.format};base64,${buffer.toString('base64')}`,
+        width: metadata.width,
+        height: metadata.height
+      }))
+    }
 
     // Put data into cache
     try {
       await this.cache!.set(info.cacheKey, data)
-    } catch (e) {
-      consola.error(e)
-    }
-
-    return data
-  }
-
-  async getJSONData (info: IPXImageInfo) {
-    const cacheKey = info.cacheKey + '.json'
-    // Check cache existence
-    const cache = await this.cache!.get(cacheKey)
-    if (cache) {
-      return cache
-    }
-    const sharp = await this.applyOperations(info)
-    const metadata = await sharp.metadata()
-    const buffer = await sharp.toBuffer()
-    const data = Buffer.from(JSON.stringify({
-      data: `data:image/${info.format};base64,${buffer.toString('base64')}`,
-      width: metadata.width,
-      height: metadata.height
-    }))
-
-    // Put data into cache
-    try {
-      await this.cache!.set(cacheKey, data)
     } catch (e) {
       consola.error(e)
     }
