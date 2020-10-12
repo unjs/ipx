@@ -4,5 +4,6 @@ node_modules
 *.log
 .DS_Store
 dist
-./cache
 storage
+/cache
+/client

@@ -136,6 +136,39 @@ Config can be customized using `IPX_*` environment variables.
 - `IPX_CACHE_CLEAN_MINUTES`
   - Default: `24 * 60` (24 hours)
 
+## Client
+
+Import client:
+
+```js
+import { img } from 'ipx/client'
+
+const { img } = require('ipx/client')
+```
+
+`img()` is a factory function to configure base options:
+
+```js
+// getImage: (path, opts?, format?) => URL
+const getImage = img({
+  baseURL = 'https://cdn.example.com',
+  basePath = 'uploads',
+  opts = [], // Default opts
+  format = 'jpg',
+  presets: {
+    chrome400: {
+      format: 'webp',
+      opts: { s: ['400', '400']}
+    }
+  }
+})
+
+getImage('posts/ipx.png', { w: 200 }) // => https://cdn.example.com/jpg/w_200/uploads/posts/ipx.png
+
+getImage.chrome400('posts/ipx.png') // => https://cdn.example.com/webp/s_400_400/uploads/posts/ipx.png
+```
+
+
 <h2 align="center">License</h2>
 
 MIT - Pooya Parsa

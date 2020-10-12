@@ -3,12 +3,12 @@ import Sharp from 'sharp'
 import defu from 'defu'
 import { CronJob } from 'cron'
 import { Stats } from 'fs-extra'
+import { IPXImage, IPXImageInfo, IPXInputOption, IPXOperations, IPXOptions, IPXParsedOperation, IPXAdapterOptions } from 'types'
 import OPERATIONS from './operations'
 import { badRequest, notFound, consola } from './utils'
 import getConfig from './config'
 import * as InputAdapters from './input'
 import * as CacheAdapters from './cache'
-import { IPXImage, IPXImageInfo, IPXInputOption, IPXOperations, IPXOptions, IPXParsedOperation, IPXAdapterOptions } from './types'
 import BaseInputAdapter from './input/BaseInputAdapter'
 import BaseCacheAdapter from './cache/BaseCacheAdapter'
 
@@ -43,7 +43,7 @@ class IPX {
 
         this.operations[key] = {
           name: operation.name || key,
-          handler: operation.handler || operation,
+          handler: (operation.handler || operation) as any /* TODO */,
           multiply: Boolean(operation.multiply),
           order: Boolean(operation.order),
           args: operation.args || []

@@ -1,19 +1,17 @@
 {
   "compilerOptions": {
-    "target": "ES2018",
-    "module": "ESNext",
+    "target": "ES6",
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "allowJs": true,
-    "sourceMap": true,
-    "strict": true,
-    "noEmit": true,
+    "strict": false,
     "baseUrl": ".",
+    "outDir": "dist",
     "types": [
       "@types/node"
-    ]
+    ],
   },
-  "exclude": [
-    "node_modules"
+  "include": [
+    "src"
   ]
 }
