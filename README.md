@@ -71,10 +71,6 @@ const app = express()
 app.use('/image', IPXMiddleware(ipx))
 ```
 
-<h2 align="center">Clients</h2>
-
-See [JS Client](./packages/ipx-client/README.md) for Node.js and Browser SDK.
-
 <h2 align="center">API</h2>
 
 **`/{format}/{operations}/{src}`**
