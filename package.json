@@ -3,15 +3,24 @@
   "version": "0.3.2",
   "repository": "nuxt-contrib/ipx",
   "license": "MIT",
-  "main": "dist/ipx.cjs.js",
-  "bin": "bin/ipx.js",
+  "exports": {
+    "client": {
+      "require": "./lib/client.js",
+      "import": "./lib/client.es.js"
+    },
+    "entrypoint": {
+      "require": "./lib/index.js",
+      "import": "./lib/index.es.js"
+    }
+  },
+  "main": "lib/index.cjs.js",
+  "bin": "bin/cli.js",
   "files": [
-    "dist",
-    "bin",
-    "types",
-    "client"
+    "lib",
+    "bin"
   ],
   "scripts": {
+    "build": "rimraf lib && siroc build",
     "dev": "nodemon",
     "start": "node bin/ipx.js"
   },

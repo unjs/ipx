@@ -1,4 +1,4 @@
-import { IPXOptions } from 'types'
+import { IPXOptions } from './types'
 
 function env (name: string, defaultValue: any) {
   return process.env[name] || defaultValue

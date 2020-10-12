@@ -1,4 +1,4 @@
-import { IPXOperations } from 'types'
+import { IPXOperations } from './types'
 import { VArg, VMax, VSize } from './utils'
 
 export default <IPXOperations>{

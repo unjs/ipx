@@ -3,7 +3,7 @@ import Sharp from 'sharp'
 import defu from 'defu'
 import { CronJob } from 'cron'
 import { Stats } from 'fs-extra'
-import { IPXImage, IPXImageInfo, IPXInputOption, IPXOperations, IPXOptions, IPXParsedOperation, IPXAdapterOptions } from 'types'
+import { IPXImage, IPXImageInfo, IPXInputOption, IPXOperations, IPXOptions, IPXParsedOperation, IPXAdapterOptions } from './types'
 import OPERATIONS from './operations'
 import { badRequest, notFound, consola } from './utils'
 import getConfig from './config'
@@ -24,7 +24,7 @@ class IPX {
 
   private cacheCleanCron: CronJob | undefined
 
-  constructor (options: IPXOptions) {
+  constructor (options?: Partial<IPXOptions>) {
     this.options = defu(options, getConfig())
     this.operations = {}
     this.adapter = null

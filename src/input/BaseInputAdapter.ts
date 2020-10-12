@@ -1,6 +1,6 @@
 import { Stats } from 'fs-extra'
-import IPX from 'src/ipx'
-import { IPXAdapterOptions } from 'types'
+import { IPXAdapterOptions } from '../types'
+import IPX from '../ipx'
 
 export default abstract class BaseInputAdapter {
     ipx: IPX
