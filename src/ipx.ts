@@ -121,29 +121,17 @@ class IPX {
   }
 
   async getInfo ({ adapter, format, operations, src }: IPXImage): Promise<IPXImageInfo> {
-    const [fileFormat, responseType = 'image'] = format.split('.')
-
-    format = fileFormat || '_'
-
     // Validate format
     if (format === '_') {
       format = extname(src).substr(1)
     }
 
-    if (format === 'jpg') {
-      format = 'jpeg'
-    }
-
-    if (!format.match(/(jpeg|webp|png)(\.json)?/)) {
+    if (!format.match(/(jpeg|webp|png|jpg)(\.json)?/)) {
       throw badRequest(`Unkown image format ${format}`)
     }
 
-    if (!['image', 'json'].includes(responseType)) {
-      throw badRequest(`Unkown response format ${responseType}`)
-    }
-
     // Generate response content type
-    const mimeType = responseType === 'json' ? 'application/json' : 'image/' + format
+    const mimeType = format.match(/.json$/g) ? 'application/json' : 'image/' + format
 
     // Validate src
     if (!src || src.includes('..')) {
@@ -168,7 +156,7 @@ class IPX {
     // Compute unique hash key
     const operationsKey = _operations.length ? _operations.map(o => o.cacheKey).join(argSeparator) : '_'
     const statsKey = stats.mtime.getTime().toString(16) + '-' + stats.size.toString(16)
-    const cacheKey = src + '/' + statsKey + '/' + operationsKey + '/' + responseType + '.' + format
+    const cacheKey = src + '/' + statsKey + '/' + operationsKey + '.' + format
 
     // Return info
     return {
@@ -178,7 +166,6 @@ class IPX {
       adapter,
       format,
       mimeType,
-      responseType,
       src
     }
   }
@@ -193,7 +180,7 @@ class IPX {
     if (format !== '_') {
       operations.push({
         operation: this.operations.format,
-        args: [format]
+        args: [this.extractImageFormat(format)]
       })
     }
 
@@ -215,7 +202,7 @@ class IPX {
     const buffer = await sharp.toBuffer()
 
     let data = buffer
-    if (info.responseType === 'json') {
+    if (info.format.match(/\.json$/)) {
       const metadata = await sharp.metadata()
       data = Buffer.from(JSON.stringify({
         data: `data:image/${info.format};base64,${buffer.toString('base64')}`,
@@ -259,7 +246,6 @@ class IPX {
 
   private async stats (src: string, adapter: string): Promise<Stats | false> {
     const input = this.inputs.find(inp => inp.name === adapter)
-
     if (input) {
       return await input.stats(src)
     }
@@ -270,6 +256,14 @@ class IPX {
     const input = this.inputs.find(inp => inp.name === adapter)
 
     return await input!.get(src)
+  }
+
+  private extractImageFormat (format) {
+    format = format.split('.').shift()
+    if (format === 'jpg') {
+      format = 'jpeg'
+    }
+    return format
   }
 }
 
