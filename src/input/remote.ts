@@ -11,7 +11,7 @@ export default class RemoteAdapter extends BaseInputAdapter {
       // maxSockets: Infinity, // default
       keepAlive: true
     })
-    this.options.accept = this.options.accept || []
+    this.options.accept = this.options.accept || ['.*']
   }
 
   async _retrive (src: string) {
@@ -29,7 +29,7 @@ export default class RemoteAdapter extends BaseInputAdapter {
     const buffer = await response.buffer()
 
     if (this.ipx.cache) {
-      this.ipx.cache.set(cacheKey, buffer)
+      await this.ipx.cache.set(cacheKey, buffer)
     }
 
     return {
@@ -68,6 +68,6 @@ export default class RemoteAdapter extends BaseInputAdapter {
    * @returns Promise<Buffer>
    */
   async get (src: string) {
-    return await (await this._retrive(src)).buffer
+    return (await this._retrive(src)).buffer
   }
 };

@@ -30,11 +30,7 @@ async function IPXReqHandler (req: IncomingMessage, res: ServerResponse, ipx: IP
   const info = await ipx.getInfo({ adapter, format, operations, src })
 
   // Set Content-Type header
-  if (info.format) {
-    res.setHeader('Content-Type', 'image/' + info.format)
-  } else {
-    res.setHeader('Content-Type', 'image')
-  }
+  res.setHeader('Content-Type', info.mimeType)
 
   // Set Etag header
   const etag = getEtag(info.cacheKey)

@@ -52,6 +52,7 @@ export interface IPXImageInfo {
   stats: Stats | false;
   operations: IPXParsedOperation[];
   format: string;
+  mimeType: string;
   src: string;
   adapter: string;
 }

@@ -1,6 +1,5 @@
 import { resolve, extname } from 'path'
 import Sharp from 'sharp'
-import defu from 'defu'
 import { CronJob } from 'cron'
 import { Stats } from 'fs-extra'
 import { IPXImage, IPXImageInfo, IPXInputOption, IPXOperations, IPXOptions, IPXParsedOperation, IPXAdapterOptions } from './types'
@@ -25,7 +24,7 @@ class IPX {
   private cacheCleanCron: CronJob | undefined
 
   constructor (options?: Partial<IPXOptions>) {
-    this.options = defu(options, getConfig())
+    this.options = getConfig(options)
     this.operations = {}
     this.adapter = null
 
@@ -127,13 +126,12 @@ class IPX {
       format = extname(src).substr(1)
     }
 
-    if (format === 'jpg') {
-      format = 'jpeg'
-    }
-
-    if (!['jpeg', 'webp', 'png'].includes(format)) {
+    if (!format.match(/(jpeg|webp|png|jpg)(\.json)?/)) {
       throw badRequest(`Unkown image format ${format}`)
     }
+
+    // Generate response content type
+    const mimeType = format.match(/.json$/g) ? 'application/json' : 'image/' + format
 
     // Validate src
     if (!src || src.includes('..')) {
@@ -167,17 +165,12 @@ class IPX {
       cacheKey,
       adapter,
       format,
+      mimeType,
       src
     }
   }
 
-  async getData ({ cacheKey, operations, format, src, adapter }: IPXImageInfo) {
-    // Check cache existence
-    const cache = await this.cache!.get(cacheKey)
-    if (cache) {
-      return cache
-    }
-
+  async applyOperations ({ adapter, operations, format, src }: IPXImageInfo): Promise<Sharp.Sharp> {
     // Read buffer from input
     const srcBuff = await this.get(src, adapter)
 
@@ -187,7 +180,7 @@ class IPX {
     if (format !== '_') {
       operations.push({
         operation: this.operations.format,
-        args: [format]
+        args: [this.extractImageFormat(format)]
       })
     }
 
@@ -196,11 +189,31 @@ class IPX {
     operations.forEach(({ operation, args }) => {
       sharp = operation.handler(context, sharp, ...args) || sharp
     })
-    const data = await sharp.toBuffer()
+    return sharp
+  }
+
+  async getData (info: IPXImageInfo) {
+    // Check cache existence
+    const cache = await this.cache!.get(info.cacheKey)
+    if (cache) {
+      return cache
+    }
+    const sharp = await this.applyOperations(info)
+    const buffer = await sharp.toBuffer()
+
+    let data = buffer
+    if (info.format.match(/\.json$/)) {
+      const metadata = await sharp.metadata()
+      data = Buffer.from(JSON.stringify({
+        data: `data:image/${info.format};base64,${buffer.toString('base64')}`,
+        width: metadata.width,
+        height: metadata.height
+      }))
+    }
 
     // Put data into cache
     try {
-      await this.cache!.set(cacheKey, data)
+      await this.cache!.set(info.cacheKey, data)
     } catch (e) {
       consola.error(e)
     }
@@ -233,7 +246,6 @@ class IPX {
 
   private async stats (src: string, adapter: string): Promise<Stats | false> {
     const input = this.inputs.find(inp => inp.name === adapter)
-
     if (input) {
       return await input.stats(src)
     }
@@ -244,6 +256,14 @@ class IPX {
     const input = this.inputs.find(inp => inp.name === adapter)
 
     return await input!.get(src)
+  }
+
+  private extractImageFormat (format) {
+    format = format.split('.').shift()
+    if (format === 'jpg') {
+      format = 'jpeg'
+    }
+    return format
   }
 }
 
