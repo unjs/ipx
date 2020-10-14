@@ -11,7 +11,7 @@ export default class RemoteAdapter extends BaseInputAdapter {
       // maxSockets: Infinity, // default
       keepAlive: true
     })
-    this.options.accept = this.options.accept || []
+    this.options.accept = this.options.accept || ['.*']
   }
 
   async _retrive (src: string) {
