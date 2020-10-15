@@ -207,7 +207,8 @@ class IPX {
       data = Buffer.from(JSON.stringify({
         data: `data:image/${info.format};base64,${buffer.toString('base64')}`,
         width: metadata.width,
-        height: metadata.height
+        height: metadata.height,
+        size: metadata.size
       }))
     }
 
