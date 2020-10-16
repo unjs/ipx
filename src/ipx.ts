@@ -126,12 +126,9 @@ class IPX {
       format = extname(src).substr(1)
     }
 
-    if (!format.match(/(jpeg|webp|png|jpg)(\.json)?/)) {
+    if (!format.match(/(jpeg|webp|png|jpg|svg)(\.json)?/)) {
       throw badRequest(`Unkown image format ${format}`)
     }
-
-    // Generate response content type
-    const mimeType = format.match(/.json$/g) ? 'application/json' : 'image/' + format
 
     // Validate src
     if (!src || src.includes('..')) {
@@ -165,18 +162,12 @@ class IPX {
       cacheKey,
       adapter,
       format,
-      mimeType,
+      mimeType: this.getMimeType(format),
       src
     }
   }
 
-  async applyOperations ({ adapter, operations, format, src }: IPXImageInfo): Promise<Sharp.Sharp> {
-    // Read buffer from input
-    const srcBuff = await this.get(src, adapter)
-
-    // Process using Sharp
-    let sharp = Sharp(srcBuff)
-
+  applyOperations (sharp: Sharp.Sharp, { operations, format }: IPXImageInfo): Sharp.Sharp {
     if (format !== '_') {
       operations.push({
         operation: this.operations.format,
@@ -198,14 +189,20 @@ class IPX {
     if (cache) {
       return cache
     }
-    const sharp = await this.applyOperations(info)
-    const buffer = await sharp.toBuffer()
 
-    let data = buffer
+    // Read buffer from input
+    let data = await this.get(info.src, info.adapter)
+    let sharp = Sharp(data)
+
+    if (!this.skipOperations(info)) {
+      sharp = this.applyOperations(sharp, info)
+      data = await sharp.toBuffer()
+    }
+
     if (info.format.match(/\.json$/)) {
       const metadata = await sharp.metadata()
       data = Buffer.from(JSON.stringify({
-        data: `data:image/${info.format};base64,${buffer.toString('base64')}`,
+        data: `data:image/${metadata.format};base64,${data.toString('base64')}`,
         width: metadata.width,
         height: metadata.height,
         size: metadata.size
@@ -259,12 +256,33 @@ class IPX {
     return await input!.get(src)
   }
 
+  private getMimeType (format: string) {
+    if (format.match(/.json$/g)) {
+      return 'application/json'
+    }
+    switch (format) {
+      case '_':
+        return 'image'
+      case 'svg':
+        return 'image/svg+xml'
+      default:
+        return 'image/' + format
+    }
+  }
+
   private extractImageFormat (format) {
     format = format.split('.').shift()
     if (format === 'jpg') {
       format = 'jpeg'
     }
     return format
+  }
+
+  private skipOperations (info: IPXImageInfo) {
+    if (info.format.match(/svg/)) {
+      return true
+    }
+    return false
   }
 }
 
