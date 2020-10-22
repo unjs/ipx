@@ -57,3 +57,25 @@ export const VMax = (max: number) => (num: any) => {
 export const VSize = VMax(MAX_SIZE)
 
 export const consola = Consola.withTag('ipx')
+
+export function getMimeType (format: string) {
+  switch (format) {
+    case 'meta':
+      return 'application/json'
+    case '_':
+      return 'image'
+    case 'svg':
+    case 'sqip':
+      return 'image/svg+xml'
+    default:
+      return 'image/' + format
+  }
+}
+
+const validFileFormats = ['jpg', 'jpeg', 'svg', 'png', 'webp']
+export function isValidFileFormat (format: string) {
+  if (validFileFormats.includes(format)) {
+    return true
+  }
+  return false
+}

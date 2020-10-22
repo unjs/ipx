@@ -4,7 +4,7 @@ import { CronJob } from 'cron'
 import { Stats } from 'fs-extra'
 import { IPXImage, IPXImageInfo, IPXInputOption, IPXOperations, IPXOptions, IPXParsedOperation, IPXAdapterOptions } from './types'
 import OPERATIONS from './operations'
-import { badRequest, notFound, consola } from './utils'
+import { badRequest, notFound, consola, getMimeType, isValidFileFormat } from './utils'
 import getConfig from './config'
 import * as InputAdapters from './input'
 import * as CacheAdapters from './cache'
@@ -126,7 +126,7 @@ class IPX {
       format = extname(src).substr(1)
     }
 
-    if (!format.match(/(jpeg|webp|png|jpg|svg)(\.json)?/)) {
+    if (!format.match(/meta|sqip|jpeg|webp|png|jpg|svg/)) {
       throw badRequest(`Unkown image format ${format}`)
     }
 
@@ -162,21 +162,19 @@ class IPX {
       cacheKey,
       adapter,
       format,
-      mimeType: this.getMimeType(format),
+      mimeType: getMimeType(format),
       src
     }
   }
 
-  applyOperations (sharp: Sharp.Sharp, { operations, format }: IPXImageInfo): Sharp.Sharp {
-    if (format !== '_') {
+  applyOperations (sharp: Sharp.Sharp, { operations, format }: IPXImageInfo, context: any = {}): Sharp.Sharp {
+    if (isValidFileFormat(format)) {
       operations.push({
         operation: this.operations.format,
-        args: [this.extractImageFormat(format)]
+        args: [format]
       })
     }
 
-    // shared context for operations batch
-    const context = {}
     operations.forEach(({ operation, args }) => {
       sharp = operation.handler(context, sharp, ...args) || sharp
     })
@@ -191,32 +189,57 @@ class IPX {
     }
 
     // Read buffer from input
-    let data = await this.get(info.src, info.adapter)
-    let sharp = Sharp(data)
+    const originalBuffer = await this.get(info.src, info.adapter)
+    let sharp = Sharp(originalBuffer)
+    let result = null
+    const operationsContext: any = {}
 
-    if (!this.skipOperations(info)) {
-      sharp = this.applyOperations(sharp, info)
-      data = await sharp.toBuffer()
-    }
-
-    if (info.format.match(/\.json$/)) {
-      const metadata = await sharp.metadata()
-      data = Buffer.from(JSON.stringify({
-        data: `data:image/${metadata.format};base64,${data.toString('base64')}`,
-        width: metadata.width,
-        height: metadata.height,
-        size: metadata.size
-      }))
+    switch (info.format) {
+      case 'sqip':
+        result = await this.generateSQIP(originalBuffer)
+        break
+      case 'svg':
+        result = originalBuffer
+        break
+      default:
+        sharp = this.applyOperations(sharp, info, operationsContext)
+        result = await sharp.toBuffer()
+        if (info.format === 'meta') {
+          result = await this.getMetadata(sharp, info, operationsContext)
+        }
     }
 
     // Put data into cache
     try {
-      await this.cache!.set(info.cacheKey, data)
+      await this.cache!.set(info.cacheKey, result)
     } catch (e) {
       consola.error(e)
     }
 
-    return data
+    return result
+  }
+
+  async getMetadata (sharp: Sharp.Sharp, info: IPXImageInfo, operationsContext: any) {
+    let result = await sharp.toBuffer()
+    const metadata = await sharp.metadata()
+    let metadataFormat = metadata.format
+    const meta = {
+      data: undefined,
+      width: metadata.width,
+      height: metadata.height,
+      bytes: metadata.size
+    }
+    if (operationsContext.metaDataType === 'sqip') {
+      result = await this.generateSQIP(result)
+      metadataFormat = 'sqip'
+    }
+    if (operationsContext.metaDataEncode === 'url') {
+      meta.data = `/${info.adapter}/${metadataFormat}/w_30/${info.src}`
+    } else {
+      meta.data = `data:${getMimeType(metadataFormat)};base64,${result.toString('base64')}`
+    }
+
+    return Buffer.from(JSON.stringify(meta))
   }
 
   async cleanCache () {
@@ -256,33 +279,16 @@ class IPX {
     return await input!.get(src)
   }
 
-  private getMimeType (format: string) {
-    if (format.match(/.json$/g)) {
-      return 'application/json'
-    }
-    switch (format) {
-      case '_':
-        return 'image'
-      case 'svg':
-        return 'image/svg+xml'
-      default:
-        return 'image/' + format
-    }
-  }
-
-  private extractImageFormat (format) {
-    format = format.split('.').shift()
-    if (format === 'jpg') {
-      format = 'jpeg'
-    }
-    return format
-  }
-
-  private skipOperations (info: IPXImageInfo) {
-    if (info.format.match(/svg/)) {
-      return true
-    }
-    return false
+  private async generateSQIP (data: Buffer) {
+    const sqip = require('sqip').default
+    const folderResults = await sqip({
+      input: data,
+      plugins: [
+        'sqip-plugin-primitive',
+        'sqip-plugin-svgo'
+      ]
+    })
+    return Buffer.from(folderResults.content)
   }
 }
 

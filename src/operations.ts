@@ -9,6 +9,14 @@ export default <IPXOperations>{
       quality: _context.quality || 80
     })
   },
+  meta: {
+    name: 'meta_encode',
+    args: [VArg],
+    handler: (_context, _pipe, dataType, encode) => {
+      _context.metaDataType = dataType
+      _context.metaDataEncode = encode || 'base64'
+    }
+  },
   s: {
     name: 'resize',
     args: [VSize, VSize],
