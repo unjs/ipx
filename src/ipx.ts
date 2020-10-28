@@ -4,7 +4,7 @@ import { CronJob } from 'cron'
 import { Stats } from 'fs-extra'
 import { IPXImage, IPXImageInfo, IPXInputOption, IPXOperations, IPXOptions, IPXParsedOperation, IPXAdapterOptions } from './types'
 import OPERATIONS from './operations'
-import { badRequest, notFound, consola, getMimeType, isValidFileFormat } from './utils'
+import { badRequest, notFound, consola, getMimeType, isValidFileFormat, tryRequire } from './utils'
 import getConfig from './config'
 import * as InputAdapters from './input'
 import * as CacheAdapters from './cache'
@@ -280,7 +280,10 @@ class IPX {
   }
 
   private async generateSQIP (data: Buffer) {
-    const sqip = require('sqip').default
+    const sqip = tryRequire('sqip') as any
+    if (!sqip) {
+      throw new Error('Cannot find `SQIP`, install SQIP to proceed (`npm install sqip sqip-plugin-primitive sqip-plugin-svgo`)')
+    }
     const folderResults = await sqip({
       input: data,
       plugins: [

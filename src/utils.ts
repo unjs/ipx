@@ -79,3 +79,10 @@ export function isValidFileFormat (format: string) {
   }
   return false
 }
+
+export function tryRequire (id) {
+  try {
+    const m = require(id)
+    return m.default || m
+  } catch (_err) {}
+}
