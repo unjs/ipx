@@ -1,6 +1,6 @@
 {
   "name": "ipx",
-  "version": "0.4.0-rc.1",
+  "version": "0.4.0-rc.3",
   "repository": "nuxt-contrib/ipx",
   "license": "MIT",
   "exports": {
@@ -34,8 +34,7 @@
     "is-valid-path": "^0.1.1",
     "node-fetch": "^2.6.1",
     "recursive-readdir": "^2.2.2",
-    "sharp": "^0.26.0",
-    "siroc": "^0.4.0"
+    "sharp": "^0.26.0"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "^3.0.0",
@@ -51,12 +50,13 @@
     "eslint": "^7.10.0",
     "nodemon": "^2.0.4",
     "rollup-plugin-typescript2": "^0.27.3",
+    "siroc": "^0.4.0",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.3"
   },
   "peerDependencies": {
-    "sqip": "1.0.0-alpha.22",
-    "sqip-plugin-primitive": "^1.0.0-alpha.22",
-    "sqip-plugin-svgo": "^1.0.0-alpha.22"
+    "sqip": "^1.0.0-alpha.32",
+    "sqip-plugin-primitive": "^1.0.0-alpha.34",
+    "sqip-plugin-svgo": "^1.0.0-alpha.33"
   }
 }
