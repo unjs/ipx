@@ -219,7 +219,7 @@ class IPX {
     return result
   }
 
-  async getMetadata (sharp: Sharp.Sharp, info: IPXImageInfo, operationsContext: any) {
+  async getMetadata (sharp: Sharp.Sharp, _info: IPXImageInfo, operationsContext: any) {
     let result = await sharp.toBuffer()
     const metadata = await sharp.metadata()
     let metadataFormat = metadata.format
@@ -233,9 +233,7 @@ class IPX {
       result = await this.generateSQIP(result)
       metadataFormat = 'sqip'
     }
-    if (operationsContext.metaDataEncode === 'url') {
-      meta.data = `/${info.adapter}/${metadataFormat}/w_30/${info.src}`
-    } else {
+    if (operationsContext.metaDataEncode === 'base64') {
       meta.data = `data:${getMimeType(metadataFormat)};base64,${result.toString('base64')}`
     }
 
