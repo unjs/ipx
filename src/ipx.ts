@@ -126,7 +126,7 @@ class IPX {
       format = extname(src).substr(1)
     }
 
-    if (!format.match(/(jpeg|webp|png|jpg|svg)(\.json)?/)) {
+    if (!format.match(/jpeg|webp|png|jpg|svg/)) {
       throw badRequest(`Unkown image format ${format}`)
     }
 
@@ -199,16 +199,6 @@ class IPX {
       data = await sharp.toBuffer()
     }
 
-    if (info.format.match(/\.json$/)) {
-      const metadata = await sharp.metadata()
-      data = Buffer.from(JSON.stringify({
-        data: `data:image/${metadata.format};base64,${data.toString('base64')}`,
-        width: metadata.width,
-        height: metadata.height,
-        size: metadata.size
-      }))
-    }
-
     // Put data into cache
     try {
       await this.cache!.set(info.cacheKey, data)
@@ -257,9 +247,6 @@ class IPX {
   }
 
   private getMimeType (format: string) {
-    if (format.match(/.json$/g)) {
-      return 'application/json'
-    }
     switch (format) {
       case '_':
         return 'image'
