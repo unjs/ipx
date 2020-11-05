@@ -4,6 +4,7 @@ export const img = ({
   baseURL = '',
   basePath = '',
   opts,
+  adapter = 'local',
   format = '_',
   presets
 }) => {
@@ -17,10 +18,11 @@ export const img = ({
   const fn = (
     path,
     _opts,
-    _format
+    _format,
+    _adapter = ''
   ) => {
     const optsStr = filterEmpty([].concat(opts, _opts ? normalize(_opts) : [])).join(',')
-    return (baseURL + '/' + (_format || format) + '/' + optsStr + '/' + basePath + '/' + path).replace(/\/\//g, '/')
+    return (baseURL + '/' + (_adapter || adapter) + '/' + (_format || format) + '/' + optsStr + '/' + basePath + '/' + path).replace(/\/\//g, '/')
   }
 
   // Attach all presets
@@ -28,7 +30,7 @@ export const img = ({
     Object.keys(presets).forEach((key) => {
       const preset = presets[key]
       const presetOpts = normalize(preset.opts)
-      fn[key] = (path, _opts, _format) => fn(path, _opts || presetOpts, _format || preset.format)
+      fn[key] = (path, _opts, _format, _adapter = '') => fn(path, _opts || presetOpts, _format || preset.format, _adapter || preset.adapter)
     })
   }
 
