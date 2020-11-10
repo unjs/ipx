@@ -180,6 +180,12 @@ class IPX {
     operations.forEach(({ operation, args }) => {
       sharp = operation.handler(context, sharp, ...args) || sharp
     })
+
+    /**
+     * auto-rotate image based on EXIF orientation tag
+     * see: https://github.com/lovell/sharp/blob/0ee08bfe46e0b204b34151fead8139027c768375/lib/operation.js#L41
+     */
+    sharp = sharp.rotate()
     return sharp
   }
 
