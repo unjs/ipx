@@ -181,13 +181,6 @@ class IPX {
       sharp = operation.handler(context, sharp, ...args) || sharp
     })
 
-    if (this.options.useExifOrientation) {
-      /**
-       * auto-rotate image based on EXIF orientation tag
-       * see: https://github.com/lovell/sharp/blob/0ee08bfe46e0b204b34151fead8139027c768375/lib/operation.js#L41
-       */
-      sharp = sharp.rotate()
-    }
     return sharp
   }
 
@@ -201,12 +194,10 @@ class IPX {
     // Read buffer from input
     let data = await this.get(info.src, info.adapter)
     let sharp = Sharp(data)
+    Object.assign((sharp as any).options, this.options.sharp)
 
     if (!this.skipOperations(info)) {
       sharp = this.applyOperations(sharp, info)
-      if (this.options.keepMetadata) {
-        sharp = sharp.withMetadata()
-      }
       data = await sharp.toBuffer()
     }
 
