@@ -39,6 +39,8 @@ export interface IPXOptions {
     maxUnusedMinutes: number | string;
   },
   operations?: IPXOperations
+  keepMetadata?: boolean
+  useExifOrientation?: boolean
 }
 
 export interface IPXImage {

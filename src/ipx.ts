@@ -181,11 +181,13 @@ class IPX {
       sharp = operation.handler(context, sharp, ...args) || sharp
     })
 
-    /**
-     * auto-rotate image based on EXIF orientation tag
-     * see: https://github.com/lovell/sharp/blob/0ee08bfe46e0b204b34151fead8139027c768375/lib/operation.js#L41
-     */
-    sharp = sharp.rotate()
+    if (this.options.useExifOrientation) {
+      /**
+       * auto-rotate image based on EXIF orientation tag
+       * see: https://github.com/lovell/sharp/blob/0ee08bfe46e0b204b34151fead8139027c768375/lib/operation.js#L41
+       */
+      sharp = sharp.rotate()
+    }
     return sharp
   }
 
@@ -202,6 +204,9 @@ class IPX {
 
     if (!this.skipOperations(info)) {
       sharp = this.applyOperations(sharp, info)
+      if (this.options.keepMetadata) {
+        sharp = sharp.withMetadata()
+      }
       data = await sharp.toBuffer()
     }
 
