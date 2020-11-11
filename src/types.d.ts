@@ -39,6 +39,9 @@ export interface IPXOptions {
     maxUnusedMinutes: number | string;
   },
   operations?: IPXOperations
+  sharp?: {
+    [key: string]: any;
+  }
 }
 
 export interface IPXImage {

@@ -180,6 +180,7 @@ class IPX {
     operations.forEach(({ operation, args }) => {
       sharp = operation.handler(context, sharp, ...args) || sharp
     })
+
     return sharp
   }
 
@@ -193,6 +194,7 @@ class IPX {
     // Read buffer from input
     let data = await this.get(info.src, info.adapter)
     let sharp = Sharp(data)
+    Object.assign((sharp as any).options, this.options.sharp)
 
     if (!this.skipOperations(info)) {
       sharp = this.applyOperations(sharp, info)

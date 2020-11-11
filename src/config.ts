@@ -12,7 +12,12 @@ const defaults = {
     dir: env('IPX_CACHE_DIR', 'cache'),
     cleanCron: env('IPX_CACHE_CLEAN_CRON', '0 0 3 * * *'),
     maxUnusedMinutes: env('IPX_CACHE_CLEAN_MINUTES', 24 * 60)
-  }
+  },
+  /**
+   * override sharp options
+   * https://github.com/lovell/sharp/blob/master/lib/constructor.js#L130
+   */
+  sharp: {}
 }
 export default function getConfig (options: Partial<IPXOptions>): IPXOptions {
   const config: IPXOptions = defu(options, defaults)
