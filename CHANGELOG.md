@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.1](https://github.com/nuxt-contrib/ipx/compare/v0.4.0...v0.4.1) (2020-11-12)
+
+
+### Features
+
+* allow overiding `sharp.options` ([#13](https://github.com/nuxt-contrib/ipx/issues/13)) ([ae7244d](https://github.com/nuxt-contrib/ipx/commit/ae7244d83712d352e4fd08fa2106122aac6f2689))
+
 ## [0.4.0](https://github.com/nuxt-contrib/ipx/compare/v0.4.0-rc.1...v0.4.0) (2020-11-05)
 
 
