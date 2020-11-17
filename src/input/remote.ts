@@ -1,17 +1,28 @@
+import http from 'http'
 import https from 'https'
 import { stat, Stats } from 'fs-extra'
 import fetch from 'node-fetch'
 import BaseInputAdapter from './BaseInputAdapter'
 
 export default class RemoteAdapter extends BaseInputAdapter {
-  agent?: https.Agent = undefined
+  httpsAgent?: https.Agent = undefined
+  httpAgent?: http.Agent = undefined
   init () {
-    this.agent = new https.Agent({
+    this.httpsAgent = new https.Agent({
+      // keepAliveMsecs: 1000, // default
+      // maxSockets: Infinity, // default
+      keepAlive: true
+    })
+    this.httpAgent = new http.Agent({
       // keepAliveMsecs: 1000, // default
       // maxSockets: Infinity, // default
       keepAlive: true
     })
     this.options.accept = this.options.accept || ['.*']
+  }
+
+  getAgent (src: string) {
+    return src.startsWith('https') ? this.httpsAgent : this.httpAgent
   }
 
   async _retrive (src: string) {
@@ -24,7 +35,7 @@ export default class RemoteAdapter extends BaseInputAdapter {
       }
     }
     const response = await fetch(src, {
-      agent: this.agent
+      agent: this.getAgent(src)
     })
     const buffer = await response.buffer()
 
