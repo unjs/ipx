@@ -10,7 +10,11 @@ async function IPXReqHandler (req: IncomingMessage, res: ServerResponse, ipx: IP
   const adapter = decodeURIComponent(urlArgs.shift() || '')
   const format = decodeURIComponent(urlArgs.shift() || '')
   const operations = decodeURIComponent(urlArgs.shift() || '')
-  const src = urlArgs.map(c => decodeURIComponent(c)).join('/')
+  let src = urlArgs.map(c => decodeURIComponent(c)).join('/')
+
+  if (adapter === 'remote' && !src.startsWith('http')) {
+    src = (req.headers.referer || req.headers.host || '') + src
+  }
 
   // Validate params
   if (!adapter) {
