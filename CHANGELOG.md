@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.2](https://github.com/nuxt-contrib/ipx/compare/v0.4.1...v0.4.2) (2020-11-18)
+
+
+### Bug Fixes
+
+* support `HttpAgent` with `remote` input ([#14](https://github.com/nuxt-contrib/ipx/issues/14)) ([699b671](https://github.com/nuxt-contrib/ipx/commit/699b6717d1b6f817edb784d50cd5f2ce8da5d21a))
+
 ### [0.4.1](https://github.com/nuxt-contrib/ipx/compare/v0.4.0...v0.4.1) (2020-11-12)
 
 
