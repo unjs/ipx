@@ -126,7 +126,7 @@ class IPX {
       format = extname(src).substr(1)
     }
 
-    if (!format.match(/jpeg|webp|png|jpg|svg/)) {
+    if (!format.match(/jpeg|webp|png|jpg|svg|gif/)) {
       throw badRequest(`Unkown image format ${format}`)
     }
 
@@ -268,7 +268,7 @@ class IPX {
   }
 
   private skipOperations (info: IPXImageInfo) {
-    if (info.format.match(/svg/)) {
+    if (info.format.match(/svg|gif/)) {
       return true
     }
     return false

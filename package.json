@@ -22,8 +22,8 @@
   "scripts": {
     "build": "rimraf lib && siroc build",
     "dev": "nodemon",
-    "start": "node bin/ipx.js",
-    "release": "standard-version && yarn build && git push --follow-tags origin master && npm publish"
+    "release": "standard-version && yarn build && git push --follow-tags origin master && npm publish",
+    "start": "node bin/ipx.js"
   },
   "dependencies": {
     "connect": "^3.7.0",
