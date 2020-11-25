@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.3](https://github.com/nuxt-contrib/ipx/compare/v0.4.2...v0.4.3) (2020-11-25)
+
+
+### Features
+
+* allow gif images ([#15](https://github.com/nuxt-contrib/ipx/issues/15)) ([51dcfc1](https://github.com/nuxt-contrib/ipx/commit/51dcfc1dc0a076eca2c33ce5fcaf37b970964bca))
+
 ### [0.4.2](https://github.com/nuxt-contrib/ipx/compare/v0.4.1...v0.4.2) (2020-11-18)
 
 
