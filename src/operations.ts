@@ -12,10 +12,24 @@ export default <IPXOperations>{
   s: {
     name: 'resize',
     args: [VSize, VSize],
+    order: true,
     handler: (_context, pipe, width, height, fit) => pipe.resize(width, height, {
       fit: fit || _context.fit || 'cover',
-      background: { r: 0, g: 0, b: 0, alpha: 0 }
+      background: _context.background || { r: 0, g: 0, b: 0, alpha: 0 }
     })
+  },
+  b: {
+    name: 'background',
+    args: [VArg],
+    handler: (_context, _pipe, model, background) => {
+      if (!background) {
+        background = model
+      }
+      if (model === 'rgb') {
+        background = '#' + background
+      }
+      _context.background = background
+    }
   },
   q: {
     name: 'quality',
