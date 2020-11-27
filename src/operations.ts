@@ -25,7 +25,7 @@ export default <IPXOperations>{
       if (!background) {
         background = model
       }
-      if (model === 'rgb') {
+      if (model === 'hex') {
         background = '#' + background
       }
       _context.background = background
