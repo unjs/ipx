@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.4](https://github.com/nuxt-contrib/ipx/compare/v0.4.3...v0.4.4) (2020-11-27)
+
+
+### Features
+
+* add background operation ([#16](https://github.com/nuxt-contrib/ipx/issues/16)) ([b1a0178](https://github.com/nuxt-contrib/ipx/commit/b1a0178c2522bba1361a8973bf338fe0ae1cab86))
+
 ### [0.4.3](https://github.com/nuxt-contrib/ipx/compare/v0.4.2...v0.4.3) (2020-11-25)
 
 
