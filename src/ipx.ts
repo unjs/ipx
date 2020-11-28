@@ -13,6 +13,7 @@ import BaseCacheAdapter from './cache/BaseCacheAdapter'
 
 const operationSeparator = ','
 const argSeparator = '_'
+const unknownFormat = 'unknown'
 
 class IPX {
   options: IPXOptions
@@ -123,14 +124,15 @@ class IPX {
   async getInfo ({ adapter, format, operations, src }: IPXImage): Promise<IPXImageInfo> {
     // Validate format
     if (format === '_') {
-      const extension = extname(src).substr(1)
-      if (extension.match(/jpeg|webp|png|jpg|svg|gif/)) {
-        format = extension
-      }
+      format = extname(src).substr(1)
     }
 
-    if (!format.match(/jpeg|webp|png|jpg|svg|gif|_/)) {
-      throw badRequest(`Unkown image format ${format}`)
+    if (format === 'jpeg') {
+      format = 'jpg'
+    }
+
+    if (!format.match(/webp|png|jpg|svg|gif/)) {
+      format = unknownFormat
     }
 
     // Validate src
@@ -171,7 +173,7 @@ class IPX {
   }
 
   applyOperations (sharp: Sharp.Sharp, { operations, format }: IPXImageInfo): Sharp.Sharp {
-    if (format !== '_') {
+    if (format !== unknownFormat) {
       operations.push({
         operation: this.operations.format,
         args: [format]
