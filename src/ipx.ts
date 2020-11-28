@@ -123,10 +123,13 @@ class IPX {
   async getInfo ({ adapter, format, operations, src }: IPXImage): Promise<IPXImageInfo> {
     // Validate format
     if (format === '_') {
-      format = extname(src).substr(1)
+      const extension = extname(src).substr(1)
+      if (extension.match(/jpeg|webp|png|jpg|svg|gif/)) {
+        format = extension
+      }
     }
 
-    if (!format.match(/jpeg|webp|png|jpg|svg|gif/)) {
+    if (!format.match(/jpeg|webp|png|jpg|svg|gif|_/)) {
       throw badRequest(`Unkown image format ${format}`)
     }
 
@@ -171,7 +174,7 @@ class IPX {
     if (format !== '_') {
       operations.push({
         operation: this.operations.format,
-        args: [this.extractImageFormat(format)]
+        args: [format]
       })
     }
 
@@ -257,14 +260,6 @@ class IPX {
       default:
         return 'image/' + format
     }
-  }
-
-  private extractImageFormat (format) {
-    format = format.split('.').shift()
-    if (format === 'jpg') {
-      format = 'jpeg'
-    }
-    return format
   }
 
   private skipOperations (info: IPXImageInfo) {
