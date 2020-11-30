@@ -2,11 +2,14 @@ import http from 'http'
 import https from 'https'
 import { stat, Stats } from 'fs-extra'
 import fetch from 'node-fetch'
+import allowlist, { Matcher } from 'allowlist'
 import BaseInputAdapter from './BaseInputAdapter'
 
 export default class RemoteAdapter extends BaseInputAdapter {
   httpsAgent?: https.Agent = undefined
   httpAgent?: http.Agent = undefined
+
+  isAcceptedSource?: Matcher<string>
   init () {
     this.httpsAgent = new https.Agent({
       // keepAliveMsecs: 1000, // default
@@ -18,7 +21,7 @@ export default class RemoteAdapter extends BaseInputAdapter {
       // maxSockets: Infinity, // default
       keepAlive: true
     })
-    this.options.accept = this.options.accept || ['.*']
+    this.isAcceptedSource = allowlist<string>(this.options.accept)
   }
 
   getAgent (src: string) {
@@ -53,7 +56,7 @@ export default class RemoteAdapter extends BaseInputAdapter {
     if (!src.startsWith('http')) {
       return false
     }
-    if (!this.options.accept.some((rule: string) => src.match(rule))) {
+    if (!this.isAcceptedSource(src)) {
       return false
     }
     return true
