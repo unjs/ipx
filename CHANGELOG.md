@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.5](https://github.com/nuxt-contrib/ipx/compare/v0.4.4...v0.4.5) (2020-11-30)
+
+
+### Bug Fixes
+
+* prevent unknow format error ([#18](https://github.com/nuxt-contrib/ipx/issues/18)) ([3f338be](https://github.com/nuxt-contrib/ipx/commit/3f338be630c76fd2d91901462cc3d5b495719882))
+
 ### [0.4.4](https://github.com/nuxt-contrib/ipx/compare/v0.4.3...v0.4.4) (2020-11-27)
 
 
