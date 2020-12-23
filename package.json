@@ -22,6 +22,7 @@
   "scripts": {
     "build": "rimraf lib && siroc build",
     "dev": "nodemon",
+    "lint": "eslint --ext .ts .",
     "release": "standard-version && yarn build && git push --follow-tags origin master && npm publish",
     "start": "node bin/ipx.js"
   },
@@ -39,22 +40,22 @@
     "sharp": "^0.26.0"
   },
   "devDependencies": {
-    "@nuxtjs/eslint-config-typescript": "^3.0.0",
-    "@types/connect": "^3.4.33",
-    "@types/cron": "^1.7.2",
-    "@types/etag": "^1.8.0",
-    "@types/fs-extra": "^9.0.1",
-    "@types/is-valid-path": "^0.1.0",
-    "@types/node-fetch": "^2.5.7",
-    "@types/recursive-readdir": "^2.2.0",
-    "@types/sharp": "^0.26.0",
-    "cross-env": "^7.0.2",
-    "eslint": "^7.10.0",
-    "nodemon": "^2.0.4",
-    "rollup-plugin-typescript2": "^0.27.3",
-    "siroc": "^0.5.0",
-    "standard-version": "^9.0.0",
-    "ts-node": "^9.0.0",
-    "typescript": "^4.0.3"
+    "@nuxtjs/eslint-config-typescript": "latest",
+    "@types/connect": "latest",
+    "@types/cron": "latest",
+    "@types/etag": "latest",
+    "@types/fs-extra": "latest",
+    "@types/is-valid-path": "latest",
+    "@types/node-fetch": "latest",
+    "@types/recursive-readdir": "latest",
+    "@types/sharp": "latest",
+    "cross-env": "latest",
+    "eslint": "latest",
+    "nodemon": "latest",
+    "rollup-plugin-typescript2": "latest",
+    "siroc": "latest",
+    "standard-version": "latest",
+    "ts-node": "latest",
+    "typescript": "latest"
   }
 }

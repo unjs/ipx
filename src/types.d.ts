@@ -5,10 +5,6 @@ import IPX from './ipx' /* TODO */
 
 export type IPXOperationHandler = (context: any, pipe: any, ...args: any[]) => any
 
-export interface IPXOperations {
-  [key: string]: IPXOperation;
-}
-
 export interface IPXOperation {
   key?: string;
   name: string;
@@ -21,6 +17,10 @@ export interface IPXParsedOperation {
   operation: IPXOperation;
   args: string[]
   cacheKey?: string;
+}
+
+export interface IPXOperations {
+  [key: string]: IPXOperation;
 }
 
 export interface IPXInputOption {
