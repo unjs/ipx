@@ -26,6 +26,7 @@
     "start": "node bin/ipx.js"
   },
   "dependencies": {
+    "allowlist": "^0.0.3",
     "connect": "^3.7.0",
     "consola": "^2.15.0",
     "cron": "^1.8.2",
