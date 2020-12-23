@@ -2,7 +2,7 @@ import http from 'http'
 import https from 'https'
 import { stat, Stats } from 'fs-extra'
 import fetch from 'node-fetch'
-import allowlist, { Matcher } from 'allowlist'
+import { allowList, Matcher } from 'allowlist'
 import BaseInputAdapter from './BaseInputAdapter'
 
 export default class RemoteAdapter extends BaseInputAdapter {
@@ -21,7 +21,7 @@ export default class RemoteAdapter extends BaseInputAdapter {
       // maxSockets: Infinity, // default
       keepAlive: true
     })
-    this.isAcceptedSource = allowlist<string>(this.options.accept)
+    this.isAcceptedSource = allowList<string>(this.options.accept)
   }
 
   getAgent (src: string) {
