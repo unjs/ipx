@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.8](https://github.com/nuxt-contrib/ipx/compare/v0.4.7...v0.4.8) (2020-12-23)
+
+
+### Bug Fixes
+
+* update allowList import ([a26cae0](https://github.com/nuxt-contrib/ipx/commit/a26cae00faa4fea7c190e3fb4efdf5fa1d137095))
+
 ### [0.4.7](https://github.com/nuxt-contrib/ipx/compare/v0.4.6...v0.4.7) (2020-12-23)
 
 
