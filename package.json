@@ -4,23 +4,24 @@
   "repository": "nuxt-contrib/ipx",
   "license": "MIT",
   "exports": {
-    "client": {
-      "require": "./lib/client.js",
-      "import": "./lib/client.es.js"
+    "./client": {
+      "require": "./dist/client.js",
+      "import": "./dist/client.mjs"
     },
-    "entrypoint": {
-      "require": "./lib/index.js",
-      "import": "./lib/index.es.js"
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
     }
   },
-  "main": "lib/index.cjs.js",
+  "main": "dist/index.js",
+  "types": "./dist/types.d.ts",
   "bin": "bin/cli.js",
   "files": [
-    "lib",
+    "dist",
     "bin"
   ],
   "scripts": {
-    "build": "rimraf lib && siroc build",
+    "build": "siroc build",
     "dev": "nodemon",
     "lint": "eslint --ext .ts .",
     "release": "standard-version && yarn build && git push --follow-tags origin master && npm publish",
