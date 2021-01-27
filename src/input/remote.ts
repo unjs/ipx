@@ -28,12 +28,11 @@ export default class RemoteAdapter extends BaseInputAdapter {
     return src.startsWith('https') ? this.httpsAgent : this.httpAgent
   }
 
-  async _retrive (src: string) {
-    const cacheKey = src.split(/[?#]/).shift()?.split('//').pop()!
-    const cache = await this.ipx.cache?.get(cacheKey)
+  async _retrieve (src: string) {
+    const cache = await this.ipx.cache?.get(src)
     if (cache) {
       return {
-        cache: await this.ipx.cache?.resolve(cacheKey),
+        cache: await this.ipx.cache?.resolve(src),
         buffer: cache
       }
     }
@@ -43,11 +42,11 @@ export default class RemoteAdapter extends BaseInputAdapter {
     const buffer = await response.buffer()
 
     if (this.ipx.cache) {
-      await this.ipx.cache.set(cacheKey, buffer)
+      await this.ipx.cache.set(src, buffer)
     }
 
     return {
-      cache: await this.ipx.cache?.resolve(cacheKey),
+      cache: await this.ipx.cache?.resolve(src),
       buffer
     }
   }
@@ -66,7 +65,7 @@ export default class RemoteAdapter extends BaseInputAdapter {
     if (!this.accept(src)) {
       return false
     }
-    const _src = await this._retrive(src)
+    const _src = await this._retrieve(src)
 
     try {
       const stats = await stat(_src.cache as string)
@@ -82,6 +81,6 @@ export default class RemoteAdapter extends BaseInputAdapter {
    * @returns Promise<Buffer>
    */
   async get (src: string) {
-    return (await this._retrive(src)).buffer
+    return (await this._retrieve(src)).buffer
   }
 };

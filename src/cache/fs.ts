@@ -2,8 +2,8 @@ import { resolve, dirname } from 'path'
 import recursiveReadDir from 'recursive-readdir'
 import { mkdirpSync, mkdirp, exists, readFile, writeFile, stat, remove } from 'fs-extra'
 import consola from 'consola'
+import shortHash from 'shorthash2'
 import BaseCacheAdapter from './BaseCacheAdapter'
-
 export default class FSCache extends BaseCacheAdapter {
   init () {
     // Ensure cacheDir exists
@@ -12,8 +12,12 @@ export default class FSCache extends BaseCacheAdapter {
     }
   }
 
-  resolve (key: string) {
-    return resolve(this.options.cache.dir, key)
+  key (src: string) {
+    return shortHash(src.split('#').shift()?.split('//').pop())
+  }
+
+  resolve (src: string) {
+    return resolve(this.options.cache.dir, this.key(src))
   }
 
   async clean () {
@@ -42,18 +46,18 @@ export default class FSCache extends BaseCacheAdapter {
     }))
   }
 
-  async get (key: string) {
-    const _path = await this.resolve(key)
+  async get (src: string) {
+    const _path = await this.resolve(src)
     // @ts-ignore
     if (!(await exists(_path))) {
       return null
     }
-    consola.debug('[HIT] ' + key)
+    consola.debug(`[HIT][${this.key(src)}] ${src}`)
     return readFile(_path)
   }
 
-  async set (key: string, data: Buffer) {
-    const _path = await this.resolve(key)
+  async set (src: string, data: Buffer) {
+    const _path = await this.resolve(src)
     await mkdirp(dirname(_path))
     return writeFile(_path, data)
   }

@@ -191,7 +191,7 @@ class IPX {
 
   async getData (info: IPXImageInfo) {
     // Check cache existence
-    const cache = await this.cache!.get(info.cacheKey)
+    const cache = await this.cache!.get(info.src)
     if (cache) {
       return cache
     }
