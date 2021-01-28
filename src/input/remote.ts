@@ -36,7 +36,9 @@ export default class RemoteAdapter extends BaseInputAdapter {
         buffer: cache
       }
     }
-    const response = await fetch(src, {
+    const [base, query] = src.split('?')
+    const url = base + (query ? '?' + encodeURI(query) : '')
+    const response = await fetch(url, {
       agent: this.getAgent(src)
     })
     const buffer = await response.buffer()
