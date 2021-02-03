@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.2](https://github.com/nuxt-contrib/ipx/compare/v0.5.1...v0.5.2) (2021-02-03)
+
+
+### Features
+
+* support meta, content-type and svg handling ([37592e7](https://github.com/nuxt-contrib/ipx/commit/37592e711d166df41c29f1b1117adb186d42ce5d))
+
+
+### Bug Fixes
+
+* only giveup svg if no format modifier set ([f5ce8b7](https://github.com/nuxt-contrib/ipx/commit/f5ce8b7aecd18629b7a116dc6aecd5096d4573aa))
+
 ### [0.5.1](https://github.com/nuxt-contrib/ipx/compare/v0.5.0...v0.5.1) (2021-02-03)
 
 
