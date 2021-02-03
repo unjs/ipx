@@ -15,9 +15,10 @@
     "build": "siroc build",
     "dev": "nodemon",
     "lint": "eslint --ext .ts .",
-    "test": "yarn lint && jest",
-    "release": "standard-version && yarn build && git push --follow-tags origin master && npm publish",
-    "start": "node bin/ipx.js"
+    "prepublishOnly": "yarn build",
+    "release": "standard-version && git push --follow-tags && npm publish",
+    "start": "node bin/ipx.js",
+    "test": "yarn lint && jest"
   },
   "dependencies": {
     "consola": "^2.15.0",
