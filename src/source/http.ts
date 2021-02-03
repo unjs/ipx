@@ -2,7 +2,7 @@ import http from 'http'
 import https from 'https'
 import fetch from 'node-fetch'
 import type { SourceFactory } from '../types'
-import { createError } from '../utils'
+import { createError, cachedPromise } from '../utils'
 
 export const createHTTPSource: SourceFactory = (options: any) => {
   const httpsAgent = new https.Agent({ keepAlive: true })
@@ -42,7 +42,7 @@ export const createHTTPSource: SourceFactory = (options: any) => {
     return {
       mtime,
       maxAge,
-      getData: () => response.buffer()
+      getData: cachedPromise(() => response.buffer())
     }
   }
 }

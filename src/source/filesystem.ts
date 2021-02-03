@@ -1,7 +1,7 @@
 import { resolve } from 'path'
 import isValidPath from 'is-valid-path'
 import { readFile, stat } from 'fs-extra'
-import { createError } from '../utils'
+import { createError, cachedPromise } from '../utils'
 import type { SourceFactory } from '../types'
 
 export const createFilesystemSource: SourceFactory = (options: any) => {
@@ -28,7 +28,7 @@ export const createFilesystemSource: SourceFactory = (options: any) => {
     return {
       mtime: stats.mtime,
       maxAge: options.maxAge || 300,
-      getData: () => readFile(fsPath)
+      getData: cachedPromise(() => readFile(fsPath))
     }
   }
 }

@@ -22,31 +22,37 @@ async function handleRequest (req: IncomingMessage, res: ServerResponse, ipx: IP
   })
 
   // Get image meta from source
-  const meta = await img.meta()
+  const src = await img.src()
 
   // Caching headers
-  if (meta.mtime) {
+  if (src.mtime) {
     if (req.headers['if-modified-since']) {
-      if (new Date(req.headers['if-modified-since']) >= meta.mtime) {
+      if (new Date(req.headers['if-modified-since']) >= src.mtime) {
         res.statusCode = 304
         return res.end()
       }
     }
-    res.setHeader('Last-Modified', (+meta.mtime))
+    res.setHeader('Last-Modified', (+src.mtime))
   }
-  if (meta.maxAge !== undefined) {
-    res.setHeader('Cache-Control', 'maxAge=' + (+meta.maxAge))
+  if (src.maxAge !== undefined) {
+    res.setHeader('Cache-Control', 'maxAge=' + (+src.maxAge))
   }
 
   // Get converted image
   const data = await img.data()
 
-  // Tag
+  // ETag
   const etag = getEtag(data)
   res.setHeader('ETag', etag)
   if (etag && req.headers['if-none-match'] === etag) {
     res.statusCode = 304
     return res.end()
+  }
+
+  // Mime
+  const meta = await img.meta()
+  if (meta.mimeType) {
+    res.setHeader('Content-Type', meta.mimeType)
   }
 
   // Send

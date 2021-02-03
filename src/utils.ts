@@ -5,12 +5,12 @@ export function getEnv (name: string, defaultValue: any) {
 }
 
 export function cachedPromise<T extends (...args: any[]) => any>(fn: T) {
-  let p: Promise<ReturnType<T>>
+  let p: ReturnType<T>
   return (...args: Parameters<T>) => {
     if (p) {
       return p
     }
-    p = Promise.resolve(fn(...args))
+    p = Promise.resolve(fn(...args)) as ReturnType<T>
     return p
   }
 }

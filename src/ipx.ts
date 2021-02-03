@@ -1,9 +1,18 @@
 import Sharp from 'sharp'
 import defu from 'defu'
+import imageMeta from 'image-meta'
 import type { Source, SourceData } from './types'
 import { createFilesystemSource, createHTTPSource } from './source'
 import { applyHandler } from './handler'
 import { cachedPromise, getEnv, createError } from './utils'
+
+// TODO: Move to image-meta
+export interface ImageMeta {
+  width: number
+  height: number
+  type: string
+  mimeType: string
+}
 
 export interface IPXInputOptions {
   source?: string
@@ -15,8 +24,9 @@ export interface IPXCTX {
 }
 
 export type IPX = (id: string, opts?: IPXInputOptions) => {
-  meta: () => Promise<SourceData>,
-  data: () => Promise<Buffer>
+  src: () => Promise<SourceData>,
+  data: () => Promise<Buffer>,
+  meta: () => Promise<ImageMeta>
 }
 
 export interface IPXOptions {
@@ -56,7 +66,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       throw createError('resource id is missing', 400)
     }
 
-    const meta = cachedPromise(() => {
+    const getSrc = cachedPromise(() => {
       const source = inputOpts.source || id.startsWith('http') ? 'http' : 'filesystem'
       if (!ctx.sources[source]) {
         throw createError('Unknown source: ' + source, 400)
@@ -64,11 +74,24 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       return ctx.sources[source](id)
     })
 
-    const data = async () => {
-      const src = await meta()
+    const getMeta = cachedPromise(async () => {
+      const src = await getSrc()
+      const data = await src.getData()
+      const meta = imageMeta(data) as ImageMeta
+      return meta
+    })
+
+    const getData = cachedPromise(async () => {
+      const src = await getSrc()
       const data = await src.getData()
 
       if (!inputOpts.modifiers || Object.values(inputOpts.modifiers).length === 0) {
+        return data
+      }
+
+      const meta = await getMeta()
+
+      if (meta.type === 'svg') {
         return data
       }
 
@@ -80,11 +103,12 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
         sharp = applyHandler(modifierCtx, sharp, key, inputOpts.modifiers[key]) || sharp
       }
       return sharp.toBuffer()
-    }
+    })
 
     return {
-      meta,
-      data
+      src: getSrc,
+      data: getData,
+      meta: getMeta
     }
   }
 }
