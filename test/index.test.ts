@@ -5,18 +5,13 @@ describe('ipx', () => {
   let ipx: IPX
   it('createIPX', () => {
     ipx = createIPX({
-      local: {
-        dir: resolve(__dirname, 'assets')
-      }
+      dir: resolve(__dirname, 'assets')
     })
   })
 
-  it('src.getData', async () => {
-    const src = await ipx({
-      id: 'bliss.jpg',
-      source: 'local'
-    })
-    const data = await src.getData()
+  it('data', async () => {
+    const src = await ipx('bliss.jpg')
+    const data = await src.data()
     expect(data).toBeInstanceOf(Buffer)
   })
 })
