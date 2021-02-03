@@ -1,6 +1,7 @@
 import Sharp from 'sharp'
 import defu from 'defu'
 import imageMeta from 'image-meta'
+import { hasProtocol } from 'ufo'
 import type { Source, SourceData } from './types'
 import { createFilesystemSource, createHTTPSource } from './source'
 import { applyHandler } from './handler'
@@ -67,7 +68,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
     }
 
     const getSrc = cachedPromise(() => {
-      const source = inputOpts.source || id.startsWith('http') ? 'http' : 'filesystem'
+      const source = inputOpts.source || hasProtocol(id) ? 'http' : 'filesystem'
       if (!ctx.sources[source]) {
         throw createError('Unknown source: ' + source, 400)
       }
