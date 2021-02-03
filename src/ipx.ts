@@ -91,7 +91,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
 
       const meta = await getMeta()
 
-      if (meta.type === 'svg') {
+      if (meta.type === 'svg' && (!inputOpts.modifiers.f || !inputOpts.modifiers.format)) {
         return data
       }
 
