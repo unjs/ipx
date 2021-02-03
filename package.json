@@ -3,9 +3,9 @@
   "version": "0.5.0",
   "repository": "nuxt-contrib/ipx",
   "license": "MIT",
-  "main": "dist/ipx.js",
-  "module": "dist/ipx.mjs",
-  "types": "./dist/ipx.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "bin": "./dist/cli.js",
   "files": [
     "dist"
