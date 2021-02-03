@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.1](https://github.com/nuxt-contrib/ipx/compare/v0.5.0...v0.5.1) (2021-02-03)
+
+
+### Bug Fixes
+
+* **pkg:** export index.ts ([6125bbb](https://github.com/nuxt-contrib/ipx/commit/6125bbb79ad430294f5d371d9a08f8ecca5c8372))
+
 ## [0.5.0](https://github.com/nuxt-contrib/ipx/compare/v0.4.8...v0.5.0) (2021-02-03)
 
 
