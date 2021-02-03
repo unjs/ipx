@@ -31,11 +31,11 @@ export type IPX = (id: string, opts?: IPXInputOptions) => {
 }
 
 export interface IPXOptions {
-  dir: false | string
-  domains: false | string[]
+  dir?: false | string
+  domains?: false | string[]
   // TODO: Create types
   // https://github.com/lovell/sharp/blob/master/lib/constructor.js#L130
-  sharp: { [key: string]: any }
+  sharp?: { [key: string]: any }
 }
 
 export function createIPX (userOptions: Partial<IPXOptions>): IPX {
