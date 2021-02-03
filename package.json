@@ -3,19 +3,10 @@
   "version": "0.4.8",
   "repository": "nuxt-contrib/ipx",
   "license": "MIT",
-  "exports": {
-    "./client": {
-      "require": "./dist/client.js",
-      "import": "./dist/client.mjs"
-    },
-    ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
-    }
-  },
-  "main": "dist/index.js",
-  "types": "./dist/types.d.ts",
-  "bin": "bin/cli.js",
+  "main": "dist/ipx.js",
+  "module": "dist/ipx.mjs",
+  "types": "./dist/ipx.d.ts",
+  "bin": "./dist/cli.js",
   "files": [
     "dist",
     "bin"
@@ -24,39 +15,37 @@
     "build": "siroc build",
     "dev": "nodemon",
     "lint": "eslint --ext .ts .",
+    "test": "yarn lint && jest",
     "release": "standard-version && yarn build && git push --follow-tags origin master && npm publish",
     "start": "node bin/ipx.js"
   },
   "dependencies": {
-    "allowlist": "^0.1.1",
-    "connect": "^3.7.0",
     "consola": "^2.15.0",
-    "cron": "^1.8.2",
     "defu": "^3.2.2",
+    "destr": "^1.1.0",
     "etag": "^1.8.1",
     "fs-extra": "^9.0.1",
     "is-valid-path": "^0.1.1",
+    "listhen": "^0.1.2",
     "node-fetch": "^2.6.1",
-    "recursive-readdir": "^2.2.2",
-    "sharp": "^0.27.0"
+    "sharp": "^0.27.0",
+    "ufo": "^0.6.1",
+    "xss": "^1.0.8"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "latest",
-    "@types/connect": "latest",
-    "@types/cron": "latest",
     "@types/etag": "latest",
     "@types/fs-extra": "latest",
     "@types/is-valid-path": "latest",
     "@types/node-fetch": "latest",
-    "@types/recursive-readdir": "latest",
     "@types/sharp": "latest",
-    "cross-env": "latest",
     "eslint": "latest",
+    "jest": "^26.6.3",
+    "jiti": "latest",
     "nodemon": "latest",
-    "rollup-plugin-typescript2": "latest",
     "siroc": "latest",
     "standard-version": "latest",
-    "ts-node": "latest",
+    "ts-jest": "^26.5.0",
     "typescript": "latest"
   }
 }

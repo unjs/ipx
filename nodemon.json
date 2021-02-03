@@ -1,8 +1,9 @@
 {
   "watch": [ "src" ],
   "ext": "ts,json",
-  "exec": "ts-node ./src/cli.ts",
+  "exec": "jiti ./src/cli.ts",
   "env": {
-    "DEBUG": 1
+    "IPX_DIR": "test/assets",
+    "IPX_DOMAINS": "https://avatars.githubusercontent.com, https://nuxtjs.org"
   }
 }

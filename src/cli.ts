@@ -1,24 +1,18 @@
-import connect from 'connect'
 import consola from 'consola'
+import { listen } from 'listhen'
 
-import { IPX, IPXMiddleware } from './index'
+import { createIPX } from './ipx'
+import { createIPXMiddleware } from './middleware'
 
-function main () {
-  // Create IPX instance
-  const ipx = new IPX({})
-
-  // Create a HTTP server
-  const app = connect()
-
-  // Create and use middleware
-  const middleware = IPXMiddleware(ipx)
-  app.use('/', middleware)
-
-  // Start listening
-  const literner = app.listen(ipx.options.port, () => {
-    const { port } = literner.address() as any
-    consola.info(`Listening on port ${port}`)
+async function main () {
+  const ipx = createIPX({})
+  const middleware = createIPXMiddleware(ipx)
+  await listen(middleware, {
+    clipboard: false
   })
 }
 
-main()
+main().catch((err) => {
+  consola.error(err)
+  process.exit(1)
+})

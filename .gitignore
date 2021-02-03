@@ -1,11 +1,7 @@
 node_modules
 .vscode
 .idea
-*.log
+*.log*
 .DS_Store
-storage
-/cache
-/client
 dist
-lib
-bin
+coverage

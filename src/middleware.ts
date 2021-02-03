@@ -1,67 +1,69 @@
 import { ServerResponse, IncomingMessage } from 'http'
+import { parseURL, normalizeURL, parseQuery, withoutLeadingSlash, decode } from 'ufo'
 import getEtag from 'etag'
-import IPX from './ipx'
-import { badRequest, checkConditionalHeaders } from './utils'
+import xss from 'xss'
+import { IPX } from './ipx'
 
-async function IPXReqHandler (req: IncomingMessage, res: ServerResponse, ipx: IPX) {
-  // Parse URL
-  const url = req.url || '/'
-  const urlArgs = url.substr(1).split('/')
-  const adapter = decodeURIComponent(urlArgs.shift() || '')
-  const format = decodeURIComponent(urlArgs.shift() || '')
-  const operations = decodeURIComponent(urlArgs.shift() || '')
-  const src = urlArgs.map(c => decodeURIComponent(c)).join('/')
+async function handleRequest (req: IncomingMessage, res: ServerResponse, ipx: IPX) {
+  const url = parseURL(normalizeURL(req.url))
+  const params = parseQuery(url.search)
+  const id = withoutLeadingSlash(decode(url.pathname || params.id as string))
 
-  // Validate params
-  if (!adapter) {
-    throw badRequest('Missing adapter')
-  }
-  if (!format) {
-    throw badRequest('Missing format')
-  }
-  if (!operations) {
-    throw badRequest('Missing operations')
-  }
-  if (!src) {
-    throw badRequest('Missing src')
+  const modifiers: Record<string, string> = Object.create(null)
+  for (const pKey in params) {
+    if (pKey === 'source' || pKey === 'id') { continue }
+    modifiers[pKey] = params[pKey] as string
   }
 
-  // Get basic info about request
-  const info = await ipx.getInfo({ adapter, format, operations, src })
+  // Create request
+  const img = ipx(id, {
+    modifiers,
+    source: params.source as string
+  })
 
-  // Set Content-Type header
-  res.setHeader('Content-Type', info.mimeType)
+  // Get image meta from source
+  const meta = await img.meta()
 
-  // Set Etag header
-  const etag = getEtag(info.cacheKey)
-  res.setHeader('Etag', etag)
-
-  if (info.stats) {
-    // Set Last-Modified Header
-    const lastModified = info.stats.mtime || new Date()
-    res.setHeader('Last-Modified', +lastModified)
-
-    // Check conditional headers for 304
-    if (checkConditionalHeaders(req, lastModified, etag)) {
-      res.statusCode = 304
-      return res.end()
+  // Caching headers
+  if (meta.mtime) {
+    if (req.headers['if-modified-since']) {
+      if (new Date(req.headers['if-modified-since']) >= meta.mtime) {
+        res.statusCode = 304
+        return res.end()
+      }
     }
+    res.setHeader('Last-Modified', (+meta.mtime))
+  }
+  if (meta.maxAge !== undefined) {
+    res.setHeader('Cache-Control', 'maxAge=' + (+meta.maxAge))
   }
 
-  // Process request to get image
-  const data = await ipx.getData(info)
+  // Get converted image
+  const data = await img.data()
 
-  // Send image
+  // Tag
+  const etag = getEtag(data)
+  res.setHeader('ETag', etag)
+  if (etag && req.headers['if-none-match'] === etag) {
+    res.statusCode = 304
+    return res.end()
+  }
+
+  // Send
   res.end(data)
 }
 
-export default function IPXMiddleware (ipx: IPX) {
+export function createIPXMiddleware (ipx: IPX) {
   return function IPXMiddleware (req: IncomingMessage, res: ServerResponse) {
-    IPXReqHandler(req, res, ipx).catch((err) => {
-      if (err.statusCode) {
-        res.statusCode = err.statusCode
+    handleRequest(req, res, ipx).catch((err) => {
+      const statusCode = parseInt(err.statusCode) || 500
+      const statusMessage = err.statusMessage ? xss(err.statusMessage) : `IPX Error (${statusCode})`
+      if (process.env.NODE_ENV !== 'production' && statusCode === 500) {
+        console.error(err) // eslint-disable-line no-console
       }
-      res.end('IPX Error: ' + err)
+      res.statusCode = statusCode
+      res.statusMessage = statusMessage
+      return res.end(statusMessage)
     })
   }
 }
