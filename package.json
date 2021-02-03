@@ -8,8 +8,7 @@
   "types": "./dist/ipx.d.ts",
   "bin": "./dist/cli.js",
   "files": [
-    "dist",
-    "bin"
+    "dist"
   ],
   "scripts": {
     "build": "siroc build",
