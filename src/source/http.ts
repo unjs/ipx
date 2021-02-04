@@ -27,16 +27,18 @@ export const createHTTPSource: SourceFactory = (options: any) => {
     }
 
     let maxAge = options.maxAge || 300
-    if (response.headers['cache-control']) {
-      const m = response.headers['cache-control'].match(/max-age=(\d+)/)
+    const _cacheControl = response.headers.get('cache-control')
+    if (_cacheControl) {
+      const m = _cacheControl.match(/max-age=(\d+)/)
       if (m && m[1]) {
         maxAge = parseInt(m[1])
       }
     }
 
-    let mtime = new Date()
-    if (response.headers['last-modified']) {
-      mtime = new Date(response.headers['last-modified'])
+    let mtime
+    const _lastModified = response.headers.get('last-modified')
+    if (_lastModified) {
+      mtime = new Date(_lastModified)
     }
 
     return {
