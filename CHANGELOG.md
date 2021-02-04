@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.3](https://github.com/nuxt-contrib/ipx/compare/v0.5.2...v0.5.3) (2021-02-04)
+
+
+### Bug Fixes
+
+* fix max-age cache header name ([833272b](https://github.com/nuxt-contrib/ipx/commit/833272b6a4c63c388e941c8f037118c204a8dac4))
+* **types:** optional ipxOptions ([692ab1f](https://github.com/nuxt-contrib/ipx/commit/692ab1f6c64fa86d77581bebdcabf0ba707b9469))
+
 ### [0.5.2](https://github.com/nuxt-contrib/ipx/compare/v0.5.1...v0.5.2) (2021-02-03)
 
 
