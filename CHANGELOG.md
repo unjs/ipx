@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.6](https://github.com/nuxt-contrib/ipx/compare/v0.5.5...v0.5.6) (2021-02-04)
+
+
+### Bug Fixes
+
+* remove extra space ([6df3504](https://github.com/nuxt-contrib/ipx/commit/6df350413d2cab1b4d4a4c9f8b8a92bd906cc8f5))
+
 ### [0.5.5](https://github.com/nuxt-contrib/ipx/compare/v0.5.4...v0.5.5) (2021-02-04)
 
 
