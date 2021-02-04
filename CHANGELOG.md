@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.4](https://github.com/nuxt-contrib/ipx/compare/v0.5.3...v0.5.4) (2021-02-04)
+
+
+### Bug Fixes
+
+* **http:** user headers.get ([9cf5aeb](https://github.com/nuxt-contrib/ipx/commit/9cf5aebaff8f8fe86014993ac4c91590bc5a6134))
+
 ### [0.5.3](https://github.com/nuxt-contrib/ipx/compare/v0.5.2...v0.5.3) (2021-02-04)
 
 
