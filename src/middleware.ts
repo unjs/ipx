@@ -35,7 +35,7 @@ async function handleRequest (req: IncomingMessage, res: ServerResponse, ipx: IP
     res.setHeader('Last-Modified', (+src.mtime))
   }
   if (src.maxAge !== undefined) {
-    res.setHeader('Cache-Control', 'max-age=' + (+src.maxAge))
+    res.setHeader('Cache-Control', `max-age= ${+src.maxAge}, public, s-maxage=${+src.maxAge}`)
   }
 
   // Get converted image
