@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.5](https://github.com/nuxt-contrib/ipx/compare/v0.5.4...v0.5.5) (2021-02-04)
+
+
+### Bug Fixes
+
+* add public and s-maxage ([bfd9727](https://github.com/nuxt-contrib/ipx/commit/bfd9727ac867d0af390f56dd939347f5183d1763))
+
 ### [0.5.4](https://github.com/nuxt-contrib/ipx/compare/v0.5.3...v0.5.4) (2021-02-04)
 
 
