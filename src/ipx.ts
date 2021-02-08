@@ -13,6 +13,8 @@ export interface ImageMeta {
   height: number
   type: string
   mimeType: string
+  _mimeType: string
+  _type: string
 }
 
 export interface IPXInputOptions {
@@ -67,6 +69,8 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       throw createError('resource id is missing', 400)
     }
 
+    const format = inputOpts.modifiers.f || inputOpts.modifiers.format
+
     const getSrc = cachedPromise(() => {
       const source = inputOpts.source || hasProtocol(id) ? 'http' : 'filesystem'
       if (!ctx.sources[source]) {
@@ -79,6 +83,12 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       const src = await getSrc()
       const data = await src.getData()
       const meta = imageMeta(data) as ImageMeta
+      meta._type = meta.type
+      meta._mimeType = meta.mimeType
+      if (format) {
+        meta.type = format
+        meta.mimeType = 'image/' + format
+      }
       return meta
     })
 
@@ -92,7 +102,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
 
       const meta = await getMeta()
 
-      if (meta.type === 'svg' && (!inputOpts.modifiers.f || !inputOpts.modifiers.format)) {
+      if (meta._type === 'svg' && !format) {
         return data
       }
 
