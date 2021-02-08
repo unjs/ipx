@@ -15,7 +15,7 @@
     "dev": "nodemon",
     "lint": "eslint --ext .ts .",
     "prepublishOnly": "yarn build",
-    "release": "standard-version && git push --follow-tags && npm publish",
+    "release": "yarn test && standard-version && git push --follow-tags && npm publish",
     "start": "node bin/ipx.js",
     "test": "yarn lint && jest"
   },
