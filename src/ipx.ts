@@ -69,7 +69,8 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       throw createError('resource id is missing', 400)
     }
 
-    const format = inputOpts.modifiers.f || inputOpts.modifiers.format
+    const modifiers = inputOpts.modifiers || {}
+    const format = modifiers.f || modifiers.format
 
     const getSrc = cachedPromise(() => {
       const source = inputOpts.source || hasProtocol(id) ? 'http' : 'filesystem'
