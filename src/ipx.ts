@@ -3,8 +3,8 @@ import defu from 'defu'
 import imageMeta from 'image-meta'
 import { hasProtocol } from 'ufo'
 import type { Source, SourceData } from './types'
-import { createFilesystemSource, createHTTPSource } from './source'
-import { applyHandler } from './handler'
+import { createFilesystemSource, createHTTPSource } from './sources'
+import { applyHandler } from './handlers'
 import { cachedPromise, getEnv, createError } from './utils'
 
 // TODO: Move to image-meta
@@ -13,8 +13,6 @@ export interface ImageMeta {
   height: number
   type: string
   mimeType: string
-  _mimeType: string
-  _type: string
 }
 
 export interface IPXInputOptions {
@@ -28,8 +26,11 @@ export interface IPXCTX {
 
 export type IPX = (id: string, opts?: IPXInputOptions) => {
   src: () => Promise<SourceData>,
-  data: () => Promise<Buffer>,
-  meta: () => Promise<ImageMeta>
+  data: () => Promise<{
+    data: Buffer,
+    meta: ImageMeta,
+    format: string
+  }>
 }
 
 export interface IPXOptions {
@@ -39,6 +40,10 @@ export interface IPXOptions {
   // https://github.com/lovell/sharp/blob/master/lib/constructor.js#L130
   sharp?: { [key: string]: any }
 }
+
+// https://sharp.pixelplumbing.com/#formats
+// (gif and svg are not supported as output)
+const SUPPORTED_FORMATS = ['jpeg', 'png', 'webp', 'avif', 'tiff']
 
 export function createIPX (userOptions: Partial<IPXOptions>): IPX {
   const defaults = {
@@ -70,7 +75,6 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
     }
 
     const modifiers = inputOpts.modifiers || {}
-    const format = modifiers.f || modifiers.format
 
     const getSrc = cachedPromise(() => {
       const source = inputOpts.source || hasProtocol(id) ? 'http' : 'filesystem'
@@ -80,47 +84,58 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       return ctx.sources[source](id)
     })
 
-    const getMeta = cachedPromise(async () => {
-      const src = await getSrc()
-      const data = await src.getData()
-      const meta = imageMeta(data) as ImageMeta
-      meta._type = meta.type
-      meta._mimeType = meta.mimeType
-      if (format) {
-        meta.type = format
-        meta.mimeType = 'image/' + format
-      }
-      return meta
-    })
-
     const getData = cachedPromise(async () => {
       const src = await getSrc()
       const data = await src.getData()
 
-      if (!inputOpts.modifiers || Object.values(inputOpts.modifiers).length === 0) {
-        return data
+      // Extract source meta
+      const meta = imageMeta(data) as ImageMeta
+
+      // Determine format
+      const mFormat = modifiers.f || modifiers.format
+      let format = mFormat || meta.type
+      if (format === 'jpg') {
+        format = 'jpeg'
       }
-
-      const meta = await getMeta()
-
-      if (meta._type === 'svg' && !format) {
-        return data
+      // Use original svg if format not specified
+      if (meta.type === 'svg' && !mFormat) {
+        return {
+          data,
+          format: 'svg',
+          meta
+        }
       }
 
       let sharp = Sharp(data)
       Object.assign((sharp as any).options, options.sharp)
 
+      // Apply modifiers
       const modifierCtx: any = {}
       for (const key in inputOpts.modifiers) {
         sharp = applyHandler(modifierCtx, sharp, key, inputOpts.modifiers[key]) || sharp
       }
-      return sharp.toBuffer()
+
+      // Apply format
+      if (SUPPORTED_FORMATS.includes(format)) {
+        sharp = sharp.toFormat(format as any, {
+          quality: modifierCtx.quality,
+          progressive: format === 'jpeg'
+        })
+      }
+
+      // Convert to buffer
+      const newData = await sharp.toBuffer()
+
+      return {
+        data: newData,
+        format,
+        meta
+      }
     })
 
     return {
       src: getSrc,
-      data: getData,
-      meta: getMeta
+      data: getData
     }
   }
 }

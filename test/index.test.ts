@@ -11,7 +11,8 @@ describe('ipx', () => {
 
   it('data', async () => {
     const src = await ipx('bliss.jpg')
-    const data = await src.data()
+    const { data, format } = await src.data()
     expect(data).toBeInstanceOf(Buffer)
+    expect(format).toBe('jpeg')
   })
 })

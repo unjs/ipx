@@ -43,16 +43,6 @@ Resize to `200x300px` using `embed` method and change format to `webp`:
 `http://cdn.example.com/static/buffalo.png?embed&format=webp&size=200x300`
 
 
-<h2 align="center">Modifiers</h2>
-
-Modifier    |  Arguments            | Example     | Description
--------------|-----------------------|-------------|---------------------------------------------------------
-`s`          | `width`, `height`     | s_200_300   | Resize image.
-`w`          | `width`               | w_200       | Change image with.
-`h`          | `height`              | h_200       | Change image height.
-`max`        | -                     | max         | Preserving aspect ratio, resize the image to be as large as possible while ensuring its dimensions are less than or equal to the `width` and `height` specified.
-`min`        | -                     | min         | Preserving aspect ratio, resize the image to be as small as possible while ensuring its dimensions are greater than or equal to the width and height specified.
-
 <h2 align="center">Config</h2>
 
 Config can be customized using `IPX_*` environment variables.

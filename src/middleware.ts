@@ -39,7 +39,7 @@ async function handleRequest (req: IncomingMessage, res: ServerResponse, ipx: IP
   }
 
   // Get converted image
-  const data = await img.data()
+  const { data, format } = await img.data()
 
   // ETag
   const etag = getEtag(data)
@@ -50,11 +50,9 @@ async function handleRequest (req: IncomingMessage, res: ServerResponse, ipx: IP
   }
 
   // Mime
-  const meta = await img.meta()
-  if (meta.mimeType) {
-    res.setHeader('Content-Type', meta.mimeType)
+  if (format) {
+    res.setHeader('Content-Type', 'image/' + format)
   }
-
   // Send
   res.end(data)
 }

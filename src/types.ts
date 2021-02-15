@@ -7,3 +7,8 @@ export interface SourceData {
 export type Source = (src: string) => Promise<SourceData>
 
 export type SourceFactory = (options?: any) => Source
+
+export interface Handler {
+  args: Function[]
+  apply: (context: any, pipe: any, ...args: any[]) => any
+}
