@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.6.0](https://github.com/nuxt-contrib/ipx/compare/v0.5.8...v0.6.0) (2021-02-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* improved handlers and format support
+
+### Features
+
+* improved handlers and format support ([f4f6e58](https://github.com/nuxt-contrib/ipx/commit/f4f6e586119e5c9c7c81354277b42e2d3406bb96))
+
 ### [0.5.8](https://github.com/nuxt-contrib/ipx/compare/v0.5.7...v0.5.8) (2021-02-08)
 
 
