@@ -47,10 +47,10 @@ Resize to `200x300px` using `embed` method and change format to `webp`:
 
 Config can be customized using `IPX_*` environment variables.
 
-- `IPX_LOCAL_DIR`
+- `IPX_DIR`
   - Default: `.` (current working directory)
 
-- `IPX_REMOTE_ACCEPT`
+- `IPX_DOMAINS`
   - Default: `[]`
 
 <h2 align="center">License</h2>
