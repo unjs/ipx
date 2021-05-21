@@ -48,109 +48,24 @@ Resize to `200px` using `embed` method and change format to `webp`:
 
 <h2 align="center">API</h2>
 
-#### Resize
-
-##### Width
-
-`http://localhost:3000/buffalo.png?width=200`
-
-##### Height
-
-`http://localhost:3000/buffalo.png?height=200`
-
-##### Trim
-
-[Reference](https://sharp.pixelplumbing.com/api-resize#trim)
-
-`http://localhost:3000/buffalo.png?trim=100`
-
----
-
-#### Output
-
-##### Format
-
-Supported format: jpg, jpeg, png, webp, avif, gif, heif
-
-[Reference](https://sharp.pixelplumbing.com/api-output#toformat)
-
-`http://localhost:3000/buffalo.png?format=webp`
-
-##### Quality
-
-`http://localhost:3000/buffalo.png?quality=50`
-
----
-
-#### Image operations
-
-##### Rotate
-
-[Reference](https://sharp.pixelplumbing.com/api-operation#rotate)
-
-`http://localhost:3000/buffalo.png?rotate=45`
-
-##### Flip
-
-[Reference](https://sharp.pixelplumbing.com/api-operation#flip)
-
-`http://localhost:3000/buffalo.png?flip`
-
-##### Flop
-
-[Reference](https://sharp.pixelplumbing.com/api-operation#flop)
-
-`http://localhost:3000/buffalo.png?flop`
-
-##### Sharpen
-
-[Reference](https://sharp.pixelplumbing.com/api-operation#sharpen)
-
-`http://localhost:3000/buffalo.png?sharpen=30`
-
-##### Median
-
-[Reference](https://sharp.pixelplumbing.com/api-operation#median)
-
-`http://localhost:3000/buffalo.png?median=10`
-
-##### Gamma
-
-[Reference](https://sharp.pixelplumbing.com/api-operation#gamma)
-
-`http://localhost:3000/buffalo.png?gamma=3`
-
-##### Negate
-
-[Reference](https://sharp.pixelplumbing.com/api-operation#negate)
-
-`http://localhost:3000/buffalo.png?negate`
-
-##### Normalize
-
-[Reference](https://sharp.pixelplumbing.com/api-operation#normalize)
-
-`http://localhost:3000/buffalo.png?normalize`
-
-##### Threshold
-
-[Reference](https://sharp.pixelplumbing.com/api-operation#threshold)
-
-`http://localhost:3000/buffalo.png?threshold=10`
-
----
-
-#### Colour
-
-##### Tint
-
-[Reference](https://sharp.pixelplumbing.com/api-colour#tint)
-
-`http://localhost:3000/buffalo.png?tint=1098123`
-
-##### Grayscale
-
-[Reference](https://sharp.pixelplumbing.com/api-colour#grayscale)
+| Property | Reference | Example  | Comments
+| ---------|:---------- | :--------| :---
+| Width | _ | `http://localhost:3000/buffalo.png?width=200` |
+| Height | _ | `http://localhost:3000/buffalo.png?height=200` |
+| Trim | [Ref](https://sharp.pixelplumbing.com/api-resize#trim) | `http://localhost:3000/buffalo.png?trim=100` |
+| Format | [Ref](https://sharp.pixelplumbing.com/api-output#toformat) | `http://localhost:3000/buffalo.png?format=webp` | Supported format: jpg, jpeg, png, webp, avif, gif, heif
+| Quality | _ | `http://localhost:3000/buffalo.png?quality=50` | Accepted values: 0 to 100
+| Rotate | [Ref](https://sharp.pixelplumbing.com/api-operation#rotate) | `http://localhost:3000/buffalo.png?rotate=45` |
+| Flip | [Ref](https://sharp.pixelplumbing.com/api-operation#flip) | `http://localhost:3000/buffalo.png?flip` |
+| Flop | [Ref](https://sharp.pixelplumbing.com/api-operation#flop) | `http://localhost:3000/buffalo.png?flop` |
+| Sharpen | [Ref](https://sharp.pixelplumbing.com/api-operation#sharpen) | `http://localhost:3000/buffalo.png?sharpen=30` |
+| Median | [Ref](https://sharp.pixelplumbing.com/api-operation#median) | `http://localhost:3000/buffalo.png?median=10` |
+| Gamma | [Ref](https://sharp.pixelplumbing.com/api-operation#gamma) | `http://localhost:3000/buffalo.png?gamma=3` |
+| Negate | [Ref](https://sharp.pixelplumbing.com/api-operation#negate) | `http://localhost:3000/buffalo.png?negate` |
+| Normalize | [Ref](https://sharp.pixelplumbing.com/api-operation#normalize) | `http://localhost:3000/buffalo.png?normalize` |
+| Threshold | [Ref](https://sharp.pixelplumbing.com/api-operation#threshold) | `http://localhost:3000/buffalo.png?threshold=10` |
+| Tint | [Ref](https://sharp.pixelplumbing.com/api-colour#tint) | `http://localhost:3000/buffalo.png?tint=1098123` |
+| Grayscale | [Ref](https://sharp.pixelplumbing.com/api-colour#grayscale) | `http://localhost:3000/buffalo.png?grayscale` |
 
 <h2 align="center">Config</h2>
 
