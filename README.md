@@ -46,27 +46,29 @@ Resize to `200px` using `embed` method and change format to `webp`:
 
 `http://cdn.example.com/static/buffalo.png?embed&format=webp&resize=200`
 
-### API
+<h2 align="center">API</h2>
 
 #### Resize
 
-**Width**
+##### Width
 
 `http://localhost:3000/buffalo.png?width=200`
 
-**Height**
+##### Height
 
 `http://localhost:3000/buffalo.png?height=200`
 
-**Trim**
+##### Trim
 
 [Reference](https://sharp.pixelplumbing.com/api-resize#trim)
 
 `http://localhost:3000/buffalo.png?trim=100`
 
+---
+
 #### Output
 
-**Format**
+##### Format
 
 Supported format: jpg, jpeg, png, webp, avif, gif, heif
 
@@ -74,75 +76,79 @@ Supported format: jpg, jpeg, png, webp, avif, gif, heif
 
 `http://localhost:3000/buffalo.png?format=webp`
 
-**Quality**
+##### Quality
 
 `http://localhost:3000/buffalo.png?quality=50`
 
+---
+
 #### Image operations
 
-**Rotate**
+##### Rotate
 
 [Reference](https://sharp.pixelplumbing.com/api-operation#rotate)
 
 `http://localhost:3000/buffalo.png?rotate=45`
 
-**Flip**
+##### Flip
 
 [Reference](https://sharp.pixelplumbing.com/api-operation#flip)
 
 `http://localhost:3000/buffalo.png?flip`
 
-**Flop**
+##### Flop
 
 [Reference](https://sharp.pixelplumbing.com/api-operation#flop)
 
 `http://localhost:3000/buffalo.png?flop`
 
-**Sharpen**
+##### Sharpen
 
 [Reference](https://sharp.pixelplumbing.com/api-operation#sharpen)
 
 `http://localhost:3000/buffalo.png?sharpen=30`
 
-**Median**
+##### Median
 
 [Reference](https://sharp.pixelplumbing.com/api-operation#median)
 
 `http://localhost:3000/buffalo.png?median=10`
 
-**Gamma**
+##### Gamma
 
 [Reference](https://sharp.pixelplumbing.com/api-operation#gamma)
 
 `http://localhost:3000/buffalo.png?gamma=3`
 
-**Negate**
+##### Negate
 
 [Reference](https://sharp.pixelplumbing.com/api-operation#negate)
 
 `http://localhost:3000/buffalo.png?negate`
 
-**Normalize**
+##### Normalize
 
 [Reference](https://sharp.pixelplumbing.com/api-operation#normalize)
 
 `http://localhost:3000/buffalo.png?normalize`
 
-**Threshold**
+##### Threshold
 
 [Reference](https://sharp.pixelplumbing.com/api-operation#threshold)
 
 `http://localhost:3000/buffalo.png?threshold=10`
 
+---
+
 #### Colour
 
-**Tint**
+##### Tint
 
 [Reference](https://sharp.pixelplumbing.com/api-colour#tint)
 
 `http://localhost:3000/buffalo.png?tint=1098123`
 
-**Grayscale**
+##### Grayscale
 
 [Reference](https://sharp.pixelplumbing.com/api-colour#grayscale)
 
