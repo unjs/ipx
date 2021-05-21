@@ -36,15 +36,15 @@ app.use('/image', createIPXMiddleware(ipx))
 
 Change format to `webp` and keep other things same as source:
 
-`http://cdn.example.com/static/buffalo.png?format=webp`
+`http://localhost:3000/static/buffalo.png?format=webp`
 
 Keep original format (`png`) and set width to `200`:
 
-`http://cdn.example.com/static/buffalo.png?width=200`
+`http://localhost:3000/static/buffalo.png?width=200`
 
 Resize to `200px` using `embed` method and change format to `webp`:
 
-`http://cdn.example.com/static/buffalo.png?embed&format=webp&resize=200`
+`http://localhost:3000/static/buffalo.png?embed&format=webp&resize=200`
 
 <h2 align="center">API</h2>
 
