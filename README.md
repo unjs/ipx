@@ -16,6 +16,8 @@ You can use `ipx` command to start server using:
 $ npx ipx
 ```
 
+The default server directory is the current working directory.
+
 ### Programatic Usage
 
 You can use IPX as a Connect/Express middleware or directly use ipx api.
@@ -29,6 +31,8 @@ app.use('/image', createIPXMiddleware(ipx))
 ```
 
 ### Examples
+
+> The examples assume that a `static` folder with `buffalo.png` file is present in the directory where IPX server is running.
 
 Change format to `webp` and keep other things same as source:
 
