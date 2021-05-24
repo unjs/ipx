@@ -16,6 +16,8 @@ You can use `ipx` command to start server using:
 $ npx ipx
 ```
 
+The default server directory is the current working directory.
+
 ### Programatic Usage
 
 You can use IPX as a Connect/Express middleware or directly use ipx api.
@@ -30,18 +32,40 @@ app.use('/image', createIPXMiddleware(ipx))
 
 ### Examples
 
+> The examples assume that a `static` folder with `buffalo.png` file is present in the directory where IPX server is running.
+
 Change format to `webp` and keep other things same as source:
 
-`http://cdn.example.com/static/buffalo.png?format=webp`
+`http://localhost:3000/static/buffalo.png?format=webp`
 
 Keep original format (`png`) and set width to `200`:
 
-`http://cdn.example.com/static/buffalo.png?width=200`
+`http://localhost:3000/static/buffalo.png?width=200`
 
-Resize to `200x300px` using `embed` method and change format to `webp`:
+Resize to `200px` using `embed` method and change format to `webp`:
 
-`http://cdn.example.com/static/buffalo.png?embed&format=webp&size=200x300`
+`http://localhost:3000/static/buffalo.png?embed&format=webp&resize=200`
 
+<h2 align="center">API</h2>
+
+| Property | Reference | Example  | Comments
+| ---------|:---------- | :--------| :---
+| Width | _ | `http://localhost:3000/buffalo.png?width=200` |
+| Height | _ | `http://localhost:3000/buffalo.png?height=200` |
+| Trim | [Ref](https://sharp.pixelplumbing.com/api-resize#trim) | `http://localhost:3000/buffalo.png?trim=100` |
+| Format | [Ref](https://sharp.pixelplumbing.com/api-output#toformat) | `http://localhost:3000/buffalo.png?format=webp` | Supported format: jpg, jpeg, png, webp, avif, gif, heif
+| Quality | _ | `http://localhost:3000/buffalo.png?quality=50` | Accepted values: 0 to 100
+| Rotate | [Ref](https://sharp.pixelplumbing.com/api-operation#rotate) | `http://localhost:3000/buffalo.png?rotate=45` |
+| Flip | [Ref](https://sharp.pixelplumbing.com/api-operation#flip) | `http://localhost:3000/buffalo.png?flip` |
+| Flop | [Ref](https://sharp.pixelplumbing.com/api-operation#flop) | `http://localhost:3000/buffalo.png?flop` |
+| Sharpen | [Ref](https://sharp.pixelplumbing.com/api-operation#sharpen) | `http://localhost:3000/buffalo.png?sharpen=30` |
+| Median | [Ref](https://sharp.pixelplumbing.com/api-operation#median) | `http://localhost:3000/buffalo.png?median=10` |
+| Gamma | [Ref](https://sharp.pixelplumbing.com/api-operation#gamma) | `http://localhost:3000/buffalo.png?gamma=3` |
+| Negate | [Ref](https://sharp.pixelplumbing.com/api-operation#negate) | `http://localhost:3000/buffalo.png?negate` |
+| Normalize | [Ref](https://sharp.pixelplumbing.com/api-operation#normalize) | `http://localhost:3000/buffalo.png?normalize` |
+| Threshold | [Ref](https://sharp.pixelplumbing.com/api-operation#threshold) | `http://localhost:3000/buffalo.png?threshold=10` |
+| Tint | [Ref](https://sharp.pixelplumbing.com/api-colour#tint) | `http://localhost:3000/buffalo.png?tint=1098123` |
+| Grayscale | [Ref](https://sharp.pixelplumbing.com/api-colour#grayscale) | `http://localhost:3000/buffalo.png?grayscale` |
 
 <h2 align="center">Config</h2>
 
