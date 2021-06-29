@@ -119,7 +119,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       Object.assign((sharp as any).options, options.sharp)
 
       // Resolve modifiers to handlers and sort
-      const handlers = Object.entries(inputOpts.modifiers)
+      const handlers = Object.entries(inputOpts.modifiers || {})
         .map(([name, args]) => ({ handler: getHandler(name), name, args }))
         .filter(h => h.handler)
         .sort((a, b) => {
