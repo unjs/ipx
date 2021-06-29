@@ -1,7 +1,7 @@
 import Sharp from 'sharp'
 import defu from 'defu'
 import imageMeta from 'image-meta'
-import { hasProtocol } from 'ufo'
+import { hasProtocol, joinURL } from 'ufo'
 import type { Source, SourceData } from './types'
 import { createFilesystemSource, createHTTPSource } from './sources'
 import { applyHandler, getHandler } from './handlers'
@@ -36,6 +36,7 @@ export type IPX = (id: string, opts?: IPXInputOptions) => {
 export interface IPXOptions {
   dir?: false | string
   domains?: false | string[]
+  alias: Record<string, string>,
   // TODO: Create types
   // https://github.com/lovell/sharp/blob/master/lib/constructor.js#L130
   sharp?: { [key: string]: any }
@@ -49,6 +50,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
   const defaults = {
     dir: getEnv('IPX_DIR', '.'),
     domains: getEnv('IPX_DOMAINS', []),
+    alias: getEnv('IPX_ALIAS', {}),
     sharp: {}
   }
   const options: IPXOptions = defu(userOptions, defaults) as IPXOptions
@@ -72,6 +74,13 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
   return function ipx (id, inputOpts: IPXInputOptions = {}) {
     if (!id) {
       throw createError('resource id is missing', 400)
+    }
+
+    // Resolve alias
+    for (const base in options.alias) {
+      if (id.startsWith(base)) {
+        id = joinURL(options.alias[base], id.substr(base.length))
+      }
     }
 
     const modifiers = inputOpts.modifiers || {}

@@ -4,6 +4,7 @@
   "exec": "jiti ./src/cli.ts",
   "env": {
     "IPX_DIR": "test/assets",
-    "IPX_DOMAINS": "https://avatars.githubusercontent.com, https://nuxtjs.org"
+    "IPX_DOMAINS": "https://avatars.githubusercontent.com, https://nuxtjs.org",
+    "IPX_ALIAS": "{\"x/\":\"alias/\"}"
   }
 }
