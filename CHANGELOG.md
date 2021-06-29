@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.2](https://github.com/nuxt-contrib/ipx/compare/v0.6.1...v0.6.2) (2021-06-29)
+
+
+### Features
+
+* experimental animated support (ref [#35](https://github.com/nuxt-contrib/ipx/issues/35)) ([d93fdfa](https://github.com/nuxt-contrib/ipx/commit/d93fdfa1d591e70b89084a7f50d37343a7d68df8))
+* support id alias ([#32](https://github.com/nuxt-contrib/ipx/issues/32)) ([d4356cf](https://github.com/nuxt-contrib/ipx/commit/d4356cfc28f23000e3e25f597d49eb164da580b3))
+* **http:** use hostname for domain validation ([da5ca74](https://github.com/nuxt-contrib/ipx/commit/da5ca74b0a57f5e47b1927f282fdda7228e54f58)), closes [nuxt/image#343](https://github.com/nuxt/image/issues/343)
+
+
+### Bug Fixes
+
+* apply context modifiers first (resolves [#33](https://github.com/nuxt-contrib/ipx/issues/33)) ([cf9effd](https://github.com/nuxt-contrib/ipx/commit/cf9effd1f8b390c51507f2b18d2a69de921017fd))
+* default modifiers to empty object ([00d5c1d](https://github.com/nuxt-contrib/ipx/commit/00d5c1d262a300469d24dc5a92c4a9940f2f0483))
+
 ### [0.6.1](https://github.com/nuxt-contrib/ipx/compare/v0.6.0...v0.6.1) (2021-05-26)
 
 ## [0.6.0](https://github.com/nuxt-contrib/ipx/compare/v0.5.8...v0.6.0) (2021-02-15)
