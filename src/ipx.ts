@@ -4,7 +4,7 @@ import imageMeta from 'image-meta'
 import { hasProtocol } from 'ufo'
 import type { Source, SourceData } from './types'
 import { createFilesystemSource, createHTTPSource } from './sources'
-import { applyHandler } from './handlers'
+import { applyHandler, getHandler } from './handlers'
 import { cachedPromise, getEnv, createError } from './utils'
 
 // TODO: Move to image-meta
@@ -109,16 +109,26 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       let sharp = Sharp(data)
       Object.assign((sharp as any).options, options.sharp)
 
-      // Apply modifiers
-      const modifierCtx: any = {}
-      for (const key in inputOpts.modifiers) {
-        sharp = applyHandler(modifierCtx, sharp, key, inputOpts.modifiers[key]) || sharp
+      // Resolve modifiers to handlers and sort
+      const handlers = Object.entries(inputOpts.modifiers)
+        .map(([name, args]) => ({ handler: getHandler(name), name, args }))
+        .filter(h => h.handler)
+        .sort((a, b) => {
+          const aKey = ((a.handler.order || a.name || '')).toString()
+          const bKey = ((b.handler.order || b.name || '')).toString()
+          return aKey.localeCompare(bKey)
+        })
+
+      // Apply handlers
+      const handlerCtx: any = {}
+      for (const h of handlers) {
+        sharp = applyHandler(handlerCtx, sharp, h.handler, h.args) || sharp
       }
 
       // Apply format
       if (SUPPORTED_FORMATS.includes(format)) {
         sharp = sharp.toFormat(format as any, {
-          quality: modifierCtx.quality,
+          quality: handlerCtx.quality,
           progressive: format === 'jpeg'
         })
       }

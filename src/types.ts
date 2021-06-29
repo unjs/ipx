@@ -10,5 +10,6 @@ export type SourceFactory = (options?: any) => Source
 
 export interface Handler {
   args: Function[]
+  order?: Number
   apply: (context: any, pipe: any, ...args: any[]) => any
 }

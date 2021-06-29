@@ -5,6 +5,7 @@ import { VArg } from './utils'
 
 export const quality: Handler = {
   args: [VArg],
+  order: -1,
   apply: (context, _pipe, quality) => {
     context.quality = quality
   }
@@ -13,6 +14,7 @@ export const quality: Handler = {
 // https://sharp.pixelplumbing.com/api-resize#resize
 export const fit: Handler = {
   args: [VArg],
+  order: -1,
   apply: (context, _pipe, fit) => {
     context.fit = fit
   }
@@ -22,6 +24,7 @@ const HEX_RE = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i
 const SHORTHEX_RE = /^([a-f\d])([a-f\d])([a-f\d])$/i
 export const background: Handler = {
   args: [VArg],
+  order: -1,
   apply: (context, _pipe, background) => {
     if (!background.startsWith('#') && (HEX_RE.test(background) || SHORTHEX_RE.test(background))) {
       background = '#' + background
