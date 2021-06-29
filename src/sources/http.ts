@@ -1,6 +1,7 @@
 import http from 'http'
 import https from 'https'
 import fetch from 'node-fetch'
+import { parseURL } from 'ufo'
 import type { SourceFactory } from '../types'
 import { createError, cachedPromise } from '../utils'
 
@@ -13,9 +14,18 @@ export const createHTTPSource: SourceFactory = (options: any) => {
     domains = domains.split(',').map(s => s.trim())
   }
 
+  const hosts = domains.map(domain => parseURL(domain, 'https://').host)
+
   return async (id: string) => {
-    if (!domains.find(base => id.startsWith(base))) {
-      throw createError('Forbidden URL:' + id, 403)
+    // Parse id as URL
+    const parsedUrl = parseURL(id, 'https://')
+
+    // Check host
+    if (!parsedUrl.host) {
+      throw createError('Hostname is missing: ' + id, 403)
+    }
+    if (!hosts.find(host => parsedUrl.host === host)) {
+      throw createError('Forbidden host: ' + parsedUrl.host, 403)
     }
 
     const response = await fetch(id, {
