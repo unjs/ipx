@@ -106,7 +106,16 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
         }
       }
 
-      let sharp = Sharp(data)
+      // Experimental animated support
+      // https://github.com/lovell/sharp/issues/2275
+      const animated = modifiers.animated !== undefined || modifiers.a !== undefined
+      if (animated) {
+        // Gif output needs special libvips build
+        // https://github.com/lovell/sharp/pull/2012
+        format = 'webp'
+      }
+
+      let sharp = Sharp(data, { animated })
       Object.assign((sharp as any).options, options.sharp)
 
       // Resolve modifiers to handlers and sort
