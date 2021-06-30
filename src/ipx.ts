@@ -110,8 +110,6 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       if (meta.type === 'svg' && !mFormat) {
         return {
           data,
-          // Correct content-type of SVG images is `image/svg+xml`
-          // https://www.w3.org/TR/SVG11/intro.html#:~:text=The%20MIME%20type%20for%20SVG,all%20lowercase)%20on%20all%20platforms.
           format: 'svg+xml',
           meta
         }
