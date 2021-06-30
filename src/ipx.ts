@@ -110,7 +110,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       if (meta.type === 'svg' && !mFormat) {
         return {
           data,
-          format: 'svg',
+          format: 'svg+xml',
           meta
         }
       }
