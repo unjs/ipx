@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.3](https://github.com/nuxt-contrib/ipx/compare/v0.6.2...v0.6.3) (2021-06-30)
+
+
+### Bug Fixes
+
+* content-type of svg files ([#38](https://github.com/nuxt-contrib/ipx/issues/38)) ([a7a1b3b](https://github.com/nuxt-contrib/ipx/commit/a7a1b3b8fb3c1b996ec823d80d029a11a19b9311))
+
 ### [0.6.2](https://github.com/nuxt-contrib/ipx/compare/v0.6.1...v0.6.2) (2021-06-29)
 
 
