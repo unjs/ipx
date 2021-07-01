@@ -13,7 +13,7 @@ export interface IPXHResponse {
   statusCode: number
   statusMessage: string
   headers: Record<string, string>
-  data: any
+  body: any
 }
 
 async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse> {
@@ -21,7 +21,7 @@ async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
     statusCode: 200,
     statusMessage: '',
     headers: {},
-    data: null
+    body: ''
   }
 
   const url = parseURL(normalizeURL(req.url))
@@ -86,7 +86,7 @@ export function handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
     return {
       statusCode,
       statusMessage,
-      data: statusMessage,
+      body: statusMessage,
       headers: {}
     }
   })
@@ -100,7 +100,7 @@ export function createIPXMiddleware (ipx: IPX) {
       for (const name in _res.headers) {
         res.setHeader(name, _res.headers[name])
       }
-      res.end(_res.data)
+      res.end(_res.body)
     })
   }
 }
