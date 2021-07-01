@@ -3,7 +3,13 @@
   "version": "0.6.7",
   "repository": "nuxt-contrib/ipx",
   "license": "MIT",
-  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "./dist/index.d.ts",
   "bin": "./dist/cli.js",
