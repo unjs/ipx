@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.4](https://github.com/nuxt-contrib/ipx/compare/v0.6.3...v0.6.4) (2021-07-01)
+
+
+### Bug Fixes
+
+* enforce leadingSlash for alias resolution ([3092e00](https://github.com/nuxt-contrib/ipx/commit/3092e00870a29cb797c1c3b6cb921497523800fa))
+
 ### [0.6.3](https://github.com/nuxt-contrib/ipx/compare/v0.6.2...v0.6.3) (2021-06-30)
 
 
