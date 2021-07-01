@@ -1,6 +1,6 @@
 import { resolve, join } from 'path'
 import isValidPath from 'is-valid-path'
-import { readFile, stat } from 'fs-extra'
+import { readFile, stat, Stats } from 'fs-extra'
 import { createError, cachedPromise } from '../utils'
 import type { SourceFactory } from '../types'
 
@@ -14,15 +14,18 @@ export const createFilesystemSource: SourceFactory = (options: any) => {
       throw createError('Forbidden path:' + id, 403)
     }
 
-    let stats
+    let stats: Stats
     try {
       stats = await stat(fsPath)
     } catch (err) {
       if (err.code === 'ENOENT') {
         throw createError('File not found: ' + fsPath, 404)
       } else {
-        throw createError('File access error for ' + fsPath + ':' + err.code, 500)
+        throw createError('File access error for ' + fsPath + ':' + err.code, 403)
       }
+    }
+    if (!stats.isFile()) {
+      throw createError('Path should be a file: ' + fsPath, 400)
     }
 
     return {
