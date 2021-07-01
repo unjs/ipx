@@ -22,7 +22,7 @@ export class IPXError extends Error {
 
 export function createError (message: string, statusCode: number): IPXError {
   const err = new IPXError(message)
-  err.statusMessage = message
+  err.statusMessage = 'IPX: ' + message
   err.statusCode = statusCode
   return err
 }
