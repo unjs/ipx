@@ -27,7 +27,7 @@ async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
 
   // Parse URL
   const [modifiersStr = '', ...idSegments] = req.url.substr(1 /* leading slash */).split('/')
-  const id = decode('/' + idSegments.join('/'))
+  const id = decode(idSegments.join('/'))
 
   // Validate
   if (!modifiersStr) {
