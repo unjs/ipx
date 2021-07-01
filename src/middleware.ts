@@ -73,6 +73,8 @@ async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
     res.headers['Content-Type'] = `image/${format}`
   }
 
+  res.body = data
+
   return res
 }
 
