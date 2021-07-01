@@ -1,7 +1,7 @@
 {
   "name": "ipx",
   "version": "0.6.7",
-  "repository": "nuxt-contrib/ipx",
+  "repository": "unjs/ipx",
   "license": "MIT",
   "exports": {
     ".": {
