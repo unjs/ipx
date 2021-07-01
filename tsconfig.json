@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ES6",
     "moduleResolution": "Node",
+    "lib": [ "ESNext" ],
     "esModuleInterop": true,
     "allowJs": true,
     "strict": false,

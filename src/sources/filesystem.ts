@@ -1,4 +1,4 @@
-import { resolve } from 'path'
+import { resolve, join } from 'path'
 import isValidPath from 'is-valid-path'
 import { readFile, stat } from 'fs-extra'
 import { createError, cachedPromise } from '../utils'
@@ -8,7 +8,7 @@ export const createFilesystemSource: SourceFactory = (options: any) => {
   const rootDir = resolve(options.dir)
 
   return async (id: string) => {
-    const fsPath = resolve(rootDir, id)
+    const fsPath = resolve(join(rootDir, id))
 
     if (!isValidPath(id) || id.includes('..') || !fsPath.startsWith(rootDir)) {
       throw createError('Forbidden path:' + id, 403)

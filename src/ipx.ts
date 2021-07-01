@@ -1,7 +1,7 @@
 import Sharp from 'sharp'
 import defu from 'defu'
 import imageMeta from 'image-meta'
-import { hasProtocol, joinURL } from 'ufo'
+import { hasProtocol, joinURL, withLeadingSlash } from 'ufo'
 import type { Source, SourceData } from './types'
 import { createFilesystemSource, createHTTPSource } from './sources'
 import { applyHandler, getHandler } from './handlers'
@@ -55,6 +55,9 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
   }
   const options: IPXOptions = defu(userOptions, defaults) as IPXOptions
 
+  // Normalize alias to start with leading slash
+  options.alias = Object.fromEntries(Object.entries(options.alias).map(e => [withLeadingSlash(e[0]), e[1]]))
+
   const ctx: IPXCTX = {
     sources: {}
   }
@@ -75,6 +78,9 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
     if (!id) {
       throw createError('resource id is missing', 400)
     }
+
+    // Enforce leading slash
+    id = hasProtocol(id) ? id : withLeadingSlash(id)
 
     // Resolve alias
     for (const base in options.alias) {
