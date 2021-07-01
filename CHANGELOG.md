@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.5](https://github.com/nuxt-contrib/ipx/compare/v0.6.4...v0.6.5) (2021-07-01)
+
+
+### Features
+
+* expose handleRequest ([7c8c857](https://github.com/nuxt-contrib/ipx/commit/7c8c857fc4a84d57ee8c2a5919f0b397c2e1b220))
+
+
+### Bug Fixes
+
+* **filesystem:** handle when input is not a file ([9e1f7bf](https://github.com/nuxt-contrib/ipx/commit/9e1f7bf73463b0958362bfa1443f1db24058410a))
+
 ### [0.6.4](https://github.com/nuxt-contrib/ipx/compare/v0.6.3...v0.6.4) (2021-07-01)
 
 
