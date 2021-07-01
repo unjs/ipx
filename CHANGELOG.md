@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.7.0](https://github.com/unjs/ipx/compare/v0.6.7...v0.7.0) (2021-07-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* **pkg:** add exports field
+* move modifiers to path from query
+
+### Features
+
+* `reqOptions` and `bypassDomain` ([fc8c7b5](https://github.com/unjs/ipx/commit/fc8c7b5b655d61e23f6f63af82669ed23e48eec5))
+* **pkg:** add exports field ([394384f](https://github.com/unjs/ipx/commit/394384f19364845e228aedeee598d8960d263c7e))
+* move modifiers to path from query ([b7570d9](https://github.com/unjs/ipx/commit/b7570d942bf282da38acdc79b34c6e33177611c0))
+
+
+### Bug Fixes
+
+* don't prepend trailing slash to external id ([01e151a](https://github.com/unjs/ipx/commit/01e151a90c0601802bf197cf28542d24fae1c3b4))
+
 ### [0.6.7](https://github.com/unjs/ipx/compare/v0.6.6...v0.6.7) (2021-07-01)
 
 ### Bug Fixes
