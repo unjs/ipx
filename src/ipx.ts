@@ -19,7 +19,7 @@ export interface IPXCTX {
   sources: Record<string, Source>
 }
 
-export type IPX = (id: string, modifiers?: Record<string, string>) => {
+export type IPX = (id: string, modifiers?: Record<string, string>, reqOptions?: any) => {
   src: () => Promise<SourceData>,
   data: () => Promise<{
     data: Buffer,
@@ -69,7 +69,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
     })
   }
 
-  return function ipx (id, modifiers = {}) {
+  return function ipx (id, modifiers = {}, reqOptions = {}) {
     if (!id) {
       throw createError('resource id is missing', 400)
     }
@@ -89,7 +89,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       if (!ctx.sources[source]) {
         throw createError('Unknown source: ' + source, 400)
       }
-      return ctx.sources[source](id)
+      return ctx.sources[source](id, reqOptions)
     })
 
     const getData = cachedPromise(async () => {

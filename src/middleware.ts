@@ -8,6 +8,7 @@ import { createError } from './utils'
 export interface IPXHRequest {
   url: string
   headers?: Record<string, string>
+  options?: any
 }
 
 export interface IPXHResponse {
@@ -49,7 +50,7 @@ async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
   }
 
   // Create request
-  const img = ipx(id, modifiers)
+  const img = ipx(id, modifiers, req.options)
 
   // Get image meta from source
   const src = await img.src()

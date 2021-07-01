@@ -4,7 +4,7 @@ export interface SourceData {
   getData: () => Promise<Buffer>
 }
 
-export type Source = (src: string) => Promise<SourceData>
+export type Source = (src: string, reqOptions?: any) => Promise<SourceData>
 
 export type SourceFactory = (options?: any) => Source
 

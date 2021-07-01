@@ -16,7 +16,7 @@ export const createHTTPSource: SourceFactory = (options: any) => {
 
   const hosts = domains.map(domain => parseURL(domain, 'https://').host)
 
-  return async (id: string) => {
+  return async (id: string, reqOptions) => {
     // Parse id as URL
     const parsedUrl = parseURL(id, 'https://')
 
@@ -24,7 +24,7 @@ export const createHTTPSource: SourceFactory = (options: any) => {
     if (!parsedUrl.host) {
       throw createError('Hostname is missing: ' + id, 403)
     }
-    if (!hosts.find(host => parsedUrl.host === host)) {
+    if (!reqOptions?.bypassDomain && !hosts.find(host => parsedUrl.host === host)) {
       throw createError('Forbidden host: ' + parsedUrl.host, 403)
     }
 
