@@ -36,7 +36,7 @@
     "listhen": "^0.2.4",
     "node-fetch": "^2.6.1",
     "sharp": "^0.28.3",
-    "ufo": "^0.7.5",
+    "ufo": "^0.7.7",
     "xss": "^1.0.9"
   },
   "devDependencies": {
