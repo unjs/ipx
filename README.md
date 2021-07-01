@@ -34,39 +34,43 @@ app.use("/image", createIPXMiddleware(ipx));
 
 > The examples assume that a `static` folder with `buffalo.png` file is present in the directory where IPX server is running.
 
+Get original image:
+
+`http://localhost:3000/_/static/buffalo.png`
+
 Change format to `webp` and keep other things same as source:
 
-`http://localhost:3000/static/buffalo.png?format=webp`
+`http://localhost:3000/f_webp/static/buffalo.png`
 
 Keep original format (`png`) and set width to `200`:
 
-`http://localhost:3000/static/buffalo.png?width=200`
+`http://localhost:3000/w_200/static/buffalo.png`
 
 Resize to `200px` using `embed` method and change format to `webp`:
 
-`http://localhost:3000/static/buffalo.png?embed&format=webp&resize=200`
+`http://localhost:3000/embed,f_webp,s_200/static/buffalo.png`
 
 ### Modifiers
 
-| Property  | Reference                                                      | Example                                          | Comments                                                |
-| --------- | :------------------------------------------------------------- | :----------------------------------------------- | :------------------------------------------------------ |
-| width     | \_                                                             | `http://localhost:3000/buffalo.png?width=200`    |
-| height    | \_                                                             | `http://localhost:3000/buffalo.png?height=200`   |
-| trim      | [Ref](https://sharp.pixelplumbing.com/api-resize#trim)         | `http://localhost:3000/buffalo.png?trim=100`     |
-| format    | [Ref](https://sharp.pixelplumbing.com/api-output#toformat)     | `http://localhost:3000/buffalo.png?format=webp`  | Supported format: jpg, jpeg, png, webp, avif, gif, heif |
-| quality   | \_                                                             | `http://localhost:3000/buffalo.png?quality=50`   | Accepted values: 0 to 100                               |
-| rotate    | [Ref](https://sharp.pixelplumbing.com/api-operation#rotate)    | `http://localhost:3000/buffalo.png?rotate=45`    |
-| flip      | [Ref](https://sharp.pixelplumbing.com/api-operation#flip)      | `http://localhost:3000/buffalo.png?flip`         |
-| flop      | [Ref](https://sharp.pixelplumbing.com/api-operation#flop)      | `http://localhost:3000/buffalo.png?flop`         |
-| sharpen   | [Ref](https://sharp.pixelplumbing.com/api-operation#sharpen)   | `http://localhost:3000/buffalo.png?sharpen=30`   |
-| median    | [Ref](https://sharp.pixelplumbing.com/api-operation#median)    | `http://localhost:3000/buffalo.png?median=10`    |
-| gamma     | [Ref](https://sharp.pixelplumbing.com/api-operation#gamma)     | `http://localhost:3000/buffalo.png?gamma=3`      |
-| negate    | [Ref](https://sharp.pixelplumbing.com/api-operation#negate)    | `http://localhost:3000/buffalo.png?negate`       |
-| normalize | [Ref](https://sharp.pixelplumbing.com/api-operation#normalize) | `http://localhost:3000/buffalo.png?normalize`    |
-| threshold | [Ref](https://sharp.pixelplumbing.com/api-operation#threshold) | `http://localhost:3000/buffalo.png?threshold=10` |
-| tint      | [Ref](https://sharp.pixelplumbing.com/api-colour#tint)         | `http://localhost:3000/buffalo.png?tint=1098123` |
-| grayscale | [Ref](https://sharp.pixelplumbing.com/api-colour#grayscale)    | `http://localhost:3000/buffalo.png?grayscale`    |
-| animated  | -                                                              | `http://localhost:3000/buffalo.gif?animated`     | Experimental                                            |
+| Property  | Docs                                                            | Example                                          | Comments                                                              |
+| --------- | :-------------------------------------------------------------- | :----------------------------------------------- | :-------------------------------------------------------------------- |
+| width     | \_                                                              | `http://localhost:3000/width_200/buffalo.png`    |
+| height    | \_                                                              | `http://localhost:3000/height_200/buffalo.png`   |
+| trim      | [Docs](https://sharp.pixelplumbing.com/api-resize#trim)         | `http://localhost:3000/trim_100/buffalo.png`     |
+| format    | [Docs](https://sharp.pixelplumbing.com/api-output#toformat)     | `http://localhost:3000/format_webp/buffalo.png`  | Supported format: `jpg`, `jpeg`, `png`, `webp`, `avif`, `gif`, `heif` |
+| quality   | \_                                                              | `http://localhost:3000/quality_50/buffalo.png`   | Accepted values: 0 to 100                                             |
+| rotate    | [Docs](https://sharp.pixelplumbing.com/api-operation#rotate)    | `http://localhost:3000/rotate_45/buffalo.png`    |
+| flip      | [Docs](https://sharp.pixelplumbing.com/api-operation#flip)      | `http://localhost:3000/flip/buffalo.png`         |
+| flop      | [Docs](https://sharp.pixelplumbing.com/api-operation#flop)      | `http://localhost:3000/flop/buffalo.png`         |
+| sharpen   | [Docs](https://sharp.pixelplumbing.com/api-operation#sharpen)   | `http://localhost:3000/sharpen_30/buffalo.png`   |
+| median    | [Docs](https://sharp.pixelplumbing.com/api-operation#median)    | `http://localhost:3000/median_10/buffalo.png`    |
+| gamma     | [Docs](https://sharp.pixelplumbing.com/api-operation#gamma)     | `http://localhost:3000/gamma_3/buffalo.png`      |
+| negate    | [Docs](https://sharp.pixelplumbing.com/api-operation#negate)    | `http://localhost:3000/negate/buffalo.png`       |
+| normalize | [Docs](https://sharp.pixelplumbing.com/api-operation#normalize) | `http://localhost:3000/normalize/buffalo.png`    |
+| threshold | [Docs](https://sharp.pixelplumbing.com/api-operation#threshold) | `http://localhost:3000/threshold_10/buffalo.png` |
+| tint      | [Docs](https://sharp.pixelplumbing.com/api-colour#tint)         | `http://localhost:3000/tint_1098123/buffalo.png` |
+| grayscale | [Docs](https://sharp.pixelplumbing.com/api-colour#grayscale)    | `http://localhost:3000/grayscale/buffalo.png`    |
+| animated  | -                                                               | `http://localhost:3000/animated/buffalo.gif`     | Experimental                                                          |
 
 ### Config
 

@@ -1,8 +1,9 @@
 import { ServerResponse, IncomingMessage } from 'http'
-import { parseURL, normalizeURL, parseQuery, withoutLeadingSlash, decode } from 'ufo'
+import { decode } from 'ufo'
 import getEtag from 'etag'
 import xss from 'xss'
 import { IPX } from './ipx'
+import { createError } from './utils'
 
 export interface IPXHRequest {
   url: string
@@ -24,21 +25,31 @@ async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
     body: ''
   }
 
-  const url = parseURL(normalizeURL(req.url))
-  const params = parseQuery(url.search)
-  const id = withoutLeadingSlash(decode(url.pathname || params.id as string))
+  // Parse URL
+  const [modifiersStr = '', ...idSegments] = req.url.substr(1 /* leading slash */).split('/')
+  const id = decode('/' + idSegments.join('/'))
 
+  // Validate
+  if (!modifiersStr) {
+    throw createError('Modifiers is missing in path: ' + req.url, 400)
+  }
+  if (!id || id === '/') {
+    throw createError('Resource id is missing: ' + req.url, 400)
+  }
+
+  // Contruct modifiers
   const modifiers: Record<string, string> = Object.create(null)
-  for (const pKey in params) {
-    if (pKey === 'source' || pKey === 'id') { continue }
-    modifiers[pKey] = params[pKey] as string
+
+  // Read modifiers from first segment
+  if (modifiersStr !== '_') {
+    for (const p of modifiersStr.split(',')) {
+      const [key, value = ''] = p.split('_')
+      modifiers[key] = decode(value)
+    }
   }
 
   // Create request
-  const img = ipx(id, {
-    modifiers,
-    source: params.source as string
-  })
+  const img = ipx(id, modifiers)
 
   // Get image meta from source
   const src = await img.src()

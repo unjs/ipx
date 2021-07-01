@@ -15,16 +15,11 @@ export interface ImageMeta {
   mimeType: string
 }
 
-export interface IPXInputOptions {
-  source?: string
-  modifiers?: Record<string, string>
-}
-
 export interface IPXCTX {
   sources: Record<string, Source>
 }
 
-export type IPX = (id: string, opts?: IPXInputOptions) => {
+export type IPX = (id: string, modifiers?: Record<string, string>) => {
   src: () => Promise<SourceData>,
   data: () => Promise<{
     data: Buffer,
@@ -74,7 +69,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
     })
   }
 
-  return function ipx (id, inputOpts: IPXInputOptions = {}) {
+  return function ipx (id, modifiers = {}) {
     if (!id) {
       throw createError('resource id is missing', 400)
     }
@@ -89,10 +84,8 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       }
     }
 
-    const modifiers = inputOpts.modifiers || {}
-
     const getSrc = cachedPromise(() => {
-      const source = inputOpts.source || hasProtocol(id) ? 'http' : 'filesystem'
+      const source = hasProtocol(id) ? 'http' : 'filesystem'
       if (!ctx.sources[source]) {
         throw createError('Unknown source: ' + source, 400)
       }
@@ -134,7 +127,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       Object.assign((sharp as any).options, options.sharp)
 
       // Resolve modifiers to handlers and sort
-      const handlers = Object.entries(inputOpts.modifiers || {})
+      const handlers = Object.entries(modifiers)
         .map(([name, args]) => ({ handler: getHandler(name), name, args }))
         .filter(h => h.handler)
         .sort((a, b) => {
