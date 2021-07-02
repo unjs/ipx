@@ -26,6 +26,7 @@ export const background: Handler = {
   args: [VArg],
   order: -1,
   apply: (context, _pipe, background) => {
+    background = String(background)
     if (!background.startsWith('#') && (HEX_RE.test(background) || SHORTHEX_RE.test(background))) {
       background = '#' + background
     }
