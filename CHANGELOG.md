@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.1](https://github.com/unjs/ipx/compare/v0.7.0...v0.7.1) (2021-07-02)
+
+
+### Bug Fixes
+
+* handle background number ([2f82a56](https://github.com/unjs/ipx/commit/2f82a56893004e6797b23ef40c2940155fde63f4))
+* resize with width and hight ([3ca70a0](https://github.com/unjs/ipx/commit/3ca70a017d86a2d907a935eaf6ffab901424bffb))
+* support background with rotate ([b6c8f8c](https://github.com/unjs/ipx/commit/b6c8f8cb1310d18134d0ade2e4c023d3d7a1936c))
+
 ## [0.7.0](https://github.com/unjs/ipx/compare/v0.6.7...v0.7.0) (2021-07-01)
 
 
