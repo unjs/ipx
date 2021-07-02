@@ -46,9 +46,9 @@ Keep original format (`png`) and set width to `200`:
 
 `http://localhost:3000/w_200/static/buffalo.png`
 
-Resize to `200px` using `embed` method and change format to `webp`:
+Resize to `200x200px` using `embed` method and change format to `webp`:
 
-`http://localhost:3000/embed,f_webp,s_200/static/buffalo.png`
+`http://localhost:3000/embed,f_webp,s_200x200/static/buffalo.png`
 
 ### Modifiers
 

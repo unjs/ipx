@@ -51,7 +51,8 @@ export const height: Handler = {
 
 export const resize: Handler = {
   args: [VArg, VArg, VArg],
-  apply: (context, pipe, width, height) => {
+  apply: (context, pipe, size) => {
+    const [width, height] = String(size).split('x').map(v => Number(v))
     return pipe.resize(width, height, {
       fit: context.fit,
       background: context.background
