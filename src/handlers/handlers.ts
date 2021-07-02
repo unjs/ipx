@@ -100,11 +100,12 @@ export const extract: Handler = {
 // --------- Operations ---------
 
 // https://sharp.pixelplumbing.com/api-operation#rotate
-// TODO: Support background
 export const rotate: Handler = {
   args: [VArg],
-  apply: (_context, pipe, angel) => {
-    return pipe.rotate(angel)
+  apply: (context, pipe, angel) => {
+    return pipe.rotate(angel, {
+      background: context.background
+    })
   }
 }
 
