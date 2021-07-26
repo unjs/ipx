@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.2](https://github.com/unjs/ipx/compare/v0.7.1...v0.7.2) (2021-07-26)
+
+
+### Features
+
+* default to not upscaling images ([#41](https://github.com/unjs/ipx/issues/41)) ([162f730](https://github.com/unjs/ipx/commit/162f7308650416905b33ab2c031c5fc7b82ef13b))
+
 ### [0.7.1](https://github.com/unjs/ipx/compare/v0.7.0...v0.7.1) (2021-07-02)
 
 
