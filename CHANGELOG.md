@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.8.0](https://github.com/unjs/ipx/compare/v0.7.2...v0.8.0) (2021-09-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* update sharp to 0.29.0
+
+* update sharp to 0.29.0 ([b5a06fb](https://github.com/unjs/ipx/commit/b5a06fbdd2d5e0caf12f8c8a3d389ebed2744425)), closes [/github.com/lovell/sharp/blob/master/docs/changelog.md#v0290---17th-august-2021](https://github.com/unjs//github.com/lovell/sharp/blob/master/docs/changelog.md/issues/v0290---17th-august-2021)
+
 ### [0.7.2](https://github.com/unjs/ipx/compare/v0.7.1...v0.7.2) (2021-07-26)
 
 
