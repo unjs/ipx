@@ -35,8 +35,8 @@
     "is-valid-path": "^0.1.1",
     "listhen": "^0.2.4",
     "node-fetch": "^2.6.1",
-    "sharp": "^0.28.3",
-    "ufo": "^0.7.7",
+    "sharp": "^0.29.0",
+    "ufo": "^0.7.9",
     "xss": "^1.0.9"
   },
   "devDependencies": {
