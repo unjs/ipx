@@ -1,7 +1,9 @@
+import { tmpdir } from 'os'
 import Sharp from 'sharp'
 import defu from 'defu'
 import imageMeta from 'image-meta'
 import { hasProtocol, joinURL, withLeadingSlash } from 'ufo'
+import type { Storage } from 'unstorage'
 import type { Source, SourceData } from './types'
 import { createFilesystemSource, createHTTPSource } from './sources'
 import { applyHandler, getHandler } from './handlers'
@@ -32,6 +34,8 @@ export interface IPXOptions {
   dir?: false | string
   domains?: false | string[]
   alias: Record<string, string>,
+  cache?: boolean | string,
+  cacheMetadataStore?: Storage
   // TODO: Create types
   // https://github.com/lovell/sharp/blob/master/lib/constructor.js#L130
   sharp?: { [key: string]: any }
@@ -46,9 +50,14 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
     dir: getEnv('IPX_DIR', '.'),
     domains: getEnv('IPX_DOMAINS', []),
     alias: getEnv('IPX_ALIAS', {}),
+    cache: getEnv('IPX_CACHE', false),
     sharp: {}
   }
   const options: IPXOptions = defu(userOptions, defaults) as IPXOptions
+
+  if (options.cache === true) {
+    options.cache = tmpdir()
+  }
 
   // Normalize alias to start with leading slash
   options.alias = Object.fromEntries(Object.entries(options.alias).map(e => [withLeadingSlash(e[0]), e[1]]))
@@ -65,7 +74,9 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
   }
   if (options.domains) {
     ctx.sources.http = createHTTPSource({
-      domains: options.domains
+      domains: options.domains,
+      cache: options.cache,
+      cacheMetadataStore: options.cacheMetadataStore
     })
   }
 
