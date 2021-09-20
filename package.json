@@ -34,9 +34,11 @@
     "image-meta": "^0.0.1",
     "is-valid-path": "^0.1.1",
     "listhen": "^0.2.4",
+    "murmurhash": "^2.0.0",
     "node-fetch": "^2.6.1",
     "sharp": "^0.29.0",
     "ufo": "^0.7.9",
+    "unstorage": "^0.2.8",
     "xss": "^1.0.9"
   },
   "devDependencies": {
@@ -45,6 +47,7 @@
     "@types/fs-extra": "latest",
     "@types/is-valid-path": "latest",
     "@types/jest": "latest",
+    "@types/murmurhash": "^2.0.0",
     "@types/node-fetch": "latest",
     "@types/sharp": "latest",
     "eslint": "latest",
