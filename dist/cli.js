@@ -475,8 +475,10 @@ async function _handleRequest(req, ipx) {
     headers: {},
     body: ""
   };
+  console.log("test url: ", req.url);
   const [modifiersStr = "", ...idSegments] = req.url.substr(1).split("/");
   const id = ufo.decode(idSegments.join("/"));
+  console.log("id: ", id);
   if (!modifiersStr) {
     throw createError("Modifiers is missing in path: " + req.url, 400);
   }
