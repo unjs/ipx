@@ -472,10 +472,16 @@ async function _handleRequest(req, ipx) {
     headers: {},
     body: ""
   };
-  console.log("test url: ", req.url);
+  const firebaseStorageImageUrlDomain = "https://firebasestorage.googleapis.com/";
+  if (req.url.indexOf(firebaseStorageImageUrlDomain) > 0) {
+    req.url = decodeURIComponent(req.url);
+    const middleDelimiter = "appspot.com/o/";
+    let urlArray = req.url.split(middleDelimiter);
+    let secondPartUrl = urlArray[1].replace(/\//g, "%2F");
+    req.url = urlArray[0] + middleDelimiter + secondPartUrl;
+  }
   const [modifiersStr = "", ...idSegments] = req.url.substr(1).split("/");
-  const id = ufo.decode(idSegments.join("/"));
-  console.log("id: ", id);
+  const id = req.url.indexOf(firebaseStorageImageUrlDomain) > 0 ? idSegments.join("/") : ufo.decode(idSegments.join("/"));
   if (!modifiersStr) {
     throw createError("Modifiers is missing in path: " + req.url, 400);
   }

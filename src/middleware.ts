@@ -27,11 +27,27 @@ async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
   }
 
   // Parse URL
-  console.log("test url: ", req.url);
-  const [modifiersStr = '', ...idSegments] = req.url.substr(1 /* leading slash */).split('/')
-  const id = decode(idSegments.join('/'))
+  /**
+   * When firebase storage images URL in parsed, the second part is automatically encoded (again)
+   * We need to undo this
+   * 
+   * Step 1. Decode entire firebase storage image URL
+   * Step 2. Return the correct %2F that URL uses as opaque string compared to /
+   */
+  const firebaseStorageImageUrlDomain = "https://firebasestorage.googleapis.com/";
+  if (req.url.indexOf(firebaseStorageImageUrlDomain) > 0) {
+    req.url = decodeURIComponent(req.url);
+    const middleDelimiter = "appspot.com/o/";
+    let urlArray = req.url.split(middleDelimiter);
+    let secondPartUrl = urlArray[1].replace(/\//g, "%2F");
+    req.url = urlArray[0] + middleDelimiter + secondPartUrl;
+  }
 
-  console.log("id: ", id);
+  const [modifiersStr = '', ...idSegments] = req.url.substr(1 /* leading slash */).split('/')
+
+  const id = req.url.indexOf(firebaseStorageImageUrlDomain) > 0 ? 
+    idSegments.join("/") : 
+    decode(idSegments.join('/'));
 
   // Validate
   if (!modifiersStr) {
