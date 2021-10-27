@@ -17,10 +17,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "siroc build",
+    "build": "unbuild",
     "dev": "nodemon",
     "lint": "eslint --ext .ts .",
-    "prepublishOnly": "yarn build",
+    "prepack": "yarn build",
     "release": "yarn test && standard-version && git push --follow-tags && npm publish",
     "start": "node bin/ipx.js",
     "test": "yarn lint && jest"
@@ -50,9 +50,9 @@
     "jest": "latest",
     "jiti": "latest",
     "nodemon": "latest",
-    "siroc": "latest",
     "standard-version": "latest",
     "ts-jest": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "unbuild": "latest"
   }
 }
