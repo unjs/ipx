@@ -1,6 +1,6 @@
 import http from 'http'
 import https from 'https'
-import fetch from 'node-fetch'
+import { fetch } from 'ohmyfetch'
 import { parseURL } from 'ufo'
 import type { SourceFactory } from '../types'
 import { createError, cachedPromise } from '../utils'
