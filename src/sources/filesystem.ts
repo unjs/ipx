@@ -1,6 +1,6 @@
 import { resolve, join } from 'path'
+import { promises as fsp, Stats } from 'fs'
 import isValidPath from 'is-valid-path'
-import { readFile, stat, Stats } from 'fs-extra'
 import { createError, cachedPromise } from '../utils'
 import type { SourceFactory } from '../types'
 
@@ -16,7 +16,7 @@ export const createFilesystemSource: SourceFactory = (options: any) => {
 
     let stats: Stats
     try {
-      stats = await stat(fsPath)
+      stats = await fsp.stat(fsPath)
     } catch (err) {
       if (err.code === 'ENOENT') {
         throw createError('File not found: ' + fsPath, 404)
@@ -31,7 +31,7 @@ export const createFilesystemSource: SourceFactory = (options: any) => {
     return {
       mtime: stats.mtime,
       maxAge: options.maxAge || 300,
-      getData: cachedPromise(() => readFile(fsPath))
+      getData: cachedPromise(() => fsp.readFile(fsPath))
     }
   }
 }
