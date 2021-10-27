@@ -7,7 +7,8 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### ⚠ BREAKING CHANGES
 
-* lazy load sharp
+* Sharp is being lazy loaded
+* Several dependencies changes for better ESM compatibility
 
 ### Features
 
