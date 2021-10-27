@@ -1,4 +1,4 @@
-import { resolve } from 'path'
+import { resolve } from 'pathe'
 import { IPX, createIPX } from '../src'
 
 describe('ipx', () => {

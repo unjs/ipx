@@ -1,5 +1,5 @@
-import { resolve, join } from 'path'
 import { promises as fsp, Stats } from 'fs'
+import { resolve, join } from 'pathe'
 import isValidPath from 'is-valid-path'
 import { createError, cachedPromise } from '../utils'
 import type { SourceFactory } from '../types'
