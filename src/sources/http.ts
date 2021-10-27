@@ -29,6 +29,7 @@ export const createHTTPSource: SourceFactory = (options: any) => {
     }
 
     const response = await fetch(id, {
+      // @ts-ignore
       agent: id.startsWith('https') ? httpsAgent : httpAgent
     })
 
@@ -54,6 +55,7 @@ export const createHTTPSource: SourceFactory = (options: any) => {
     return {
       mtime,
       maxAge,
+      // @ts-ignore
       getData: cachedPromise(() => response.buffer())
     }
   }
