@@ -12,6 +12,7 @@ export function parseArgs (args: string, mappers: Function[]) {
 }
 
 export function getHandler (key): Handler {
+  // eslint-disable-next-line import/namespace
   return Handlers[key]
 }
 
