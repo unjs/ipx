@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.9.0](https://github.com/unjs/ipx/compare/v0.8.0...v0.9.0) (2021-10-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* lazy load sharp
+
+### Features
+
+* lazy load sharp ([9cf14dc](https://github.com/unjs/ipx/commit/9cf14dca95d81e0fa71cc5fe9122d4280e528195))
+
+
+### Bug Fixes
+
+* update image-meta import ([a278cf1](https://github.com/unjs/ipx/commit/a278cf1b0a14409d2000f3ad48758cae02f96f1c))
+* use ohmyfetch for cjs support ([39e78b9](https://github.com/unjs/ipx/commit/39e78b9060a11457bd3b26ec8906982091f3eb1d))
+
 ## [0.8.0](https://github.com/unjs/ipx/compare/v0.7.2...v0.8.0) (2021-09-05)
 
 
