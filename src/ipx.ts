@@ -1,4 +1,3 @@
-import Sharp from 'sharp'
 import defu from 'defu'
 import { imageMeta } from 'image-meta'
 import { hasProtocol, joinURL, withLeadingSlash } from 'ufo'
@@ -123,6 +122,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
         format = 'webp'
       }
 
+      const Sharp = await import('sharp').then(r => r.default || r) as typeof import('sharp')
       let sharp = Sharp(data, { animated })
       Object.assign((sharp as any).options, options.sharp)
 

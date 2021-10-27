@@ -1,18 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "ESNext",
+    "module": "ESNext",
     "moduleResolution": "Node",
-    "lib": [ "ESNext" ],
     "esModuleInterop": true,
-    "allowJs": true,
-    "strict": false,
-    "outDir": "dist",
     "types": [
       "node",
       "jest"
     ]
-  },
-  "include": [
-    "src"
-  ]
+  }
 }
