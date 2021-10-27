@@ -6,7 +6,7 @@
 
 High performance, secure and easy to use image proxy based on [sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/libvips/libvips).
 
-<h2 align="center">Usage</h2>
+## Usage
 
 ### Quick Start
 
@@ -85,6 +85,6 @@ Config can be customized using `IPX_*` environment variables.
 - `IPX_DOMAINS`
   - Default: `[]`
 
-<h2 align="center">License</h2>
+## License
 
 MIT
