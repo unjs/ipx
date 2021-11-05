@@ -12,9 +12,10 @@
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "bin": "./dist/cli.js",
+  "bin": "./bin/ipx.mjs",
   "files": [
-    "dist"
+    "dist",
+    "bin"
   ],
   "scripts": {
     "build": "unbuild",

@@ -5,6 +5,7 @@ export default defineBuildConfig({
   emitCJS: true,
   inlineDependencies: true,
   entries: [
-    'src/index'
+    'src/index',
+    'src/cli'
   ]
 })
