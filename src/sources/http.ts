@@ -18,6 +18,7 @@ export const createHTTPSource: SourceFactory = (options: any) => {
 
   return async (id: string, reqOptions) => {
     // Parse id as URL
+    // @ts-ignore
     const url = new URL(id)
 
     // Check host
