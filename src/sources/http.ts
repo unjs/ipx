@@ -18,14 +18,14 @@ export const createHTTPSource: SourceFactory = (options: any) => {
 
   return async (id: string, reqOptions) => {
     // Parse id as URL
-    const parsedUrl = parseURL(id, 'https://')
+    const url = new URL(id)
 
     // Check host
-    if (!parsedUrl.host) {
+    if (!url.hostname) {
       throw createError('Hostname is missing: ' + id, 403)
     }
-    if (!reqOptions?.bypassDomain && !hosts.find(host => parsedUrl.host === host)) {
-      throw createError('Forbidden host: ' + parsedUrl.host, 403)
+    if (!reqOptions?.bypassDomain && !hosts.find(host => url.hostname === host)) {
+      throw createError('Forbidden host: ' + url.hostname, 403)
     }
 
     const response = await fetch(id, {
