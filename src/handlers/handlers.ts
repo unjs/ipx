@@ -20,6 +20,15 @@ export const fit: Handler = {
   }
 }
 
+// https://sharp.pixelplumbing.com/api-resize#resize
+export const position: Handler = {
+  args: [VArg],
+  order: -1,
+  apply: (context, _pipe, position) => {
+    context.position = position
+  }
+}
+
 const HEX_RE = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i
 const SHORTHEX_RE = /^([a-f\d])([a-f\d])([a-f\d])$/i
 export const background: Handler = {
@@ -69,6 +78,7 @@ export const resize: Handler = {
     }
     return pipe.resize(width, height, {
       fit: context.fit,
+      position: context.position,
       background: context.background
     })
   }
@@ -243,3 +253,4 @@ export const b = background
 export const w = width
 export const h = height
 export const s = resize
+export const pos = position
