@@ -70,6 +70,12 @@ export const resize: Handler = {
   args: [VArg, VArg, VArg],
   apply: (context, pipe, size) => {
     let [width, height] = String(size).split('x').map(v => Number(v))
+    if (!width) {
+      return
+    }
+    if (!height) {
+      height = width
+    }
     // sharp's `withoutEnlargement` doesn't respect the requested aspect ratio, so we need to do it ourselves
     if (!context.enlarge) {
       const clamped = clampDimensionsPreservingAspectRatio(context.meta, { width, height })
