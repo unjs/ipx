@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.3](https://github.com/unjs/ipx/compare/v0.9.2...v0.9.3) (2022-02-15)
+
+
+### Features
+
+* Added 'position' option for resize ([#55](https://github.com/unjs/ipx/issues/55)) ([f89dea7](https://github.com/unjs/ipx/commit/f89dea781abc9ad916b431f15cf1c6fa31b0d1ad))
+* update dependencies ([99dfd0e](https://github.com/unjs/ipx/commit/99dfd0e771da2753614585e103305a354f2e7857)), closes [/sharp.pixelplumbing.com/changelog#v0300---1st-february-2022](https://github.com/unjs//sharp.pixelplumbing.com/changelog/issues/v0300---1st-february-2022)
+
+
+### Bug Fixes
+
+* allow resize operator with only width ([4662f4e](https://github.com/unjs/ipx/commit/4662f4eaf720a30499179fa66608c853d333e269))
+
 ### [0.9.2](https://github.com/unjs/ipx/compare/v0.9.1...v0.9.2) (2022-01-31)
 
 
