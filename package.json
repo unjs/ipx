@@ -28,16 +28,16 @@
   },
   "dependencies": {
     "consola": "^2.15.3",
-    "defu": "^5.0.0",
+    "defu": "^5.0.1",
     "destr": "^1.1.0",
     "etag": "^1.8.1",
     "image-meta": "^0.1.1",
     "is-valid-path": "^0.1.1",
-    "listhen": "^0.2.5",
-    "ohmyfetch": "^0.4.2",
+    "listhen": "^0.2.6",
+    "ohmyfetch": "^0.4.15",
     "pathe": "^0.2.0",
-    "sharp": "^0.29.0",
-    "ufo": "^0.7.9",
+    "sharp": "^0.30.1",
+    "ufo": "^0.7.10",
     "xss": "^1.0.10"
   },
   "devDependencies": {
