@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.4](https://github.com/unjs/ipx/compare/v0.9.3...v0.9.4) (2022-02-17)
+
+
+### Bug Fixes
+
+* revert back cjs entry ([a9f42b9](https://github.com/unjs/ipx/commit/a9f42b926a77ead3daf84f0ae7946c2e490edd45))
+
 ### [0.9.3](https://github.com/unjs/ipx/compare/v0.9.2...v0.9.3) (2022-02-15)
 
 
