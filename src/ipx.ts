@@ -33,6 +33,7 @@ export interface IPXOptions {
   alias: Record<string, string>,
   // TODO: Create types
   // https://github.com/lovell/sharp/blob/master/lib/constructor.js#L130
+  fetchOptions: { [key: string]: any },
   sharp?: { [key: string]: any }
 }
 
@@ -45,6 +46,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
     dir: getEnv('IPX_DIR', '.'),
     domains: getEnv('IPX_DOMAINS', []),
     alias: getEnv('IPX_ALIAS', {}),
+    fetchOptions: getEnv('IPX_FETCH_OPTIONS', {}),
     sharp: {}
   }
   const options: IPXOptions = defu(userOptions, defaults) as IPXOptions
@@ -64,7 +66,8 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
   }
   if (options.domains) {
     ctx.sources.http = createHTTPSource({
-      domains: options.domains
+      domains: options.domains,
+      fetchOptions: options.fetchOptions
     })
   }
 
