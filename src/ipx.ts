@@ -31,7 +31,7 @@ export interface IPXOptions {
   dir?: false | string
   domains?: false | string[]
   alias: Record<string, string>,
-  fetchOptions: { [key: string]: any },
+  fetchOptions: { [key: string]: any } | Function,
   // TODO: Create types
   // https://github.com/lovell/sharp/blob/master/lib/constructor.js#L130
   sharp?: { [key: string]: any }
