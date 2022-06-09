@@ -1,4 +1,4 @@
-import defu from 'defu'
+import { defu } from 'defu'
 import { imageMeta } from 'image-meta'
 import { hasProtocol, joinURL, withLeadingSlash } from 'ufo'
 import type { Source, SourceData } from './types'
