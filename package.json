@@ -41,19 +41,19 @@
     "xss": "^1.0.13"
   },
   "devDependencies": {
-    "@nuxtjs/eslint-config-typescript": "10.0.0",
+    "@nuxtjs/eslint-config-typescript": "latest",
     "@types/etag": "latest",
     "@types/is-valid-path": "latest",
-    "@types/jest": "28.1.1",
-    "@types/node-fetch": "2.6.1",
-    "@types/sharp": "0.30.4",
-    "eslint": "8.17.0",
-    "jest": "28.1.1",
-    "jiti": "1.13.0",
-    "nodemon": "2.0.16",
-    "standard-version": "9.5.0",
-    "ts-jest": "28.0.4",
-    "typescript": "4.7.3",
-    "unbuild": "0.7.4"
+    "@types/jest": "latest",
+    "@types/node-fetch": "latest",
+    "@types/sharp": "latest",
+    "eslint": "latest",
+    "jest": "latest",
+    "jiti": "latest",
+    "nodemon": "latest",
+    "standard-version": "latest",
+    "ts-jest": "latest",
+    "typescript": "latest",
+    "unbuild": "latest"
   }
 }
