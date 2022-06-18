@@ -33,12 +33,12 @@
     "etag": "^1.8.1",
     "image-meta": "^0.1.1",
     "is-valid-path": "^0.1.1",
-    "listhen": "^0.2.8",
-    "ohmyfetch": "^0.4.15",
-    "pathe": "^0.2.0",
-    "sharp": "^0.30.3",
-    "ufo": "^0.8.3",
-    "xss": "^1.0.11"
+    "listhen": "^0.2.13",
+    "ohmyfetch": "^0.4.18",
+    "pathe": "^0.3.0",
+    "sharp": "^0.30.6",
+    "ufo": "^0.8.4",
+    "xss": "^1.0.13"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "latest",
