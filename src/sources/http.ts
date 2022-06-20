@@ -30,7 +30,8 @@ export const createHTTPSource: SourceFactory = (options: any) => {
 
     const response = await fetch(id, {
       // @ts-ignore
-      agent: id.startsWith('https') ? httpsAgent : httpAgent
+      agent: id.startsWith('https') ? httpsAgent : httpAgent,
+      ...options.fetchOptions
     })
 
     if (!response.ok) {
