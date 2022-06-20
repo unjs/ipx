@@ -11,7 +11,7 @@ export interface HTTPSourceOptions {
   domains?: string | string[]
 }
 
-export const createHTTPSource: SourceFactory = (options: HTTPSourceOptions) => {
+export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
   const httpsAgent = new https.Agent({ keepAlive: true })
   const httpAgent = new http.Agent({ keepAlive: true })
 

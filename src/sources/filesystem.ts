@@ -9,7 +9,7 @@ export interface FilesystemSourceOptions {
   maxAge?: number
 }
 
-export const createFilesystemSource: SourceFactory = (options: FilesystemSourceOptions) => {
+export const createFilesystemSource: SourceFactory<FilesystemSourceOptions> = (options) => {
   const rootDir = resolve(options.dir)
 
   return async (id: string) => {
