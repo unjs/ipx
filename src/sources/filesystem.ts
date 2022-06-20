@@ -35,7 +35,7 @@ export const createFilesystemSource: SourceFactory<FilesystemSourceOptions> = (o
 
     return {
       mtime: stats.mtime,
-      maxAge: options.maxAge || 300,
+      maxAge: options.maxAge,
       getData: cachedPromise(() => fsp.readFile(fsPath))
     }
   }

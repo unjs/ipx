@@ -29,6 +29,7 @@ export type IPX = (id: string, modifiers?: Record<string, string>, reqOptions?: 
 
 export interface IPXOptions {
   dir?: false | string
+  maxAge?: number
   domains?: false | string[]
   alias: Record<string, string>,
   fetchOptions: RequestInit,
@@ -47,6 +48,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
     domains: getEnv('IPX_DOMAINS', []),
     alias: getEnv('IPX_ALIAS', {}),
     fetchOptions: getEnv('IPX_FETCH_OPTIONS', {}),
+    maxAge: getEnv('IPX_MAX_AGE', 300),
     sharp: {}
   }
   const options: IPXOptions = defu(userOptions, defaults) as IPXOptions
@@ -61,13 +63,15 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
   // Init sources
   if (options.dir) {
     ctx.sources.filesystem = createFilesystemSource({
-      dir: options.dir
+      dir: options.dir,
+      maxAge: options.maxAge
     })
   }
   if (options.domains) {
     ctx.sources.http = createHTTPSource({
       domains: options.domains,
-      fetchOptions: options.fetchOptions
+      fetchOptions: options.fetchOptions,
+      maxAge: options.maxAge
     })
   }
 
