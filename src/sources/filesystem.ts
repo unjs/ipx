@@ -4,7 +4,12 @@ import isValidPath from 'is-valid-path'
 import { createError, cachedPromise } from '../utils'
 import type { SourceFactory } from '../types'
 
-export const createFilesystemSource: SourceFactory = (options: any) => {
+export interface FilesystemSourceOptions {
+  dir: string
+  maxAge?: number
+}
+
+export const createFilesystemSource: SourceFactory<FilesystemSourceOptions> = (options) => {
   const rootDir = resolve(options.dir)
 
   return async (id: string) => {

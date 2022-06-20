@@ -6,7 +6,7 @@ export interface SourceData {
 
 export type Source = (src: string, reqOptions?: any) => Promise<SourceData>
 
-export type SourceFactory = (options?: any) => Source
+export type SourceFactory<T=Record<string, any>> = (options: T) => Source
 
 export interface Handler {
   args: Function[]
