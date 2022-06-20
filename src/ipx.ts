@@ -40,7 +40,7 @@ export interface IPXOptions {
 
 // https://sharp.pixelplumbing.com/#formats
 // (gif and svg are not supported as output)
-const SUPPORTED_FORMATS = ['jpeg', 'png', 'webp', 'avif', 'tiff']
+const SUPPORTED_FORMATS = ['jpeg', 'png', 'webp', 'avif', 'tiff', 'gif']
 
 export function createIPX (userOptions: Partial<IPXOptions>): IPX {
   const defaults = {
@@ -122,12 +122,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
 
       // Experimental animated support
       // https://github.com/lovell/sharp/issues/2275
-      const animated = modifiers.animated !== undefined || modifiers.a !== undefined
-      if (animated) {
-        // Gif output needs special libvips build
-        // https://github.com/lovell/sharp/pull/2012
-        format = 'webp'
-      }
+      const animated = modifiers.animated !== undefined || modifiers.a !== undefined || format === 'gif'
 
       const Sharp = await import('sharp').then(r => r.default || r) as typeof import('sharp')
       let sharp = Sharp(data, { animated })
