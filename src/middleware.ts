@@ -30,15 +30,15 @@ async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
   }
 
   // Parse URL
-  const [modifiersStr = '', ...idSegments] = req.url.substr(1 /* leading slash */).split('/')
-  const id = decode(idSegments.join('/'))
+  const [modifiersStr = '', ...idSegments] = req.url.substring(1 /* leading slash */).split('/')
+  const id = safeString(decode(idSegments.join('/')))
 
   // Validate
   if (!modifiersStr) {
-    throw createError('Modifiers is missing in path: ' + req.url, 400)
+    throw createError('Modifiers are missing', 400, req.url)
   }
   if (!id || id === '/') {
-    throw createError('Resource id is missing: ' + req.url, 400)
+    throw createError('Resource id is missing', 400, req.url)
   }
 
   // Contruct modifiers
@@ -48,7 +48,7 @@ async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
   if (modifiersStr !== '_') {
     for (const p of modifiersStr.split(MODIFIER_SEP)) {
       const [key, value = ''] = p.split(MODIFIER_VAL_SEP)
-      modifiers[key] = decode(value)
+      modifiers[safeString(key)] = safeString(decode(value))
     }
   }
 
@@ -90,22 +90,22 @@ async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
 
   res.body = data
 
-  return res
+  return sanetizeReponse(res)
 }
 
 export function handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse> {
   return _handleRequest(req, ipx).catch((err) => {
     const statusCode = parseInt(err.statusCode) || 500
-    const statusMessage = err.statusMessage ? xss(err.statusMessage) : `IPX Error (${statusCode})`
+    const statusMessage = err.statusMessage ? err.statusMessage : `IPX Error (${statusCode})`
     if (process.env.NODE_ENV !== 'production' && statusCode === 500) {
       console.error(err) // eslint-disable-line no-console
     }
-    return {
+    return sanetizeReponse({
       statusCode,
       statusMessage,
-      body: statusMessage,
+      body: 'IPX Error: ' + err,
       headers: {}
-    }
+    })
   })
 }
 
@@ -120,4 +120,27 @@ export function createIPXMiddleware (ipx: IPX) {
       res.end(_res.body)
     })
   }
+}
+
+// --- Utils ---
+
+function sanetizeReponse (res: IPXHResponse) {
+  return <IPXHResponse>{
+    statusCode: res.statusCode || 200,
+    statusMessage: res.statusMessage ? safeString(res.statusMessage) : 'OK',
+    headers: safeStringObject(res.headers || {}),
+    body: typeof res.body === 'string' ? xss(safeString(res.body)) : (res.body || '')
+  }
+}
+
+function safeString (input: string) {
+  return JSON.stringify(input).replace(/^"|"$/g, '')
+}
+
+function safeStringObject (input: Record<string, string>) {
+  const dst = {}
+  for (const key in input) {
+    dst[key] = safeString(input[key])
+  }
+  return dst
 }
