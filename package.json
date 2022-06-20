@@ -21,10 +21,10 @@
     "build": "unbuild",
     "dev": "nodemon",
     "lint": "eslint --ext .ts .",
-    "prepack": "yarn build",
-    "release": "yarn test && standard-version && git push --follow-tags && npm publish",
+    "prepack": "pnpm build",
+    "release": "pnpm test && standard-version && git push --follow-tags && pnpm publish",
     "start": "node bin/ipx.js",
-    "test": "yarn lint && jest"
+    "test": "pnpm lint && vitest run --coverage"
   },
   "dependencies": {
     "consola": "^2.15.3",
@@ -33,7 +33,6 @@
     "etag": "^1.8.1",
     "image-meta": "^0.1.1",
     "is-valid-path": "^0.1.1",
-    "listhen": "^0.2.13",
     "ohmyfetch": "^0.4.18",
     "pathe": "^0.3.0",
     "sharp": "^0.30.6",
@@ -44,16 +43,18 @@
     "@nuxtjs/eslint-config-typescript": "latest",
     "@types/etag": "latest",
     "@types/is-valid-path": "latest",
-    "@types/jest": "latest",
     "@types/node-fetch": "latest",
     "@types/sharp": "latest",
+    "c8": "latest",
     "eslint": "latest",
-    "jest": "latest",
     "jiti": "latest",
+    "listhen": "^0.2.13",
     "nodemon": "latest",
+    "serve-handler": "^6.1.3",
     "standard-version": "latest",
-    "ts-jest": "latest",
     "typescript": "latest",
-    "unbuild": "latest"
-  }
+    "unbuild": "latest",
+    "vitest": "latest"
+  },
+  "packageManager": "pnpm@7.3.0"
 }
