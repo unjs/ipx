@@ -28,10 +28,10 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
 
     // Check host
     if (!url.hostname) {
-      throw createError('Hostname is missing: ' + id, 403)
+      throw createError('Hostname is missing', 403, id)
     }
     if (!reqOptions?.bypassDomain && !hosts.find(host => url.hostname === host)) {
-      throw createError('Forbidden host: ' + url.hostname, 403)
+      throw createError('Forbidden host', 403, url.hostname)
     }
 
     const response = await fetch(id, {
@@ -41,7 +41,7 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
     })
 
     if (!response.ok) {
-      throw createError(response.statusText || 'fetch error', response.status || 500)
+      throw createError('Fetch error', response.status || 500, response.statusText)
     }
 
     let maxAge = options.maxAge

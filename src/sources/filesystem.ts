@@ -14,7 +14,7 @@ export const createFilesystemSource: SourceFactory<FilesystemSourceOptions> = (o
   return async (id: string) => {
     const fsPath = resolve(join(rootDir, id))
     if (!isValidPath(fsPath) || !fsPath.startsWith(rootDir)) {
-      throw createError('Forbidden path:' + id, 403)
+      throw createError('Forbidden path', 403, id)
     }
 
     let stats: Stats
@@ -22,13 +22,13 @@ export const createFilesystemSource: SourceFactory<FilesystemSourceOptions> = (o
       stats = await fsp.stat(fsPath)
     } catch (err) {
       if (err.code === 'ENOENT') {
-        throw createError('File not found: ' + fsPath, 404)
+        throw createError('File not found', 404, fsPath)
       } else {
-        throw createError('File access error for ' + fsPath + ':' + err.code, 403)
+        throw createError('File access error ' + err.code, 403, fsPath)
       }
     }
     if (!stats.isFile()) {
-      throw createError('Path should be a file: ' + fsPath, 400)
+      throw createError('Path should be a file', 400, fsPath)
     }
 
     return {

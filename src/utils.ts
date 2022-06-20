@@ -1,4 +1,5 @@
 import destr from 'destr'
+import xss from 'xss'
 
 export function getEnv (name: string, defaultValue: any) {
   return destr(process.env[name]) ?? defaultValue
@@ -20,9 +21,9 @@ export class IPXError extends Error {
   statusMessage?: string
 }
 
-export function createError (message: string, statusCode: number): IPXError {
-  const err = new IPXError(message)
-  err.statusMessage = 'IPX: ' + message
+export function createError (statusMessage: string, statusCode: number, trace?: string): IPXError {
+  const err = new IPXError(statusMessage + (trace ? ` (${trace})` : ''))
+  err.statusMessage = 'IPX: ' + statusMessage
   err.statusCode = statusCode
   return err
 }

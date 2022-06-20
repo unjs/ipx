@@ -93,7 +93,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
     const getSrc = cachedPromise(() => {
       const source = hasProtocol(id) ? 'http' : 'filesystem'
       if (!ctx.sources[source]) {
-        throw createError('Unknown source: ' + source, 400)
+        throw createError('Unknown source', 400, source)
       }
       return ctx.sources[source](id, reqOptions)
     })
