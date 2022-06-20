@@ -5,6 +5,9 @@ import xss from 'xss'
 import { IPX } from './ipx'
 import { createError } from './utils'
 
+const MODIFIER_SEP = /[,&]/g
+const MODIFIER_VAL_SEP = /[_=:]/g
+
 export interface IPXHRequest {
   url: string
   headers?: Record<string, string>
@@ -43,8 +46,8 @@ async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
 
   // Read modifiers from first segment
   if (modifiersStr !== '_') {
-    for (const p of modifiersStr.split(',')) {
-      const [key, value = ''] = p.split('_')
+    for (const p of modifiersStr.split(MODIFIER_SEP)) {
+      const [key, value = ''] = p.split(MODIFIER_VAL_SEP)
       modifiers[key] = decode(value)
     }
   }

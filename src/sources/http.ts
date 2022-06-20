@@ -30,7 +30,8 @@ export const createHTTPSource: SourceFactory = (options: any) => {
 
     const response = await fetch(id, {
       // @ts-ignore
-      agent: id.startsWith('https') ? httpsAgent : httpAgent
+      agent: id.startsWith('https') ? httpsAgent : httpAgent,
+      ...options.fetchOptions
     })
 
     if (!response.ok) {
@@ -56,7 +57,7 @@ export const createHTTPSource: SourceFactory = (options: any) => {
       mtime,
       maxAge,
       // @ts-ignore
-      getData: cachedPromise(() => response.buffer())
+      getData: cachedPromise(() => response.arrayBuffer().then(ab => Buffer.from(ab)))
     }
   }
 }
