@@ -32,7 +32,6 @@
     "destr": "^1.1.1",
     "etag": "^1.8.1",
     "image-meta": "^0.1.1",
-    "is-valid-path": "^0.1.1",
     "ohmyfetch": "^0.4.18",
     "pathe": "^0.3.0",
     "sharp": "^0.30.6",

@@ -1,6 +1,5 @@
 import { promises as fsp, Stats } from 'fs'
 import { resolve, join } from 'pathe'
-import isValidPath from 'is-valid-path'
 import { createError, cachedPromise } from '../utils'
 import type { SourceFactory } from '../types'
 
@@ -14,8 +13,7 @@ export const createFilesystemSource: SourceFactory<FilesystemSourceOptions> = (o
 
   return async (id: string) => {
     const fsPath = resolve(join(rootDir, id))
-
-    if (!isValidPath(id) || id.includes('..') || !fsPath.startsWith(rootDir)) {
+    if (!isValidPath(fsPath) || !fsPath.startsWith(rootDir)) {
       throw createError('Forbidden path:' + id, 403)
     }
 
@@ -39,4 +37,13 @@ export const createFilesystemSource: SourceFactory<FilesystemSourceOptions> = (o
       getData: cachedPromise(() => fsp.readFile(fsPath))
     }
   }
+}
+
+function isValidPath (fp: string) {
+  // Invalid windows path chars
+  // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file?redirectedfrom=MSDN#Naming_Conventions
+  if (/[<>:"|?*]/.test(fp)) {
+    return false
+  }
+  return true
 }
