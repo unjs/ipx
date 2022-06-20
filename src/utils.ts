@@ -1,5 +1,4 @@
 import destr from 'destr'
-import xss from 'xss'
 
 export function getEnv (name: string, defaultValue: any) {
   return destr(process.env[name]) ?? defaultValue
