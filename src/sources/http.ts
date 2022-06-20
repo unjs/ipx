@@ -5,7 +5,13 @@ import { parseURL } from 'ufo'
 import type { SourceFactory } from '../types'
 import { createError, cachedPromise } from '../utils'
 
-export const createHTTPSource: SourceFactory = (options: any) => {
+export interface HTTPSourceOptions {
+  fetchOptions?: RequestInit
+  maxAge?: number
+  domains?: string | string[]
+}
+
+export const createHTTPSource: SourceFactory = (options: HTTPSourceOptions) => {
   const httpsAgent = new https.Agent({ keepAlive: true })
   const httpAgent = new http.Agent({ keepAlive: true })
 
