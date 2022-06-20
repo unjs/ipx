@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.5](https://github.com/unjs/ipx/compare/v0.9.4...v0.9.5) (2022-06-20)
+
+
+### Features
+
+* `fetchOptions` ([#74](https://github.com/unjs/ipx/issues/74)) ([4d0f235](https://github.com/unjs/ipx/commit/4d0f2352b442c47bfe4ff954f927a94c572bb342))
+* enable animated by default for gif (closes [#53](https://github.com/unjs/ipx/issues/53)) ([155afac](https://github.com/unjs/ipx/commit/155afacd70e3bb130a14df61d7c5f1f3062d0b3f))
+* global `maxAge` option ([#71](https://github.com/unjs/ipx/issues/71)) ([a2481dc](https://github.com/unjs/ipx/commit/a2481dc6ca154b89a89aa537965198069a650f37))
+* **middleware:** allow extended modifier seperators ([a47d2aa](https://github.com/unjs/ipx/commit/a47d2aa86e15b7f5bc43220a3d8d2c06147d7c11)), closes [#57](https://github.com/unjs/ipx/issues/57)
+
+
+### Bug Fixes
+
+* improve path validation (resolves [#56](https://github.com/unjs/ipx/issues/56)) ([ec5c15d](https://github.com/unjs/ipx/commit/ec5c15d2ecfa3a5c9c550b918f84cf2f87085f90))
+* **middleware:** sanetize request and response strings (resolves [#42](https://github.com/unjs/ipx/issues/42)) ([1792d3a](https://github.com/unjs/ipx/commit/1792d3aa2f4e572e0ca09cdac7272f60402cf3ea))
+* use `response.arrayBuffer` instead of deprecated `res.buffer` ([b13a77e](https://github.com/unjs/ipx/commit/b13a77e0884e5d4dbb2f7ea7de43ea05e9581698)), closes [#69](https://github.com/unjs/ipx/issues/69)
+
 ### [0.9.4](https://github.com/unjs/ipx/compare/v0.9.3...v0.9.4) (2022-02-17)
 
 
