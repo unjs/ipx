@@ -56,7 +56,7 @@ export const createHTTPSource: SourceFactory = (options: any) => {
       mtime,
       maxAge,
       // @ts-ignore
-      getData: cachedPromise(() => response.buffer())
+      getData: cachedPromise(() => response.arrayBuffer().then(ab => Buffer.from(ab)))
     }
   }
 }
