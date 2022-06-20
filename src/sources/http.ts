@@ -44,7 +44,7 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
       throw createError(response.statusText || 'fetch error', response.status || 500)
     }
 
-    let maxAge = options.maxAge || 300
+    let maxAge = options.maxAge
     const _cacheControl = response.headers.get('cache-control')
     if (_cacheControl) {
       const m = _cacheControl.match(/max-age=(\d+)/)
