@@ -1,5 +1,5 @@
 import { promises as fsp, Stats } from 'fs'
-import { resolve, join } from 'pathe'
+import { resolve, join, parse } from 'pathe'
 import { createError, cachedPromise } from '../utils'
 import type { SourceFactory } from '../types'
 
@@ -39,9 +39,15 @@ export const createFilesystemSource: SourceFactory<FilesystemSourceOptions> = (o
   }
 }
 
+const isWindows = process.platform === 'win32'
+
 function isValidPath (fp: string) {
   // Invalid windows path chars
   // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file?redirectedfrom=MSDN#Naming_Conventions
+  if (isWindows) {
+    // Remove C:/ as next we are validating :
+    fp = fp.slice(parse(fp).root.length)
+  }
   if (/[<>:"|?*]/.test(fp)) {
     return false
   }
