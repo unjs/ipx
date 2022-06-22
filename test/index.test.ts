@@ -9,7 +9,7 @@ describe('ipx', () => {
   beforeAll(() => {
     ipx = createIPX({
       dir: resolve(__dirname, 'assets'),
-      domains: ['localhost']
+      domains: ['localhost:3000']
     })
   })
 
