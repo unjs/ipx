@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.7](https://github.com/unjs/ipx/compare/v0.9.6...v0.9.7) (2022-06-22)
+
+
+### Bug Fixes
+
+* **fs:** fix windows path validation ([c631a2b](https://github.com/unjs/ipx/commit/c631a2b11109c306a7460e29a11d852b27301206))
+
 ### [0.9.6](https://github.com/unjs/ipx/compare/v0.9.5...v0.9.6) (2022-06-20)
 
 ### [0.9.5](https://github.com/unjs/ipx/compare/v0.9.4...v0.9.5) (2022-06-20)
