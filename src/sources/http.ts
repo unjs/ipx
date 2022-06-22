@@ -18,7 +18,10 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
   if (typeof _domains === 'string') {
     _domains = _domains.split(',').map(s => s.trim())
   }
-  const domains = _domains.map(d => new URL(d).hostname || new URL('http://' + d).hostname).filter(Boolean)
+  const domains = _domains.map((d) => {
+    if (!d.startsWith('http')) { d = 'http://' + d }
+    return new URL(d).hostname
+  }).filter(Boolean)
 
   return async (id: string, reqOptions) => {
     // Check hostname
