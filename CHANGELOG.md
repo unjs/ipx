@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.8](https://github.com/unjs/ipx/compare/v0.9.7...v0.9.8) (2022-06-22)
+
+
+### Bug Fixes
+
+* **http:** use hostname to compare against domains ([3aabc41](https://github.com/unjs/ipx/commit/3aabc4134e7a9e6f52588815fc51d610fc03324d))
+
 ### [0.9.7](https://github.com/unjs/ipx/compare/v0.9.6...v0.9.7) (2022-06-22)
 
 
