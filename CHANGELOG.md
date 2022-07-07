@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.10](https://github.com/unjs/ipx/compare/v0.9.9...v0.9.10) (2022-07-07)
+
+
+### Bug Fixes
+
+* return promise from middleware ([2fb644d](https://github.com/unjs/ipx/commit/2fb644da6c5e2ea52a08db7aed11fd373ac612a1))
+
 ### [0.9.9](https://github.com/unjs/ipx/compare/v0.9.8...v0.9.9) (2022-06-22)
 
 
