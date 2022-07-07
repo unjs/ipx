@@ -111,7 +111,7 @@ export function handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
 
 export function createIPXMiddleware (ipx: IPX) {
   return function IPXMiddleware (req: IncomingMessage, res: ServerResponse) {
-    handleRequest({ url: req.url, headers: req.headers as any }, ipx).then((_res) => {
+    return handleRequest({ url: req.url, headers: req.headers as any }, ipx).then((_res) => {
       res.statusCode = _res.statusCode
       res.statusMessage = _res.statusMessage
       for (const name in _res.headers) {
