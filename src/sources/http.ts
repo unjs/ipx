@@ -1,6 +1,7 @@
 import http from 'http'
 import https from 'https'
 import { fetch } from 'ohmyfetch'
+import { hasProtocol } from 'ufo'
 import type { SourceFactory } from '../types'
 import { createError, cachedPromise } from '../utils'
 
@@ -19,7 +20,7 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
     _domains = _domains.split(',').map(s => s.trim())
   }
   const domains = _domains.map((d) => {
-    if (!d.startsWith('http')) { d = 'http://' + d }
+    if (!hasProtocol(d)) { d = 'http://' + d }
     return new URL(d).hostname
   }).filter(Boolean)
 
