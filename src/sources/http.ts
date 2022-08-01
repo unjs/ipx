@@ -1,7 +1,6 @@
 import http from 'http'
 import https from 'https'
 import { fetch } from 'ohmyfetch'
-import { hasProtocol } from 'ufo'
 import type { SourceFactory } from '../types'
 import { createError, cachedPromise } from '../utils'
 
@@ -10,6 +9,8 @@ export interface HTTPSourceOptions {
   maxAge?: number
   domains?: string | string[]
 }
+
+const HTTP_RE = /^https?:\/\//
 
 export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
   const httpsAgent = new https.Agent({ keepAlive: true })
@@ -20,7 +21,7 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
     _domains = _domains.split(',').map(s => s.trim())
   }
   const domains = _domains.map((d) => {
-    if (!hasProtocol(d)) { d = 'http://' + d }
+    if (!HTTP_RE.test(d)) { d = 'http://' + d }
     return new URL(d).hostname
   }).filter(Boolean)
 
