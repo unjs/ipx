@@ -89,7 +89,7 @@ async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
   }
 
   // Prevent XSS
-  res.headers['Content-Security-Policy'] = "default-src 'none';"
+  res.headers['Content-Security-Policy'] = "default-src 'none'"
 
   res.body = data
 
