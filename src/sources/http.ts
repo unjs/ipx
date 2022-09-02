@@ -10,6 +10,8 @@ export interface HTTPSourceOptions {
   domains?: string | string[]
 }
 
+const HTTP_RE = /^https?:\/\//
+
 export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
   const httpsAgent = new https.Agent({ keepAlive: true })
   const httpAgent = new http.Agent({ keepAlive: true })
@@ -19,7 +21,7 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
     _domains = _domains.split(',').map(s => s.trim())
   }
   const domains = _domains.map((d) => {
-    if (!d.startsWith('http')) { d = 'http://' + d }
+    if (!HTTP_RE.test(d)) { d = 'http://' + d }
     return new URL(d).hostname
   }).filter(Boolean)
 
