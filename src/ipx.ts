@@ -115,11 +115,12 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       // Use original svg if format not specified
       if (meta.type === 'svg' && !mFormat) {
         // Sanetize svg
-        const svg = Buffer.from(xss(data.toString('utf8'), {
-          whiteList: { svg: ['xmlns', 'width', 'height', 'viewBox', 'fill', 'style'] }
-        }))
+        const svg = data.toString('utf8')
+        // svg = xss(svg, {
+        //   whiteList: { svg: ['xmlns', 'width', 'height', 'viewBox', 'fill', 'style'] }
+        // })
         return {
-          data: svg,
+          data: Buffer.from(svg),
           format: 'svg+xml',
           meta
         }
