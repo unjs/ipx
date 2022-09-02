@@ -88,6 +88,9 @@ async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
     res.headers['Content-Type'] = `image/${format}`
   }
 
+  // Prevent XSS
+  res.headers['Content-Security-Policy'] = "default-src 'none'"
+
   res.body = data
 
   return sanetizeReponse(res)
