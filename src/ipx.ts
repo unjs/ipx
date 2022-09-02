@@ -1,6 +1,7 @@
 import defu from 'defu'
 import { imageMeta } from 'image-meta'
 import { hasProtocol, joinURL, withLeadingSlash } from 'ufo'
+import xss from 'xss'
 import type { Source, SourceData } from './types'
 import { createFilesystemSource, createHTTPSource } from './sources'
 import { applyHandler, getHandler } from './handlers'
@@ -113,8 +114,12 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       }
       // Use original svg if format not specified
       if (meta.type === 'svg' && !mFormat) {
+        // Sanetize svg
+        const svg = Buffer.from(xss(data.toString('utf8'), {
+          whiteList: { svg: ['xmlns', 'width', 'height', 'viewBox', 'fill', 'style'] }
+        }))
         return {
-          data,
+          data: svg,
           format: 'svg+xml',
           meta
         }
