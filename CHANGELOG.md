@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.11](https://github.com/unjs/ipx/compare/v0.9.10...v0.9.11) (2022-09-03)
+
+
+### Features
+
+* **middleware:** add `Content-Security-Policy` header ([#83](https://github.com/unjs/ipx/issues/83)) ([d1edbf1](https://github.com/unjs/ipx/commit/d1edbf120759697e04259b3708784d05b38f7190))
+
+
+### Bug Fixes
+
+* use `hasProtocol` rather than checking if url starts with `http` ([#80](https://github.com/unjs/ipx/issues/80)) ([696ba5a](https://github.com/unjs/ipx/commit/696ba5a2473b4d1e95222678d59ddfaa9406b6b1))
+
 ### [0.9.10](https://github.com/unjs/ipx/compare/v0.9.9...v0.9.10) (2022-07-07)
 
 
