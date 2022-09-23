@@ -2,8 +2,9 @@ import { ServerResponse, IncomingMessage } from 'http'
 import { decode } from 'ufo'
 import getEtag from 'etag'
 import xss from 'xss'
+import { negotiate } from '@fastify/accept-negotiator'
 import { IPX } from './ipx'
-import { createError } from './utils'
+import { getEnv, createError } from './utils'
 
 const MODIFIER_SEP = /[,&]/g
 const MODIFIER_VAL_SEP = /[_=:]/g
@@ -50,6 +51,20 @@ async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
       const [key, value = ''] = p.split(MODIFIER_VAL_SEP)
       modifiers[safeString(key)] = safeString(decode(value))
     }
+  }
+
+  // Experimental support, automatic format selection
+  const enabledAuto = getEnv('IPX_FORMAT_AUTO_ENABLED', false)
+  const mFormat = modifiers.f || modifiers.format
+  if (enabledAuto && mFormat === 'auto') {
+    if (modifiers.animated !== undefined || modifiers.a !== undefined) {
+      const acceptMime = negotiate(req.headers.accept, ['image/webp', 'image/gif'])
+      modifiers.f = acceptMime?.split('/')[1] ?? 'gif'
+    } else {
+      const acceptMime = negotiate(req.headers.accept, ['image/avif', 'image/webp', 'image/jpeg', 'image/png', 'image/tiff', 'image/heif', 'image/gif'])
+      modifiers.f = acceptMime?.split('/')[1] ?? 'jpeg'
+    }
+    res.headers.vary = 'Accept'
   }
 
   // Create request

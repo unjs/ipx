@@ -1,6 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@fastify/accept-negotiator': ^1.0.0
   '@nuxtjs/eslint-config-typescript': ^11.0.0
   '@types/etag': ^1.8.1
   '@types/is-valid-path': ^0.1.0
@@ -29,6 +30,7 @@ specifiers:
   xss: ^1.0.14
 
 dependencies:
+  '@fastify/accept-negotiator': 1.0.0
   consola: 2.15.3
   defu: 6.1.0
   destr: 1.1.1
@@ -304,6 +306,11 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: true
+
+  /@fastify/accept-negotiator/1.0.0:
+    resolution: {integrity: sha512-4R/N2KfYeld7A5LGkai+iUFMahXcxxYbDp+XS2B1yuL3cdmZLJ9TlCnNzT3q5xFTqsYm0GPpinLUwfSwjcVjyA==}
+    engines: {node: '>=14'}
+    dev: false
 
   /@humanwhocodes/config-array/0.10.4:
     resolution: {integrity: sha512-mXAIHxZT3Vcpg83opl1wGlVZ9xydbfZO3r5YfRSH6Gpp2J/PfdBP0wbDa2sO6/qRbcalpoevVyW6A/fI6LfeMw==}

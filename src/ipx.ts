@@ -40,7 +40,7 @@ export interface IPXOptions {
 
 // https://sharp.pixelplumbing.com/#formats
 // (gif and svg are not supported as output)
-const SUPPORTED_FORMATS = ['jpeg', 'png', 'webp', 'avif', 'tiff', 'gif']
+const SUPPORTED_FORMATS = ['jpeg', 'png', 'webp', 'avif', 'tiff', 'heif', 'gif']
 
 export function createIPX (userOptions: Partial<IPXOptions>): IPX {
   const defaults = {
@@ -86,7 +86,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
     // Resolve alias
     for (const base in options.alias) {
       if (id.startsWith(base)) {
-        id = joinURL(options.alias[base], id.substr(base.length))
+        id = joinURL(options.alias[base], id.substring(base.length))
       }
     }
 
@@ -107,7 +107,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
 
       // Determine format
       const mFormat = modifiers.f || modifiers.format
-      let format = mFormat || meta.type
+      let format = ['jpg', ...SUPPORTED_FORMATS].includes(mFormat) ? mFormat : meta.type
       if (format === 'jpg') {
         format = 'jpeg'
       }
