@@ -66,7 +66,7 @@ async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse
         return res
       }
     }
-    res.headers['Last-Modified'] = (+src.mtime) + ''
+    res.headers['Last-Modified'] = src.mtime.toUTCString()
   }
   if (typeof src.maxAge === 'number') {
     res.headers['Cache-Control'] = `max-age=${+src.maxAge}, public, s-maxage=${+src.maxAge}`
