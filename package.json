@@ -32,15 +32,15 @@
     "destr": "^1.2.1",
     "etag": "^1.8.1",
     "image-meta": "^0.1.1",
-    "listhen": "^0.3.5",
+    "listhen": "^1.0.0",
     "ohmyfetch": "^0.4.21",
-    "pathe": "^0.3.9",
+    "pathe": "^1.0.0",
     "sharp": "^0.31.2",
-    "ufo": "^0.8.6",
+    "ufo": "^1.0.0",
     "xss": "^1.0.14"
   },
   "devDependencies": {
-    "@nuxtjs/eslint-config-typescript": "^11.0.0",
+    "@nuxtjs/eslint-config-typescript": "^12.0.0",
     "@types/etag": "^1.8.1",
     "@types/is-valid-path": "^0.1.0",
     "@types/node-fetch": "^2.6.2",
@@ -53,7 +53,7 @@
     "serve-handler": "^6.1.5",
     "standard-version": "^9.5.0",
     "typescript": "^4.9.3",
-    "unbuild": "^0.9.4",
+    "unbuild": "^1.0.1",
     "vitest": "^0.25.3"
   },
   "packageManager": "pnpm@7.17.0"
