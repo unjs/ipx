@@ -32,7 +32,7 @@
     "destr": "^1.2.1",
     "etag": "^1.8.1",
     "image-meta": "^0.1.1",
-    "listhen": "^0.3.5",
+    "listhen": "^1.0.0",
     "ohmyfetch": "^0.4.21",
     "pathe": "^0.3.9",
     "sharp": "^0.31.2",
