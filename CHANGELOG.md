@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.0.0-1](https://github.com/unjs/ipx/compare/v1.0.0-0...v1.0.0-1) (2022-11-23)
+
+
+### Bug Fixes
+
+* update defu import ([c55f878](https://github.com/unjs/ipx/commit/c55f878671d340b04f8e3e5ae8ea2849809280d9))
+
 ## [1.0.0-0](https://github.com/unjs/ipx/compare/v0.9.11...v1.0.0-0) (2022-11-23)
 
 
