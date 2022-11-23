@@ -36,7 +36,7 @@
     "ohmyfetch": "^0.4.21",
     "pathe": "^0.3.9",
     "sharp": "^0.31.2",
-    "ufo": "^0.8.6",
+    "ufo": "^1.0.0",
     "xss": "^1.0.14"
   },
   "devDependencies": {
