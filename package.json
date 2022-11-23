@@ -40,7 +40,7 @@
     "xss": "^1.0.14"
   },
   "devDependencies": {
-    "@nuxtjs/eslint-config-typescript": "^11.0.0",
+    "@nuxtjs/eslint-config-typescript": "^12.0.0",
     "@types/etag": "^1.8.1",
     "@types/is-valid-path": "^0.1.0",
     "@types/node-fetch": "^2.6.2",
