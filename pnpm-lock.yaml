@@ -18,7 +18,7 @@ specifiers:
   listhen: ^0.3.5
   nodemon: ^2.0.20
   ohmyfetch: ^0.4.21
-  pathe: ^0.3.9
+  pathe: ^1.0.0
   serve-handler: ^6.1.5
   sharp: ^0.31.2
   standard-version: ^9.5.0
@@ -36,7 +36,7 @@ dependencies:
   image-meta: 0.1.1
   listhen: 0.3.5
   ohmyfetch: 0.4.21
-  pathe: 0.3.9
+  pathe: 1.0.0
   sharp: 0.31.2
   ufo: 0.8.6
   xss: 1.0.14
@@ -3916,6 +3916,11 @@ packages:
 
   /pathe/0.3.9:
     resolution: {integrity: sha512-6Y6s0vT112P3jD8dGfuS6r+lpa0qqNrLyHPOwvXMnyNTQaYiwgau2DP3aNDsR13xqtGj7rrPo+jFUATpU6/s+g==}
+    dev: true
+
+  /pathe/1.0.0:
+    resolution: {integrity: sha512-nPdMG0Pd09HuSsr7QOKUXO2Jr9eqaDiZvDwdyIhNG5SHYujkQHYKDfGQkulBxvbDHz8oHLsTgKN86LSwYzSHAg==}
+    dev: false
 
   /pathval/1.1.1:
     resolution: {integrity: sha512-Dp6zGqpTdETdR63lehJYPeIOqpiNBNtc7BpWSLrOje7UaIsE5aY92r/AunQA7rsXvet3lrJ3JnZX29UPTKXyKQ==}
