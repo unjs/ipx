@@ -1,10 +1,10 @@
-import defu from 'defu'
-import { imageMeta } from 'image-meta'
-import { hasProtocol, joinURL, withLeadingSlash } from 'ufo'
-import type { Source, SourceData } from './types'
-import { createFilesystemSource, createHTTPSource } from './sources'
-import { applyHandler, getHandler } from './handlers'
-import { cachedPromise, getEnv, createError } from './utils'
+import defu from "defu";
+import { imageMeta } from "image-meta";
+import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
+import type { Source, SourceData } from "./types";
+import { createFilesystemSource, createHTTPSource } from "./sources";
+import { applyHandler, getHandler } from "./handlers";
+import { cachedPromise, getEnv as getEnvironment, createError } from "./utils";
 
 // TODO: Move to image-meta
 export interface ImageMeta {
@@ -18,7 +18,7 @@ export interface IPXCTX {
   sources: Record<string, Source>
 }
 
-export type IPX = (id: string, modifiers?: Record<string, string>, reqOptions?: any) => {
+export type IPX = (id: string, modifiers?: Record<string, string>, requestOptions?: any) => {
   src: () => Promise<SourceData>,
   data: () => Promise<{
     data: Buffer,
@@ -40,131 +40,131 @@ export interface IPXOptions {
 
 // https://sharp.pixelplumbing.com/#formats
 // (gif and svg are not supported as output)
-const SUPPORTED_FORMATS = ['jpeg', 'png', 'webp', 'avif', 'tiff', 'gif']
+const SUPPORTED_FORMATS = new Set(["jpeg", "png", "webp", "avif", "tiff", "gif"]);
 
 export function createIPX (userOptions: Partial<IPXOptions>): IPX {
   const defaults = {
-    dir: getEnv('IPX_DIR', '.'),
-    domains: getEnv('IPX_DOMAINS', []),
-    alias: getEnv('IPX_ALIAS', {}),
-    fetchOptions: getEnv('IPX_FETCH_OPTIONS', {}),
-    maxAge: getEnv('IPX_MAX_AGE', 300),
+    dir: getEnvironment("IPX_DIR", "."),
+    domains: getEnvironment("IPX_DOMAINS", []),
+    alias: getEnvironment("IPX_ALIAS", {}),
+    fetchOptions: getEnvironment("IPX_FETCH_OPTIONS", {}),
+    maxAge: getEnvironment("IPX_MAX_AGE", 300),
     sharp: {}
-  }
-  const options: IPXOptions = defu(userOptions, defaults) as IPXOptions
+  };
+  const options: IPXOptions = defu(userOptions, defaults) as IPXOptions;
 
   // Normalize alias to start with leading slash
-  options.alias = Object.fromEntries(Object.entries(options.alias).map(e => [withLeadingSlash(e[0]), e[1]]))
+  options.alias = Object.fromEntries(Object.entries(options.alias).map(e => [withLeadingSlash(e[0]), e[1]]));
 
-  const ctx: IPXCTX = {
+  const context: IPXCTX = {
     sources: {}
-  }
+  };
 
   // Init sources
   if (options.dir) {
-    ctx.sources.filesystem = createFilesystemSource({
+    context.sources.filesystem = createFilesystemSource({
       dir: options.dir,
       maxAge: options.maxAge
-    })
+    });
   }
   if (options.domains) {
-    ctx.sources.http = createHTTPSource({
+    context.sources.http = createHTTPSource({
       domains: options.domains,
       fetchOptions: options.fetchOptions,
       maxAge: options.maxAge
-    })
+    });
   }
 
-  return function ipx (id, modifiers = {}, reqOptions = {}) {
+  return function ipx (id, modifiers = {}, requestOptions = {}) {
     if (!id) {
-      throw createError('resource id is missing', 400)
+      throw createError("resource id is missing", 400);
     }
 
     // Enforce leading slash
-    id = hasProtocol(id) ? id : withLeadingSlash(id)
+    id = hasProtocol(id) ? id : withLeadingSlash(id);
 
     // Resolve alias
     for (const base in options.alias) {
       if (id.startsWith(base)) {
-        id = joinURL(options.alias[base], id.substr(base.length))
+        id = joinURL(options.alias[base], id.slice(base.length));
       }
     }
 
-    const getSrc = cachedPromise(() => {
-      const source = hasProtocol(id) ? 'http' : 'filesystem'
-      if (!ctx.sources[source]) {
-        throw createError('Unknown source', 400, source)
+    const getSource = cachedPromise(() => {
+      const source = hasProtocol(id) ? "http" : "filesystem";
+      if (!context.sources[source]) {
+        throw createError("Unknown source", 400, source);
       }
-      return ctx.sources[source](id, reqOptions)
-    })
+      return context.sources[source](id, requestOptions);
+    });
 
     const getData = cachedPromise(async () => {
-      const src = await getSrc()
-      const data = await src.getData()
+      const source = await getSource();
+      const data = await source.getData();
 
       // Extract source meta
-      const meta = imageMeta(data) as ImageMeta
+      const meta = imageMeta(data) as ImageMeta;
 
       // Determine format
-      const mFormat = modifiers.f || modifiers.format
-      let format = mFormat || meta.type
-      if (format === 'jpg') {
-        format = 'jpeg'
+      const mFormat = modifiers.f || modifiers.format;
+      let format = mFormat || meta.type;
+      if (format === "jpg") {
+        format = "jpeg";
       }
       // Use original svg if format not specified
-      if (meta.type === 'svg' && !mFormat) {
+      if (meta.type === "svg" && !mFormat) {
         return {
           data,
-          format: 'svg+xml',
+          format: "svg+xml",
           meta
-        }
+        };
       }
 
       // Experimental animated support
       // https://github.com/lovell/sharp/issues/2275
-      const animated = modifiers.animated !== undefined || modifiers.a !== undefined || format === 'gif'
+      const animated = modifiers.animated !== undefined || modifiers.a !== undefined || format === "gif";
 
-      const Sharp = await import('sharp').then(r => r.default || r) as typeof import('sharp')
-      let sharp = Sharp(data, { animated })
-      Object.assign((sharp as any).options, options.sharp)
+      const Sharp = await import("sharp").then(r => r.default || r) as typeof import("sharp");
+      let sharp = Sharp(data, { animated });
+      Object.assign((sharp as any).options, options.sharp);
 
       // Resolve modifiers to handlers and sort
       const handlers = Object.entries(modifiers)
-        .map(([name, args]) => ({ handler: getHandler(name), name, args }))
+        .map(([name, arguments_]) => ({ handler: getHandler(name), name, args: arguments_ }))
         .filter(h => h.handler)
         .sort((a, b) => {
-          const aKey = ((a.handler.order || a.name || '')).toString()
-          const bKey = ((b.handler.order || b.name || '')).toString()
-          return aKey.localeCompare(bKey)
-        })
+          const aKey = ((a.handler.order || a.name || "")).toString();
+          const bKey = ((b.handler.order || b.name || "")).toString();
+          return aKey.localeCompare(bKey);
+        });
 
       // Apply handlers
-      const handlerCtx: any = { meta }
+      const handlerContext: any = { meta };
       for (const h of handlers) {
-        sharp = applyHandler(handlerCtx, sharp, h.handler, h.args) || sharp
+        sharp = applyHandler(handlerContext, sharp, h.handler, h.args) || sharp;
       }
 
       // Apply format
-      if (SUPPORTED_FORMATS.includes(format)) {
+      if (SUPPORTED_FORMATS.has(format)) {
         sharp = sharp.toFormat(format as any, {
-          quality: handlerCtx.quality,
-          progressive: format === 'jpeg'
-        })
+          quality: handlerContext.quality,
+          progressive: format === "jpeg"
+        });
       }
 
       // Convert to buffer
-      const newData = await sharp.toBuffer()
+      const newData = await sharp.toBuffer();
 
       return {
         data: newData,
         format,
         meta
-      }
-    })
+      };
+    });
 
     return {
-      src: getSrc,
+      src: getSource,
       data: getData
-    }
-  }
+    };
+  };
 }

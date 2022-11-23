@@ -1,7 +1,7 @@
-export * from './ipx'
-export * from './middleware'
+export * from "./ipx";
+export * from "./middleware";
 export type {
   Source,
   SourceData,
   SourceFactory
-} from './types'
+} from "./types";

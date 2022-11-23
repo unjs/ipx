@@ -1,28 +1,28 @@
-import destr from 'destr'
+import destr from "destr";
 
 export function getEnv (name: string, defaultValue: any) {
-  return destr(process.env[name]) ?? defaultValue
+  return destr(process.env[name]) ?? defaultValue;
 }
 
-export function cachedPromise<T extends (...args: any[]) => any>(fn: T) {
-  let p: ReturnType<T>
-  return (...args: Parameters<T>) => {
+export function cachedPromise<T extends (...arguments_: any[]) => any>(function_: T) {
+  let p: ReturnType<T>;
+  return (...arguments_: Parameters<T>) => {
     if (p) {
-      return p
+      return p;
     }
-    p = Promise.resolve(fn(...args)) as ReturnType<T>
-    return p
-  }
+    p = Promise.resolve(function_(...arguments_)) as ReturnType<T>;
+    return p;
+  };
 }
 
 export class IPXError extends Error {
-  statusCode?: number
-  statusMessage?: string
+  statusCode?: number;
+  statusMessage?: string;
 }
 
 export function createError (statusMessage: string, statusCode: number, trace?: string): IPXError {
-  const err = new IPXError(statusMessage + (trace ? ` (${trace})` : ''))
-  err.statusMessage = 'IPX: ' + statusMessage
-  err.statusCode = statusCode
-  return err
+  const error = new IPXError(statusMessage + (trace ? ` (${trace})` : ""));
+  error.statusMessage = "IPX: " + statusMessage;
+  error.statusCode = statusCode;
+  return error;
 }

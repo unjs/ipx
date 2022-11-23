@@ -1,12 +1,12 @@
-import { ServerResponse, IncomingMessage } from 'http'
-import { decode } from 'ufo'
-import getEtag from 'etag'
-import xss from 'xss'
-import { IPX } from './ipx'
-import { createError } from './utils'
+import { ServerResponse, IncomingMessage } from "node:http";
+import { decode } from "ufo";
+import getEtag from "etag";
+import xss from "xss";
+import { IPX } from "./ipx";
+import { createError } from "./utils";
 
-const MODIFIER_SEP = /[,&]/g
-const MODIFIER_VAL_SEP = /[_=:]/g
+const MODIFIER_SEP = /[&,]/g;
+const MODIFIER_VAL_SEP = /[:=_]/g;
 
 export interface IPXHRequest {
   url: string
@@ -21,108 +21,107 @@ export interface IPXHResponse {
   body: any
 }
 
-async function _handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse> {
+async function _handleRequest (request: IPXHRequest, ipx: IPX): Promise<IPXHResponse> {
   const res: IPXHResponse = {
     statusCode: 200,
-    statusMessage: '',
+    statusMessage: "",
     headers: {},
-    body: ''
-  }
+    body: ""
+  };
 
   // Parse URL
-  const [modifiersStr = '', ...idSegments] = req.url.substring(1 /* leading slash */).split('/')
-  const id = safeString(decode(idSegments.join('/')))
+  const [modifiersString = "", ...idSegments] = request.url.slice(1 /* leading slash */).split("/");
+  const id = safeString(decode(idSegments.join("/")));
 
   // Validate
-  if (!modifiersStr) {
-    throw createError('Modifiers are missing', 400, req.url)
+  if (!modifiersString) {
+    throw createError("Modifiers are missing", 400, request.url);
   }
-  if (!id || id === '/') {
-    throw createError('Resource id is missing', 400, req.url)
+  if (!id || id === "/") {
+    throw createError("Resource id is missing", 400, request.url);
   }
 
   // Contruct modifiers
-  const modifiers: Record<string, string> = Object.create(null)
+  const modifiers: Record<string, string> = Object.create(null);
 
   // Read modifiers from first segment
-  if (modifiersStr !== '_') {
-    for (const p of modifiersStr.split(MODIFIER_SEP)) {
-      const [key, value = ''] = p.split(MODIFIER_VAL_SEP)
-      modifiers[safeString(key)] = safeString(decode(value))
+  if (modifiersString !== "_") {
+    for (const p of modifiersString.split(MODIFIER_SEP)) {
+      const [key, value = ""] = p.split(MODIFIER_VAL_SEP);
+      modifiers[safeString(key)] = safeString(decode(value));
     }
   }
 
   // Create request
-  const img = ipx(id, modifiers, req.options)
+  const img = ipx(id, modifiers, request.options);
 
   // Get image meta from source
-  const src = await img.src()
+  const source = await img.src();
 
   // Caching headers
-  if (src.mtime) {
-    if (req.headers['if-modified-since']) {
-      if (new Date(req.headers['if-modified-since']) >= src.mtime) {
-        res.statusCode = 304
-        return res
-      }
+  if (source.mtime) {
+    if (request.headers["if-modified-since"] && new Date(request.headers["if-modified-since"]) >= source.mtime) {
+      res.statusCode = 304;
+      return res;
     }
-    res.headers['Last-Modified'] = src.mtime.toUTCString()
+    res.headers["Last-Modified"] = source.mtime.toUTCString();
   }
-  if (typeof src.maxAge === 'number') {
-    res.headers['Cache-Control'] = `max-age=${+src.maxAge}, public, s-maxage=${+src.maxAge}`
+  if (typeof source.maxAge === "number") {
+    res.headers["Cache-Control"] = `max-age=${+source.maxAge}, public, s-maxage=${+source.maxAge}`;
   }
 
   // Get converted image
-  const { data, format } = await img.data()
+  const { data, format } = await img.data();
 
   // ETag
-  const etag = getEtag(data)
-  res.headers.ETag = etag
-  if (etag && req.headers['if-none-match'] === etag) {
-    res.statusCode = 304
-    return res
+  const etag = getEtag(data);
+  res.headers.ETag = etag;
+  if (etag && request.headers["if-none-match"] === etag) {
+    res.statusCode = 304;
+    return res;
   }
 
   // Mime
   if (format) {
-    res.headers['Content-Type'] = `image/${format}`
+    res.headers["Content-Type"] = `image/${format}`;
   }
 
   // Prevent XSS
-  res.headers['Content-Security-Policy'] = "default-src 'none'"
+  res.headers["Content-Security-Policy"] = "default-src 'none'";
 
-  res.body = data
+  res.body = data;
 
-  return sanetizeReponse(res)
+  return sanetizeReponse(res);
 }
 
-export function handleRequest (req: IPXHRequest, ipx: IPX): Promise<IPXHResponse> {
-  return _handleRequest(req, ipx).catch((err) => {
-    const statusCode = parseInt(err.statusCode) || 500
-    const statusMessage = err.statusMessage ? err.statusMessage : `IPX Error (${statusCode})`
-    if (process.env.NODE_ENV !== 'production' && statusCode === 500) {
-      console.error(err) // eslint-disable-line no-console
+export function handleRequest (request: IPXHRequest, ipx: IPX): Promise<IPXHResponse> {
+  return _handleRequest(request, ipx).catch((error) => {
+    const statusCode = Number.parseInt(error.statusCode) || 500;
+    // eslint-disable-next-line unicorn/prefer-logical-operator-over-ternary
+    const statusMessage = error.statusMessage ? error.statusMessage : `IPX Error (${statusCode})`;
+    if (process.env.NODE_ENV !== "production" && statusCode === 500) {
+      console.error(error); // eslint-disable-line no-console
     }
     return sanetizeReponse({
       statusCode,
       statusMessage,
-      body: 'IPX Error: ' + err,
+      body: "IPX Error: " + error,
       headers: {}
-    })
-  })
+    });
+  });
 }
 
 export function createIPXMiddleware (ipx: IPX) {
-  return function IPXMiddleware (req: IncomingMessage, res: ServerResponse) {
-    return handleRequest({ url: req.url, headers: req.headers as any }, ipx).then((_res) => {
-      res.statusCode = _res.statusCode
-      res.statusMessage = _res.statusMessage
+  return function IPXMiddleware (request: IncomingMessage, res: ServerResponse) {
+    return handleRequest({ url: request.url, headers: request.headers as any }, ipx).then((_res) => {
+      res.statusCode = _res.statusCode;
+      res.statusMessage = _res.statusMessage;
       for (const name in _res.headers) {
-        res.setHeader(name, _res.headers[name])
+        res.setHeader(name, _res.headers[name]);
       }
-      res.end(_res.body)
-    })
-  }
+      res.end(_res.body);
+    });
+  };
 }
 
 // --- Utils ---
@@ -130,20 +129,20 @@ export function createIPXMiddleware (ipx: IPX) {
 function sanetizeReponse (res: IPXHResponse) {
   return <IPXHResponse>{
     statusCode: res.statusCode || 200,
-    statusMessage: res.statusMessage ? safeString(res.statusMessage) : 'OK',
+    statusMessage: res.statusMessage ? safeString(res.statusMessage) : "OK",
     headers: safeStringObject(res.headers || {}),
-    body: typeof res.body === 'string' ? xss(safeString(res.body)) : (res.body || '')
-  }
+    body: typeof res.body === "string" ? xss(safeString(res.body)) : (res.body || "")
+  };
 }
 
 function safeString (input: string) {
-  return JSON.stringify(input).replace(/^"|"$/g, '')
+  return JSON.stringify(input).replace(/^"|"$/g, "");
 }
 
 function safeStringObject (input: Record<string, string>) {
-  const dst = {}
+  const dst = {};
   for (const key in input) {
-    dst[key] = safeString(input[key])
+    dst[key] = safeString(input[key]);
   }
-  return dst
+  return dst;
 }
