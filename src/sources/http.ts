@@ -1,6 +1,6 @@
 import http from "node:http";
 import https from "node:https";
-import { fetch } from "ohmyfetch";
+import { fetch } from "node-fetch-native";
 import type { SourceFactory } from "../types";
 import { createError, cachedPromise } from "../utils";
 

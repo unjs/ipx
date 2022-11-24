@@ -33,7 +33,7 @@
     "etag": "^1.8.1",
     "image-meta": "^0.1.1",
     "listhen": "^1.0.0",
-    "ohmyfetch": "^0.4.21",
+    "node-fetch-native": "^1.0.1",
     "pathe": "^1.0.0",
     "sharp": "^0.31.2",
     "ufo": "^1.0.0",
