@@ -19,7 +19,6 @@ specifiers:
   listhen: ^1.0.0
   node-fetch-native: ^1.0.1
   nodemon: ^2.0.20
-  ofetch: ^1.0.0
   pathe: ^1.0.0
   serve-handler: ^6.1.5
   sharp: ^0.31.2
@@ -38,7 +37,6 @@ dependencies:
   image-meta: 0.1.1
   listhen: 1.0.0
   node-fetch-native: 1.0.1
-  ofetch: 1.0.0
   pathe: 1.0.0
   sharp: 0.31.2
   ufo: 1.0.0
@@ -3805,14 +3803,6 @@ packages:
       define-properties: 1.1.4
       es-abstract: 1.20.2
     dev: true
-
-  /ofetch/1.0.0:
-    resolution: {integrity: sha512-d40aof8czZFSQKJa4+F7Ch3UC5D631cK1TTUoK+iNEut9NoiCL+u0vykl/puYVUS2df4tIQl5upQcolIcEzQjQ==}
-    dependencies:
-      destr: 1.2.1
-      node-fetch-native: 1.0.1
-      ufo: 1.0.0
-    dev: false
 
   /once/1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
