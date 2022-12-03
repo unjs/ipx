@@ -47,7 +47,7 @@
     "@types/sharp": "^0.31.0",
     "@vitest/coverage-c8": "^0.25.3",
     "changelogen": "^0.4.0",
-    "eslint": "^8.28.0",
+    "eslint": "^8.29.0",
     "eslint-config-unjs": "^0.0.2",
     "jiti": "^1.16.0",
     "nodemon": "^2.0.20",
