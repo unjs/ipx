@@ -6,7 +6,7 @@ specifiers:
   '@types/is-valid-path': ^0.1.0
   '@types/node-fetch': ^2.6.2
   '@types/sharp': ^0.31.0
-  '@vitest/coverage-c8': ^0.25.5
+  '@vitest/coverage-c8': ^0.25.6
   changelogen: ^0.4.0
   consola: ^2.15.3
   defu: ^6.1.1
@@ -26,7 +26,7 @@ specifiers:
   typescript: ^4.9.4
   ufo: ^1.0.1
   unbuild: ^1.0.2
-  vitest: ^0.25.5
+  vitest: ^0.25.6
   xss: ^1.0.14
 
 dependencies:
@@ -48,7 +48,7 @@ devDependencies:
   '@types/is-valid-path': 0.1.0
   '@types/node-fetch': 2.6.2
   '@types/sharp': 0.31.0
-  '@vitest/coverage-c8': 0.25.5
+  '@vitest/coverage-c8': 0.25.6
   changelogen: 0.4.0
   eslint: 8.29.0
   eslint-config-unjs: 0.0.2_ha6vam6werchizxrnqvarmz2zu
@@ -58,7 +58,7 @@ devDependencies:
   standard-version: 9.5.0
   typescript: 4.9.4
   unbuild: 1.0.2
-  vitest: 0.25.5
+  vitest: 0.25.6
 
 packages:
 
@@ -745,11 +745,11 @@ packages:
       eslint-visitor-keys: 3.3.0
     dev: true
 
-  /@vitest/coverage-c8/0.25.5:
-    resolution: {integrity: sha512-tXlg0QVkTQ+7dqhsuwRFovP5vjgYGyBrRREFS55IQ20IsiSaRug9sRblRsckTXmGtz1OMJy/Lxv1gFVo24/ipA==}
+  /@vitest/coverage-c8/0.25.6:
+    resolution: {integrity: sha512-+Bcs1XZ8CuEe52QSOgzqmqiV82CXZRRj3yclPQqtLkUV4S6+kdOdfRTtMHOilwhZH70giDjBQx3jgiZoYgFVMA==}
     dependencies:
       c8: 7.12.0
-      vitest: 0.25.5
+      vitest: 0.25.6
     transitivePeerDependencies:
       - '@edge-runtime/vm'
       - '@vitest/browser'
@@ -4939,8 +4939,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /vitest/0.25.5:
-    resolution: {integrity: sha512-lFKSTZV+AjuL44/yNC0aDPKTiasYSqOQ97Gg2G4P2LnjyzQ21ZUs4rQOscHK3lrSnVuir3+1QavHzbDgH4tWQA==}
+  /vitest/0.25.6:
+    resolution: {integrity: sha512-jdPgmZ7BcDnm1+hmMPIl9BZjSy+b8Y8V0tQMsv7ECO90Qic7EZ5/+traILXLpsXgqK5KgVrUJmchevAUuKL/1w==}
     engines: {node: '>=v14.16.0'}
     hasBin: true
     peerDependencies:
