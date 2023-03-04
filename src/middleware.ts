@@ -5,6 +5,8 @@ import xss from "xss";
 import { IPX } from "./ipx";
 import { createError } from "./utils";
 
+export { isIPXError } from "./utils";
+
 const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/g;
 
