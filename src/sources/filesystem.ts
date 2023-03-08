@@ -20,7 +20,7 @@ export const createFilesystemSource: SourceFactory<FilesystemSourceOptions> = (o
     let stats: Stats;
     try {
       stats = await fsp.stat(fsPath);
-    } catch (error_) {
+    } catch (error_: any) {
       const error = error_.code === "ENOENT" ? createError("File not found", 404, fsPath) : createError("File access error " + error_.code, 403, fsPath);
       throw error;
     }

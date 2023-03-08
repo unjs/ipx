@@ -1,4 +1,4 @@
-import { ServerResponse, IncomingMessage } from "node:http";
+import type { ServerResponse, IncomingMessage, IncomingHttpHeaders } from "node:http";
 import { decode } from "ufo";
 import getEtag from "etag";
 import xss from "xss";
@@ -10,15 +10,14 @@ const MODIFIER_VAL_SEP = /[:=_]/g;
 
 export interface IPXHRequest {
   url: string
-  headers?: Record<string, string>
-  options?: any
+  headers: IncomingHttpHeaders
 }
 
 export interface IPXHResponse {
   statusCode: number
   statusMessage: string
   headers: Record<string, string>
-  body: any
+  body: string | Buffer
 }
 
 async function _handleRequest (request: IPXHRequest, ipx: IPX): Promise<IPXHResponse> {
@@ -53,7 +52,7 @@ async function _handleRequest (request: IPXHRequest, ipx: IPX): Promise<IPXHResp
   }
 
   // Create request
-  const img = ipx(id, modifiers, request.options);
+  const img = ipx(id, modifiers);
 
   // Get image meta from source
   const source = await img.src();
@@ -113,7 +112,7 @@ export function handleRequest (request: IPXHRequest, ipx: IPX): Promise<IPXHResp
 
 export function createIPXMiddleware (ipx: IPX) {
   return function IPXMiddleware (request: IncomingMessage, res: ServerResponse) {
-    return handleRequest({ url: request.url, headers: request.headers as any }, ipx).then((_res) => {
+    return handleRequest({ url: request.url ?? "/", headers: request.headers }, ipx).then((_res) => {
       res.statusCode = _res.statusCode;
       res.statusMessage = _res.statusMessage;
       for (const name in _res.headers) {
@@ -140,7 +139,7 @@ function safeString (input: string) {
 }
 
 function safeStringObject (input: Record<string, string>) {
-  const dst = {};
+  const dst: Record<string, string> = {};
   for (const key in input) {
     dst[key] = safeString(input[key]);
   }

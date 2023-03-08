@@ -1,24 +1,17 @@
 import { defu } from "defu";
-import { imageMeta } from "image-meta";
+import sharp from "sharp";
+import type { SharpOptions } from "sharp";
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
-import type { Source, SourceData } from "./types";
+import type { Source, SourceData, Context, ImageMeta } from "./types";
 import { createFilesystemSource, createHTTPSource } from "./sources";
 import { applyHandler, getHandler } from "./handlers";
 import { cachedPromise, getEnv as getEnvironment, createError } from "./utils";
-
-// TODO: Move to image-meta
-export interface ImageMeta {
-  width: number
-  height: number
-  type: string
-  mimeType: string
-}
 
 export interface IPXCTX {
   sources: Record<string, Source>
 }
 
-export type IPX = (id: string, modifiers?: Record<string, string>, requestOptions?: any) => {
+export type IPX = (id: string, modifiers?: Record<string, string>) => {
   src: () => Promise<SourceData>,
   data: () => Promise<{
     data: Buffer,
@@ -33,25 +26,23 @@ export interface IPXOptions {
   domains?: false | string[]
   alias: Record<string, string>,
   fetchOptions: RequestInit,
-  // TODO: Create types
-  // https://github.com/lovell/sharp/blob/master/lib/constructor.js#L130
-  sharp?: { [key: string]: any }
+  sharp?: SharpOptions
 }
 
 // https://sharp.pixelplumbing.com/#formats
 // (gif and svg are not supported as output)
-const SUPPORTED_FORMATS = new Set(["jpeg", "png", "webp", "avif", "tiff", "gif"]);
+const SUPPORTED_FORMATS = new Set(["jpeg", "png", "webp", "avif", "tiff", "gif", "heif"]);
 
 export function createIPX (userOptions: Partial<IPXOptions>): IPX {
   const defaults = {
     dir: getEnvironment("IPX_DIR", "."),
-    domains: getEnvironment("IPX_DOMAINS", []),
-    alias: getEnvironment("IPX_ALIAS", {}),
-    fetchOptions: getEnvironment("IPX_FETCH_OPTIONS", {}),
+    domains: getEnvironment<string[]>("IPX_DOMAINS", []),
+    alias: getEnvironment<Record<string, string>>("IPX_ALIAS", {}),
+    fetchOptions: getEnvironment<RequestInit>("IPX_FETCH_OPTIONS", {}),
     maxAge: getEnvironment("IPX_MAX_AGE", 300),
     sharp: {}
   };
-  const options: IPXOptions = defu(userOptions, defaults) as IPXOptions;
+  const options = defu(userOptions, defaults);
 
   // Normalize alias to start with leading slash
   options.alias = Object.fromEntries(Object.entries(options.alias).map(e => [withLeadingSlash(e[0]), e[1]]));
@@ -75,7 +66,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
     });
   }
 
-  return function ipx (id, modifiers = {}, requestOptions = {}) {
+  return function ipx (id, modifiers = {}) {
     if (!id) {
       throw createError("resource id is missing", 400);
     }
@@ -95,38 +86,39 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       if (!context.sources[source]) {
         throw createError("Unknown source", 400, source);
       }
-      return context.sources[source](id, requestOptions);
+      return context.sources[source](id);
     });
 
     const getData = cachedPromise(async () => {
       const source = await getSource();
       const data = await source.getData();
 
+      // Experimental animated support
+      // https://github.com/lovell/sharp/issues/2275
+      const animated = modifiers.animated !== undefined || modifiers.a !== undefined;
+
+      let pipe = sharp(data, options.sharp ? { ...options.sharp, animated } : { animated });
+
       // Extract source meta
-      const meta = imageMeta(data) as ImageMeta;
+      const meta = await pipe.metadata();
+      if (meta.format === undefined || meta.width === undefined || meta.height === undefined) {
+        throw createError("Invalid image", 400);
+      }
 
       // Determine format
       const mFormat = modifiers.f || modifiers.format;
-      let format = mFormat || meta.type;
+      let format = mFormat || meta.format;
       if (format === "jpg") {
         format = "jpeg";
       }
       // Use original svg if format not specified
-      if (meta.type === "svg" && !mFormat) {
+      if (meta.format === "svg" && !mFormat) {
         return {
           data,
           format: "svg+xml",
-          meta
+          meta: meta as ImageMeta
         };
       }
-
-      // Experimental animated support
-      // https://github.com/lovell/sharp/issues/2275
-      const animated = modifiers.animated !== undefined || modifiers.a !== undefined || format === "gif";
-
-      const Sharp = await import("sharp").then(r => r.default || r) as typeof import("sharp");
-      let sharp = Sharp(data, { animated });
-      Object.assign((sharp as any).options, options.sharp);
 
       // Resolve modifiers to handlers and sort
       const handlers = Object.entries(modifiers)
@@ -139,26 +131,26 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
         });
 
       // Apply handlers
-      const handlerContext: any = { meta };
+      const handlerContext: Context = { meta: meta as ImageMeta };
       for (const h of handlers) {
-        sharp = applyHandler(handlerContext, sharp, h.handler, h.args) || sharp;
+        pipe = applyHandler(handlerContext, pipe, h.handler, h.args) || pipe;
       }
 
       // Apply format
       if (SUPPORTED_FORMATS.has(format)) {
-        sharp = sharp.toFormat(format as any, {
+        pipe = pipe.toFormat(format as any, {
           quality: handlerContext.quality,
           progressive: format === "jpeg"
         });
       }
 
       // Convert to buffer
-      const newData = await sharp.toBuffer();
+      const newData = await pipe.toBuffer();
 
       return {
         data: newData,
         format,
-        meta
+        meta: meta as ImageMeta
       };
     });
 

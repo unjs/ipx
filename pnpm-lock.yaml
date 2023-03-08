@@ -5,7 +5,7 @@ specifiers:
   '@types/etag': ^1.8.1
   '@types/is-valid-path': ^0.1.0
   '@types/node-fetch': ^2.6.2
-  '@types/sharp': ^0.31.0
+  '@types/sharp': ^0.31.1
   '@vitest/coverage-c8': ^0.25.7
   changelogen: ^0.4.0
   consola: ^2.15.3
@@ -14,14 +14,13 @@ specifiers:
   eslint: ^8.29.0
   eslint-config-unjs: ^0.0.2
   etag: ^1.8.1
-  image-meta: ^0.1.1
   jiti: ^1.16.0
   listhen: ^1.0.1
   node-fetch-native: ^1.0.1
   nodemon: ^2.0.20
   pathe: ^1.0.0
   serve-handler: ^6.1.5
-  sharp: ^0.31.2
+  sharp: ^0.31.3
   standard-version: ^9.5.0
   typescript: ^4.9.4
   ufo: ^1.0.1
@@ -34,11 +33,10 @@ dependencies:
   defu: 6.1.1
   destr: 1.2.2
   etag: 1.8.1
-  image-meta: 0.1.1
   listhen: 1.0.1
   node-fetch-native: 1.0.1
   pathe: 1.0.0
-  sharp: 0.31.2
+  sharp: 0.31.3
   ufo: 1.0.1
   xss: 1.0.14
 
@@ -47,7 +45,7 @@ devDependencies:
   '@types/etag': 1.8.1
   '@types/is-valid-path': 0.1.0
   '@types/node-fetch': 2.6.2
-  '@types/sharp': 0.31.0
+  '@types/sharp': 0.31.1
   '@vitest/coverage-c8': 0.25.7
   changelogen: 0.4.0
   eslint: 8.29.0
@@ -610,8 +608,8 @@ packages:
     resolution: {integrity: sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw==}
     dev: true
 
-  /@types/sharp/0.31.0:
-    resolution: {integrity: sha512-nwivOU101fYInCwdDcH/0/Ru6yIRXOpORx25ynEOc6/IakuCmjOAGpaO5VfUl4QkDtUC6hj+Z2eCQvgXOioknw==}
+  /@types/sharp/0.31.1:
+    resolution: {integrity: sha512-5nWwamN9ZFHXaYEincMSuza8nNfOof8nmO+mcI+Agx1uMUk4/pQnNIcix+9rLPXzKrm1pS34+6WRDbDV0Jn7ag==}
     dependencies:
       '@types/node': 18.7.14
     dev: true
@@ -2905,7 +2903,7 @@ packages:
       source-map: 0.6.1
       wordwrap: 1.0.0
     optionalDependencies:
-      uglify-js: 3.17.0
+      uglify-js: 3.17.4
     dev: true
 
   /hard-rejection/2.1.0:
@@ -2998,11 +2996,6 @@ packages:
     resolution: {integrity: sha512-CmxgYGiEPCLhfLnpPp1MoRmifwEIOgjcHXxOBjv7mY96c+eWScsOP9c112ZyLdWHi0FxHjI+4uVhKYp/gcdRmQ==}
     engines: {node: '>= 4'}
     dev: true
-
-  /image-meta/0.1.1:
-    resolution: {integrity: sha512-+oXiHwOEPr1IE5zY0tcBLED/CYcre15J4nwL50x3o0jxWqEkyjrusiKP3YSU+tr9fvJp33ZcP5Gpj2295g3aEw==}
-    engines: {node: '>=10.18.0'}
-    dev: false
 
   /import-fresh/3.3.0:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}
@@ -4350,8 +4343,8 @@ packages:
       range-parser: 1.2.0
     dev: true
 
-  /sharp/0.31.2:
-    resolution: {integrity: sha512-DUdNVEXgS5A97cTagSLIIp8dUZ/lZtk78iNVZgHdHbx1qnQR7JAHY0BnXnwwH39Iw+VKhO08CTYhIg0p98vQ5Q==}
+  /sharp/0.31.3:
+    resolution: {integrity: sha512-XcR4+FCLBFKw1bdB+GEhnUNXNXvnt0tDo4WsBsraKymuo/IAuPuCBVAL2wIkUw2r/dwFW5Q5+g66Kwl2dgDFVg==}
     engines: {node: '>=14.15.0'}
     requiresBuild: true
     dependencies:
@@ -4803,8 +4796,8 @@ packages:
   /ufo/1.0.1:
     resolution: {integrity: sha512-boAm74ubXHY7KJQZLlXrtMz52qFvpsbOxDcZOnw/Wf+LS4Mmyu7JxmzD4tDLtUQtmZECypJ0FrCz4QIe6dvKRA==}
 
-  /uglify-js/3.17.0:
-    resolution: {integrity: sha512-aTeNPVmgIMPpm1cxXr2Q/nEbvkmV8yq66F3om7X3P/cvOXQ0TMQ64Wk63iyT1gPlmdmGzjGpyLh1f3y8MZWXGg==}
+  /uglify-js/3.17.4:
+    resolution: {integrity: sha512-T9q82TJI9e/C1TAxYvfb16xO120tMVFZrGA3f9/P4424DNu6ypK103y0GPFVa17yotwSyZW5iYXgjYHkGrJW/g==}
     engines: {node: '>=0.8.0'}
     hasBin: true
     requiresBuild: true

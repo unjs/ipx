@@ -25,13 +25,13 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
     return new URL(d).hostname;
   }).filter(Boolean));
 
-  return async (id: string, requestOptions) => {
+  return async (id: string) => {
     // Check hostname
     const hostname = new URL(id).hostname;
     if (!hostname) {
       throw createError("Hostname is missing", 403, id);
     }
-    if (!requestOptions?.bypassDomain && !domains.has(hostname)) {
+    if (!domains.has(hostname)) {
       throw createError("Forbidden host", 403, hostname);
     }
 

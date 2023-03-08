@@ -30,6 +30,24 @@ const app = express();
 app.use("/image", createIPXMiddleware(ipx));
 ```
 
+#### Options
+
+- **dir**
+  - Default: `.` (current working directory)
+- **domains**
+  - Default: `[]`
+  - List of allowed domains for HTTP fetch
+- **alias**
+  - Default: `{}`
+- **fetchOptions**
+  - Default: `{}`
+  - [fetch options](https://developer.mozilla.org/en-US/docs/Web/API/fetch#parameters)
+- **maxAge**
+  - Default: `300` (5 minutes)
+- **sharp**
+  - Default: `{}`
+  - [sharp options](https://sharp.pixelplumbing.com/api-constructor#parameters)
+
 ### Examples
 
 > The examples assume that a `static` folder with `buffalo.png` file is present in the directory where IPX server is running.
@@ -60,7 +78,7 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 | fit             | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `http://localhost:3000/s_200x200,fit_outside/buffalo.png`   | Sets `fit` option for `resize`.
 | position / pos  | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `http://localhost:3000/s_200x200,pos_top/buffalo.png`       | Sets `position` option for `resize`.
 | trim            | [Docs](https://sharp.pixelplumbing.com/api-resize#trim)         | `http://localhost:3000/trim_100/buffalo.png`                |
-| format          | [Docs](https://sharp.pixelplumbing.com/api-output#toformat)     | `http://localhost:3000/format_webp/buffalo.png`             | Supported format: `jpg`, `jpeg`, `png`, `webp`, `avif`, `gif`, `heif`                                                                                             |
+| format / f      | [Docs](https://sharp.pixelplumbing.com/api-output#toformat)     | `http://localhost:3000/format_webp/buffalo.png`             | Supported format: `jpg`, `jpeg`, `png`, `webp`, `avif`, `gif`, `tiff`, `heif`                                                                                             |
 | quality / q     | \_                                                              | `http://localhost:3000/quality_50/buffalo.png`              | Accepted values: 0 to 100                                                                                                                                         |
 | rotate          | [Docs](https://sharp.pixelplumbing.com/api-operation#rotate)    | `http://localhost:3000/rotate_45/buffalo.png`               |
 | enlarge         | \_                                                              | `http://localhost:3000/enlarge,s_2000x2000/buffalo.png`     | Allow the image to be upscaled. By default the returned image will never be larger than the source in any dimension, while preserving the requested aspect ratio. |
@@ -81,11 +99,15 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 Config can be customized using `IPX_*` environment variables.
 
 - `IPX_DIR`
-
   - Default: `.` (current working directory)
-
 - `IPX_DOMAINS`
   - Default: `[]`
+- `IPX_ALIAS`
+  - Default: `{}`
+- `IPX_FETCH_OPTIONS`
+  - Default: `{}`
+- `IPX_MAX_AGE`
+  - Default: `300`
 
 ## License
 
