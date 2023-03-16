@@ -28,15 +28,15 @@
   },
   "dependencies": {
     "consola": "^2.15.3",
-    "defu": "^6.1.1",
+    "defu": "^6.1.2",
     "destr": "^1.2.2",
     "etag": "^1.8.1",
     "image-meta": "^0.1.1",
-    "listhen": "^1.0.1",
-    "node-fetch-native": "^1.0.1",
-    "pathe": "^1.0.0",
-    "sharp": "^0.31.2",
-    "ufo": "^1.0.1",
+    "listhen": "^1.0.4",
+    "node-fetch-native": "^1.0.2",
+    "pathe": "^1.1.0",
+    "sharp": "^0.31.3",
+    "ufo": "^1.1.1",
     "xss": "^1.0.14"
   },
   "devDependencies": {
@@ -44,18 +44,18 @@
     "@types/etag": "^1.8.1",
     "@types/is-valid-path": "^0.1.0",
     "@types/node-fetch": "^2.6.2",
-    "@types/sharp": "^0.31.0",
-    "@vitest/coverage-c8": "^0.25.7",
-    "changelogen": "^0.4.0",
-    "eslint": "^8.29.0",
-    "eslint-config-unjs": "^0.0.2",
-    "jiti": "^1.16.0",
-    "nodemon": "^2.0.20",
+    "@types/sharp": "^0.31.1",
+    "@vitest/coverage-c8": "^0.29.3",
+    "changelogen": "^0.5.1",
+    "eslint": "^8.36.0",
+    "eslint-config-unjs": "^0.1.0",
+    "jiti": "^1.18.2",
+    "nodemon": "^2.0.21",
     "serve-handler": "^6.1.5",
     "standard-version": "^9.5.0",
-    "typescript": "^4.9.4",
-    "unbuild": "^1.0.2",
-    "vitest": "^0.25.7"
+    "typescript": "^4.9.5",
+    "unbuild": "^1.1.2",
+    "vitest": "^0.29.3"
   },
-  "packageManager": "pnpm@7.18.2"
+  "packageManager": "pnpm@7.29.3"
 }
