@@ -23,7 +23,7 @@
     "lint": "eslint --ext .ts . && prettier -c src test",
     "lint:fix": "eslint --ext .ts . --fix && prettier -w src test",
     "prepack": "pnpm build",
-    "release": "pnpm test && standard-version && git push --follow-tags && pnpm publish",
+    "release": "pnpm test && changelogen --release --push && npm publish",
     "start": "node bin/ipx.js",
     "test": "pnpm lint && vitest run --coverage"
   },
