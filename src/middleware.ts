@@ -3,41 +3,44 @@ import { decode } from "ufo";
 import getEtag from "etag";
 import xss from "xss";
 import { IPX } from "./ipx";
-import { createError } from "./utils";
-
-export { isIPXError } from "./utils";
+import { createError, isIPXError } from "./utils";
 
 const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/g;
 
 export interface IPXHRequest {
-  url: string
-  headers?: Record<string, string>
-  options?: any
+  url: string;
+  headers?: Record<string, string>;
+  options?: any;
 }
 
 export interface IPXHResponse {
-  statusCode: number
-  statusMessage: string
-  headers: Record<string, string>
-  body: any
-  error?: any
+  statusCode: number;
+  statusMessage: string;
+  headers: Record<string, string>;
+  body: any;
+  error?: any;
 }
 
 export interface MiddlewareOptions {
-  fallthrough?: boolean
+  fallthrough?: boolean;
 }
 
-async function _handleRequest (request: IPXHRequest, ipx: IPX): Promise<IPXHResponse> {
+async function _handleRequest(
+  request: IPXHRequest,
+  ipx: IPX
+): Promise<IPXHResponse> {
   const res: IPXHResponse = {
     statusCode: 200,
     statusMessage: "",
     headers: {},
-    body: ""
+    body: "",
   };
 
   // Parse URL
-  const [modifiersString = "", ...idSegments] = request.url.slice(1 /* leading slash */).split("/");
+  const [modifiersString = "", ...idSegments] = request.url
+    .slice(1 /* leading slash */)
+    .split("/");
   const id = safeString(decode(idSegments.join("/")));
 
   // Validate
@@ -67,14 +70,19 @@ async function _handleRequest (request: IPXHRequest, ipx: IPX): Promise<IPXHResp
 
   // Caching headers
   if (source.mtime) {
-    if (request.headers["if-modified-since"] && new Date(request.headers["if-modified-since"]) >= source.mtime) {
+    if (
+      request.headers["if-modified-since"] &&
+      new Date(request.headers["if-modified-since"]) >= source.mtime
+    ) {
       res.statusCode = 304;
       return res;
     }
     res.headers["Last-Modified"] = source.mtime.toUTCString();
   }
   if (typeof source.maxAge === "number") {
-    res.headers["Cache-Control"] = `max-age=${+source.maxAge}, public, s-maxage=${+source.maxAge}`;
+    res.headers[
+      "Cache-Control"
+    ] = `max-age=${+source.maxAge}, public, s-maxage=${+source.maxAge}`;
   }
 
   // Get converted image
@@ -101,11 +109,16 @@ async function _handleRequest (request: IPXHRequest, ipx: IPX): Promise<IPXHResp
   return sanetizeReponse(res);
 }
 
-export function handleRequest (request: IPXHRequest, ipx: IPX): Promise<IPXHResponse> {
+export function handleRequest(
+  request: IPXHRequest,
+  ipx: IPX
+): Promise<IPXHResponse> {
   return _handleRequest(request, ipx).catch((error) => {
     const statusCode = Number.parseInt(error.statusCode) || 500;
     // eslint-disable-next-line unicorn/prefer-logical-operator-over-ternary
-    const statusMessage = error.statusMessage ? error.statusMessage : `IPX Error (${statusCode})`;
+    const statusMessage = error.statusMessage
+      ? error.statusMessage
+      : `IPX Error (${statusCode})`;
     if (process.env.NODE_ENV !== "production" && statusCode === 500) {
       console.error(error); // eslint-disable-line no-console
     }
@@ -114,14 +127,24 @@ export function handleRequest (request: IPXHRequest, ipx: IPX): Promise<IPXHResp
       statusMessage,
       body: "IPX Error: " + error,
       headers: {},
-      error
+      error,
     });
   });
 }
 
-export function createIPXMiddleware (ipx: IPX, options: Partial<MiddlewareOptions> = {}) {
-  return function IPXMiddleware (request: IncomingMessage, res: ServerResponse, next?: (err?: any) => void) {
-    handleRequest({ url: request.url, headers: request.headers as any }, ipx).then((_res) => {
+export function createIPXMiddleware(
+  ipx: IPX,
+  options: Partial<MiddlewareOptions> = {}
+) {
+  return function IPXMiddleware(
+    request: IncomingMessage,
+    res: ServerResponse,
+    next?: (err?: any) => void
+  ) {
+    return handleRequest(
+      { url: request.url, headers: request.headers as any },
+      ipx
+    ).then((_res) => {
       if (options.fallthrough && next && _res.error) {
         return next(_res.error);
       }
@@ -137,20 +160,21 @@ export function createIPXMiddleware (ipx: IPX, options: Partial<MiddlewareOption
 
 // --- Utils ---
 
-function sanetizeReponse (res: IPXHResponse) {
+function sanetizeReponse(res: IPXHResponse) {
   return <IPXHResponse>{
     statusCode: res.statusCode || 200,
     statusMessage: res.statusMessage ? safeString(res.statusMessage) : "OK",
     headers: safeStringObject(res.headers || {}),
-    body: typeof res.body === "string" ? xss(safeString(res.body)) : (res.body || "")
+    body:
+      typeof res.body === "string" ? xss(safeString(res.body)) : res.body || "",
   };
 }
 
-function safeString (input: string) {
+function safeString(input: string) {
   return JSON.stringify(input).replace(/^"|"$/g, "");
 }
 
-function safeStringObject (input: Record<string, string>) {
+function safeStringObject(input: Record<string, string>) {
   const dst = {};
   for (const key in input) {
     dst[key] = safeString(input[key]);

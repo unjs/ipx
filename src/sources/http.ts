@@ -5,9 +5,9 @@ import type { SourceFactory } from "../types";
 import { createError, cachedPromise } from "../utils";
 
 export interface HTTPSourceOptions {
-  fetchOptions?: RequestInit
-  maxAge?: number
-  domains?: string | string[]
+  fetchOptions?: RequestInit;
+  maxAge?: number;
+  domains?: string | string[];
 }
 
 const HTTP_RE = /^https?:\/\//;
@@ -18,12 +18,18 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
 
   let _domains = options.domains || [];
   if (typeof _domains === "string") {
-    _domains = _domains.split(",").map(s => s.trim());
+    _domains = _domains.split(",").map((s) => s.trim());
   }
-  const domains = new Set(_domains.map((d) => {
-    if (!HTTP_RE.test(d)) { d = "http://" + d; }
-    return new URL(d).hostname;
-  }).filter(Boolean));
+  const domains = new Set(
+    _domains
+      .map((d) => {
+        if (!HTTP_RE.test(d)) {
+          d = "http://" + d;
+        }
+        return new URL(d).hostname;
+      })
+      .filter(Boolean)
+  );
 
   return async (id: string, requestOptions) => {
     // Check hostname
@@ -38,11 +44,15 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
     const response = await fetch(id, {
       // @ts-ignore
       agent: id.startsWith("https") ? httpsAgent : httpAgent,
-      ...options.fetchOptions
+      ...options.fetchOptions,
     });
 
     if (!response.ok) {
-      throw createError("Fetch error", response.status || 500, response.statusText);
+      throw createError(
+        "Fetch error",
+        response.status || 500,
+        response.statusText
+      );
     }
 
     let maxAge = options.maxAge;
@@ -64,7 +74,9 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
       mtime,
       maxAge,
       // @ts-ignore
-      getData: cachedPromise(() => response.arrayBuffer().then(ab => Buffer.from(ab)))
+      getData: cachedPromise(() =>
+        response.arrayBuffer().then((ab) => Buffer.from(ab))
+      ),
     };
   };
 };

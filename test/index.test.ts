@@ -10,13 +10,18 @@ describe("ipx", () => {
     ipx = createIPX({
       // eslint-disable-next-line unicorn/prefer-module
       dir: resolve(__dirname, "assets"),
-      domains: ["localhost:3000"]
+      domains: ["localhost:3000"],
     });
   });
 
   it("remote file", async () => {
     // eslint-disable-next-line unicorn/prefer-module
-    const listener = await listen((request, res) => { serveHandler(request, res, { public: resolve(__dirname, "assets") }); }, { port: 0 });
+    const listener = await listen(
+      (request, res) => {
+        serveHandler(request, res, { public: resolve(__dirname, "assets") });
+      },
+      { port: 0 }
+    );
     const source = await ipx(`${listener.url}/bliss.jpg`);
     const { data, format } = await source.data();
     expect(data).toBeInstanceOf(Buffer);

@@ -1,10 +1,12 @@
 import destr from "destr";
 
-export function getEnv (name: string, defaultValue: any) {
+export function getEnv(name: string, defaultValue: any) {
   return destr(process.env[name]) ?? defaultValue;
 }
 
-export function cachedPromise<T extends (...arguments_: any[]) => any>(function_: T) {
+export function cachedPromise<T extends (...arguments_: any[]) => any>(
+  function_: T
+) {
   let p: ReturnType<T>;
   return (...arguments_: Parameters<T>) => {
     if (p) {
@@ -20,7 +22,11 @@ export class IPXError extends Error {
   statusMessage?: string;
 }
 
-export function createError (statusMessage: string, statusCode: number, trace?: string): IPXError {
+export function createError(
+  statusMessage: string,
+  statusCode: number,
+  trace?: string
+): IPXError {
   const error = new IPXError(statusMessage + (trace ? ` (${trace})` : ""));
   error.statusMessage = "IPX: " + statusMessage;
   error.statusCode = statusCode;

@@ -4,11 +4,13 @@ import { createError, cachedPromise } from "../utils";
 import type { SourceFactory } from "../types";
 
 export interface FilesystemSourceOptions {
-  dir: string
-  maxAge?: number
+  dir: string;
+  maxAge?: number;
 }
 
-export const createFilesystemSource: SourceFactory<FilesystemSourceOptions> = (options) => {
+export const createFilesystemSource: SourceFactory<FilesystemSourceOptions> = (
+  options
+) => {
   const rootDir = resolve(options.dir);
 
   return async (id: string) => {
@@ -21,7 +23,10 @@ export const createFilesystemSource: SourceFactory<FilesystemSourceOptions> = (o
     try {
       stats = await fsp.stat(fsPath);
     } catch (error_) {
-      const error = error_.code === "ENOENT" ? createError("File not found", 404, fsPath) : createError("File access error " + error_.code, 403, fsPath);
+      const error =
+        error_.code === "ENOENT"
+          ? createError("File not found", 404, fsPath)
+          : createError("File access error " + error_.code, 403, fsPath);
       throw error;
     }
     if (!stats.isFile()) {
@@ -31,14 +36,14 @@ export const createFilesystemSource: SourceFactory<FilesystemSourceOptions> = (o
     return {
       mtime: stats.mtime,
       maxAge: options.maxAge,
-      getData: cachedPromise(() => fsp.readFile(fsPath))
+      getData: cachedPromise(() => fsp.readFile(fsPath)),
     };
   };
 };
 
 const isWindows = process.platform === "win32";
 
-function isValidPath (fp: string) {
+function isValidPath(fp: string) {
   // Invalid windows path chars
   // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file?redirectedfrom=MSDN#Naming_Conventions
   if (isWindows) {
