@@ -1,37 +1,50 @@
-import destr from 'destr'
-import type { Handler } from '../types'
-import * as Handlers from './handlers'
+import destr from "destr";
+import type { Handler } from "../types";
+import * as Handlers from "./handlers";
 
-export function VArg (arg: string) {
-  return destr(arg)
+export function VArg(argument: string) {
+  return destr(argument);
 }
 
-export function parseArgs (args: string, mappers: Function[]) {
-  const vargs = args.split('_')
-  return mappers.map((v, i) => v(vargs[i]))
+export function parseArgs(
+  arguments_: string,
+  mappers: ((...args: any[]) => any)[]
+) {
+  const vargs = arguments_.split("_");
+  return mappers.map((v, index) => v(vargs[index]));
 }
 
-export function getHandler (key): Handler {
+export function getHandler(key): Handler {
   // eslint-disable-next-line import/namespace
-  return Handlers[key]
+  return Handlers[key];
 }
 
-export function applyHandler (ctx, pipe, handler: Handler, argsStr: string) {
-  const args = handler.args ? parseArgs(argsStr, handler.args) : []
-  return handler.apply(ctx, pipe, ...args)
+export function applyHandler(
+  context,
+  pipe,
+  handler: Handler,
+  argumentsString: string
+) {
+  const arguments_ = handler.args
+    ? parseArgs(argumentsString, handler.args)
+    : [];
+  return handler.apply(context, pipe, ...arguments_);
 }
 
-export function clampDimensionsPreservingAspectRatio (sourceDimensions, desiredDimensions) {
-  const desiredAspectRatio = desiredDimensions.width / desiredDimensions.height
-  let { width, height } = desiredDimensions
+export function clampDimensionsPreservingAspectRatio(
+  sourceDimensions,
+  desiredDimensions
+) {
+  const desiredAspectRatio = desiredDimensions.width / desiredDimensions.height;
+  let { width, height } = desiredDimensions;
   if (width > sourceDimensions.width) {
-    width = sourceDimensions.width
-    height = Math.round(sourceDimensions.width / desiredAspectRatio)
+    width = sourceDimensions.width;
+    height = Math.round(sourceDimensions.width / desiredAspectRatio);
   }
   if (height > sourceDimensions.height) {
-    height = sourceDimensions.height
-    width = Math.round(sourceDimensions.height * desiredAspectRatio)
+    height = sourceDimensions.height;
+    width = Math.round(sourceDimensions.height * desiredAspectRatio);
   }
 
-  return { width, height }
+  return { width, height };
 }

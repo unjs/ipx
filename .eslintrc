@@ -1,5 +1,9 @@
 {
-  "extends": [
-    "@nuxtjs/eslint-config-typescript"
-  ]
+  "extends": ["eslint-config-unjs"],
+  "rules": {
+    "unicorn/prefer-top-level-await": 0,
+    "unicorn/no-process-exit": 0,
+    "unicorn/prevent-abbreviations": 0,
+    "no-undef": 0
+  }
 }
