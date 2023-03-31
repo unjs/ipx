@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.0.0
+
+[compare changes](https://github.com/unjs/ipx/compare/v1.0.0-2...v1.0.0)
+
+
+### 🏡 Chore
+
+  - Update dependencies ([be8facd](https://github.com/unjs/ipx/commit/be8facd))
+  - Fix lint issue ([f4c0532](https://github.com/unjs/ipx/commit/f4c0532))
+  - Update release script ([eab8d46](https://github.com/unjs/ipx/commit/eab8d46))
+
+### 🎨 Styles
+
+  - Format with prettier ([9713626](https://github.com/unjs/ipx/commit/9713626))
+
+### ❤️  Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## [1.0.0-2](https://github.com/unjs/ipx/compare/v1.0.0-1...v1.0.0-2) (2022-11-24)
 
 ## [1.0.0-1](https://github.com/unjs/ipx/compare/v1.0.0-0...v1.0.0-1) (2022-11-23)
