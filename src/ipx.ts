@@ -8,74 +8,87 @@ import { cachedPromise, getEnv as getEnvironment, createError } from "./utils";
 
 // TODO: Move to image-meta
 export interface ImageMeta {
-  width: number
-  height: number
-  type: string
-  mimeType: string
+  width: number;
+  height: number;
+  type: string;
+  mimeType: string;
 }
 
 export interface IPXCTX {
-  sources: Record<string, Source>
+  sources: Record<string, Source>;
 }
 
-export type IPX = (id: string, modifiers?: Record<string, string>, requestOptions?: any) => {
-  src: () => Promise<SourceData>,
+export type IPX = (
+  id: string,
+  modifiers?: Record<string, string>,
+  requestOptions?: any
+) => {
+  src: () => Promise<SourceData>;
   data: () => Promise<{
-    data: Buffer,
-    meta: ImageMeta,
-    format: string
-  }>
-}
+    data: Buffer;
+    meta: ImageMeta;
+    format: string;
+  }>;
+};
 
 export interface IPXOptions {
-  dir?: false | string
-  maxAge?: number
-  domains?: false | string[]
-  alias: Record<string, string>,
-  fetchOptions: RequestInit,
+  dir?: false | string;
+  maxAge?: number;
+  domains?: false | string[];
+  alias: Record<string, string>;
+  fetchOptions: RequestInit;
   // TODO: Create types
   // https://github.com/lovell/sharp/blob/master/lib/constructor.js#L130
-  sharp?: { [key: string]: any }
+  sharp?: { [key: string]: any };
 }
 
 // https://sharp.pixelplumbing.com/#formats
 // (gif and svg are not supported as output)
-const SUPPORTED_FORMATS = new Set(["jpeg", "png", "webp", "avif", "tiff", "gif"]);
+const SUPPORTED_FORMATS = new Set([
+  "jpeg",
+  "png",
+  "webp",
+  "avif",
+  "tiff",
+  "gif",
+]);
 
-export function createIPX (userOptions: Partial<IPXOptions>): IPX {
+export function createIPX(userOptions: Partial<IPXOptions>): IPX {
   const defaults = {
     dir: getEnvironment("IPX_DIR", "."),
     domains: getEnvironment("IPX_DOMAINS", []),
     alias: getEnvironment("IPX_ALIAS", {}),
     fetchOptions: getEnvironment("IPX_FETCH_OPTIONS", {}),
     maxAge: getEnvironment("IPX_MAX_AGE", 300),
-    sharp: {}
+    sharp: {},
   };
   const options: IPXOptions = defu(userOptions, defaults) as IPXOptions;
 
   // Normalize alias to start with leading slash
-  options.alias = Object.fromEntries(Object.entries(options.alias).map(e => [withLeadingSlash(e[0]), e[1]]));
+  options.alias = Object.fromEntries(
+    Object.entries(options.alias).map((e) => [withLeadingSlash(e[0]), e[1]])
+  );
 
   const context: IPXCTX = {
-    sources: {}
+    sources: {},
   };
 
   // Init sources
   if (options.dir) {
     context.sources.filesystem = createFilesystemSource({
       dir: options.dir,
-      maxAge: options.maxAge
+      maxAge: options.maxAge,
     });
   }
   if (options.domains) {
     context.sources.http = createHTTPSource({
       domains: options.domains,
       fetchOptions: options.fetchOptions,
-      maxAge: options.maxAge
+      maxAge: options.maxAge,
     });
   }
 
-  return function ipx (id, modifiers = {}, requestOptions = {}) {
+  return function ipx(id, modifiers = {}, requestOptions = {}) {
     if (!id) {
       throw createError("resource id is missing", 400);
     }
@@ -116,25 +129,34 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
         return {
           data,
           format: "svg+xml",
-          meta
+          meta,
         };
       }
 
       // Experimental animated support
       // https://github.com/lovell/sharp/issues/2275
-      const animated = modifiers.animated !== undefined || modifiers.a !== undefined || format === "gif";
+      const animated =
+        modifiers.animated !== undefined ||
+        modifiers.a !== undefined ||
+        format === "gif";
 
-      const Sharp = await import("sharp").then(r => r.default || r) as typeof import("sharp");
+      const Sharp = (await import("sharp").then(
+        (r) => r.default || r
+      )) as typeof import("sharp");
       let sharp = Sharp(data, { animated });
       Object.assign((sharp as any).options, options.sharp);
 
       // Resolve modifiers to handlers and sort
       const handlers = Object.entries(modifiers)
-        .map(([name, arguments_]) => ({ handler: getHandler(name), name, args: arguments_ }))
-        .filter(h => h.handler)
+        .map(([name, arguments_]) => ({
+          handler: getHandler(name),
+          name,
+          args: arguments_,
+        }))
+        .filter((h) => h.handler)
         .sort((a, b) => {
-          const aKey = ((a.handler.order || a.name || "")).toString();
-          const bKey = ((b.handler.order || b.name || "")).toString();
+          const aKey = (a.handler.order || a.name || "").toString();
+          const bKey = (b.handler.order || b.name || "").toString();
           return aKey.localeCompare(bKey);
         });
 
@@ -148,7 +170,7 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       if (SUPPORTED_FORMATS.has(format)) {
         sharp = sharp.toFormat(format as any, {
           quality: handlerContext.quality,
-          progressive: format === "jpeg"
+          progressive: format === "jpeg",
         });
       }
 
@@ -158,13 +180,13 @@ export function createIPX (userOptions: Partial<IPXOptions>): IPX {
       return {
         data: newData,
         format,
-        meta
+        meta,
       };
     });
 
     return {
       src: getSource,
-      data: getData
+      data: getData,
     };
   };
 }

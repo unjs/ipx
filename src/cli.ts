@@ -4,11 +4,11 @@ import { listen } from "listhen";
 import { createIPX } from "./ipx";
 import { createIPXMiddleware } from "./middleware";
 
-async function main () {
+async function main() {
   const ipx = createIPX({});
   const middleware = createIPXMiddleware(ipx);
   await listen(middleware, {
-    clipboard: false
+    clipboard: false,
   });
 }
 

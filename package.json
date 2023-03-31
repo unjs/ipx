@@ -20,7 +20,8 @@
   "scripts": {
     "build": "unbuild",
     "dev": "nodemon",
-    "lint": "eslint --ext .ts .",
+    "lint": "eslint --ext .ts . && prettier -c src test",
+    "lint:fix": "eslint --ext .ts . --fix && prettier -w src test",
     "prepack": "pnpm build",
     "release": "pnpm test && standard-version && git push --follow-tags && pnpm publish",
     "start": "node bin/ipx.js",
