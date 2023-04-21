@@ -68,6 +68,7 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 | flop            | [Docs](https://sharp.pixelplumbing.com/api-operation#flop)      | `http://localhost:3000/flop/buffalo.png`                    |
 | sharpen         | [Docs](https://sharp.pixelplumbing.com/api-operation#sharpen)   | `http://localhost:3000/sharpen_30/buffalo.png`              |
 | median          | [Docs](https://sharp.pixelplumbing.com/api-operation#median)    | `http://localhost:3000/median_10/buffalo.png`               |
+| blur            | [Docs](https://sharp.pixelplumbing.com/api-operation#blur)      | `http://localhost:3000/blur_5/buffalo.png`                  |
 | gamma           | [Docs](https://sharp.pixelplumbing.com/api-operation#gamma)     | `http://localhost:3000/gamma_3/buffalo.png`                 |
 | negate          | [Docs](https://sharp.pixelplumbing.com/api-operation#negate)    | `http://localhost:3000/negate/buffalo.png`                  |
 | normalize       | [Docs](https://sharp.pixelplumbing.com/api-operation#normalize) | `http://localhost:3000/normalize/buffalo.png`               |
