@@ -37,14 +37,14 @@
     "node-fetch-native": "^1.1.0",
     "pathe": "^1.1.0",
     "sharp": "^0.32.1",
-    "ufo": "^1.1.1",
+    "ufo": "^1.1.2",
     "xss": "^1.0.14"
   },
   "devDependencies": {
     "@types/etag": "^1.8.1",
     "@types/is-valid-path": "^0.1.0",
     "@types/sharp": "^0.31.1",
-    "@vitest/coverage-c8": "^0.30.1",
+    "@vitest/coverage-c8": "^0.31.0",
     "changelogen": "^0.5.3",
     "eslint": "^8.39.0",
     "eslint-config-unjs": "^0.1.0",
@@ -54,7 +54,7 @@
     "serve-handler": "^6.1.5",
     "typescript": "^5.0.4",
     "unbuild": "^1.2.1",
-    "vitest": "^0.30.1"
+    "vitest": "^0.31.0"
   },
-  "packageManager": "pnpm@8.3.1"
+  "packageManager": "pnpm@8.4.0"
 }
