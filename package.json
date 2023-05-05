@@ -43,7 +43,6 @@
   "devDependencies": {
     "@types/etag": "^1.8.1",
     "@types/is-valid-path": "^0.1.0",
-    "@types/sharp": "^0.31.1",
     "@vitest/coverage-c8": "^0.31.0",
     "changelogen": "^0.5.3",
     "eslint": "^8.39.0",
