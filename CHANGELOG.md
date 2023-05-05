@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.1.0
+
+[compare changes](https://github.com/unjs/ipx/compare/v1.0.1...v1.1.0)
+
+
+### 🚀 Enhancements
+
+  - Support `sigma` parameter for `blur` operation ([#124](https://github.com/unjs/ipx/pull/124))
+
+### 🏡 Chore
+
+  - Update deps ([f38536d](https://github.com/unjs/ipx/commit/f38536d))
+
+### ❤️  Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+- Carlos Peña ([@carlo697](http://github.com/carlo697))
+
 ## v1.0.1
 
 [compare changes](https://github.com/unjs/ipx/compare/v1.0.0...v1.0.1)
