@@ -1,12 +1,11 @@
 import { defu } from "defu";
 import { imageMeta } from "image-meta";
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
+import type { Storage } from "unstorage";
 import type { Source, SourceData } from "./types";
 import { createFilesystemSource, createHTTPSource } from "./sources";
 import { applyHandler, getHandler } from "./handlers";
 import { cachedPromise, getEnv as getEnvironment, createError } from "./utils";
-
-import { tmpdir } from 'os'
 
 // TODO: Move to image-meta
 export interface ImageMeta {
@@ -39,7 +38,7 @@ export interface IPXOptions {
   domains?: false | string[];
   alias: Record<string, string>;
   fetchOptions: RequestInit;
-  cache?: boolean | string;
+  cache?: boolean;
   cacheMetadataStore?: Storage;
   // TODO: Create types
   // https://github.com/lovell/sharp/blob/master/lib/constructor.js#L130
@@ -64,14 +63,10 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
     alias: getEnvironment("IPX_ALIAS", {}),
     fetchOptions: getEnvironment("IPX_FETCH_OPTIONS", {}),
     maxAge: getEnvironment("IPX_MAX_AGE", 300),
-    cache: getEnvironment("IPX_CACHE", 300),
+    cache: getEnvironment("IPX_CACHE", false),
     sharp: {},
   };
   const options: IPXOptions = defu(userOptions, defaults) as IPXOptions;
-
-  if (options.cache === true) {
-    options.cache = tmpdir()
-  }
 
   // Normalize alias to start with leading slash
   options.alias = Object.fromEntries(

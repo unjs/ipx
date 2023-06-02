@@ -1,18 +1,25 @@
 import http from "node:http";
 import https from "node:https";
 import { fetch } from "node-fetch-native";
-import type { SourceFactory } from "../types";
-import { createError, cachedPromise } from "../utils";
 
-import fsDriver from 'unstorage/drivers/fs'
-import murmurhash from 'murmurhash'
-import { join } from 'path'
-import { existsSync, promises as fsp } from 'fs'
+import { createStorage } from "unstorage";
+import type { Storage } from "unstorage";
+import { hash } from "ohash";
+import { createError, cachedPromise } from "../utils";
+import type { SourceFactory } from "../types";
 
 export interface HTTPSourceOptions {
   fetchOptions?: RequestInit;
   maxAge?: number;
   domains?: string | string[];
+  cache: boolean;
+  cacheMetadataStore: Storage;
+}
+
+interface CacheMetadata {
+  mtime?: Date;
+  maxAge?: number;
+  etag?: string;
 }
 
 const HTTP_RE = /^https?:\/\//;
@@ -22,9 +29,7 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
   const httpAgent = new http.Agent({ keepAlive: true });
 
   if (options.cache && !options.cacheMetadataStore) {
-    options.cacheMetadataStore = createStorage({
-      driver: fsDriver({ base: join(options.cache, 'metadata') })
-    })
+    options.cacheMetadataStore = createStorage();
   }
 
   let _domains = options.domains || [];
@@ -52,30 +57,43 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
       throw createError("Forbidden host", 403, hostname);
     }
 
-    if (options.cache) {
-      let response
-      const metadata = await options.cacheMetadataStore.getItem(id)
-      if (metadata) {
-        const { filename, etag, lastModified } = metadata
-        if (existsSync(filename)) {
-          const headers = new fetch.Headers()
+    const hashKey = hash(id);
 
-          if (etag) {
-            headers.set('If-None-Match', etag)
-          } else {
-            headers.set('If-Modified-Since', lastModified)
-          }
-          response = await fetch(id, {
-            agent: id.startsWith('https') ? httpsAgent : httpAgent,
-            headers
-          })
-          if (response.status === 304) {
-            return {
-              mtime: new Date(lastModified),
-              maxAge: options.maxAge || 300,
-              getData: cachedPromise(() => fsp.readFile(filename))
-            }
-          }
+    if (options.cache) {
+      let response;
+      const isCacheExists = await options.cacheMetadataStore.hasItem(hashKey);
+
+      if (isCacheExists) {
+        const metadata: CacheMetadata =
+          await options.cacheMetadataStore.getMeta(hashKey);
+
+        const { etag, mtime } = metadata;
+
+        const headers = new Headers();
+
+        if (etag) {
+          headers.set("If-None-Match", etag);
+        } else {
+          headers.set("If-Modified-Since", mtime.toUTCString());
+        }
+
+        response = await fetch(id, {
+          // @ts-ignore
+          agent: id.startsWith("https") ? httpsAgent : httpAgent,
+          ...options.fetchOptions,
+          headers,
+        });
+
+        if (response.status === 304) {
+          const cache = (await options.cacheMetadataStore.getItem(hashKey)) as
+            | Uint8Array
+            | undefined;
+
+          return {
+            mtime,
+            maxAge: options.maxAge || 300,
+            getData: cachedPromise(() => Promise.resolve(Buffer.from(cache))),
+          };
         }
       }
     }
@@ -103,31 +121,34 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
       }
     }
 
-    let mtime
-    const _lastModified = response.headers.get('last-modified')
-    const _etag = response.headers.get('etag')
+    let mtime;
+    const _lastModified = response.headers.get("last-modified");
+    const _etag = response.headers.get("etag");
 
     if (_lastModified) {
       mtime = new Date(_lastModified);
     }
 
-    let buffer
+    const responseArrayBuffer = await response.arrayBuffer();
 
     if (options.cache) {
-      const filename = join(options.cache, 'data', `${murmurhash(id)}`)
-      await fsp.mkdir(join(options.cache, 'data'), { recursive: true })
-      buffer = await response.buffer()
-      await fsp.writeFile(filename, buffer)
-      await options.cacheMetadataStore.setItem(id, JSON.stringify({ filename, etag: _etag, lastModified: _lastModified }))
+      await options.cacheMetadataStore.setItemRaw(
+        hashKey,
+        new Uint8Array(responseArrayBuffer)
+      );
+      await options.cacheMetadataStore.setMeta(hashKey, {
+        mtime,
+        maxAge,
+        etag: _etag,
+      });
     }
 
     return {
       mtime,
       maxAge,
-      // getData: cachedPromise(() => buffer || response.buffer())
       // @ts-ignore
       getData: cachedPromise(() =>
-        response.arrayBuffer().then((ab) => Buffer.from(ab))
+        Promise.resolve(Buffer.from(responseArrayBuffer))
       ),
     };
   };

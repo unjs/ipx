@@ -35,9 +35,11 @@
     "image-meta": "^0.1.1",
     "listhen": "^1.0.4",
     "node-fetch-native": "^1.1.0",
+    "ohash": "^1.1.2",
     "pathe": "^1.1.0",
     "sharp": "^0.32.1",
     "ufo": "^1.1.2",
+    "unstorage": "^1.6.1",
     "xss": "^1.0.14"
   },
   "devDependencies": {
