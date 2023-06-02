@@ -2,7 +2,6 @@ import http from "node:http";
 import https from "node:https";
 import { fetch } from "node-fetch-native";
 
-import { createStorage } from "unstorage";
 import type { Storage } from "unstorage";
 import { hash } from "ohash";
 import { createError, cachedPromise } from "../utils";
@@ -27,10 +26,6 @@ const HTTP_RE = /^https?:\/\//;
 export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
   const httpsAgent = new https.Agent({ keepAlive: true });
   const httpAgent = new http.Agent({ keepAlive: true });
-
-  if (options.cache && !options.cacheMetadataStore) {
-    options.cacheMetadataStore = createStorage();
-  }
 
   let _domains = options.domains || [];
   if (typeof _domains === "string") {

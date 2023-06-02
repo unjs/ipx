@@ -2,6 +2,7 @@ import { defu } from "defu";
 import { imageMeta } from "image-meta";
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import type { Storage } from "unstorage";
+import { createStorage } from "unstorage";
 import type { Source, SourceData } from "./types";
 import { createFilesystemSource, createHTTPSource } from "./sources";
 import { applyHandler, getHandler } from "./handlers";
@@ -76,6 +77,10 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
   const context: IPXCTX = {
     sources: {},
   };
+
+  if (options.cache && !options.cacheMetadataStore) {
+    options.cacheMetadataStore = createStorage();
+  }
 
   // Init sources
   if (options.dir) {
