@@ -73,7 +73,7 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
 
         if (etag) {
           headers.set("If-None-Match", etag);
-        } else {
+        } else if (mtime) {
           headers.set("If-Modified-Since", mtime.toUTCString());
         }
 
