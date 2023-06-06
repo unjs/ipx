@@ -1,4 +1,5 @@
 import { ServerResponse, IncomingMessage } from "node:http";
+import { negotiate } from "@fastify/accept-negotiator";
 import { decode } from "ufo";
 import getEtag from "etag";
 import xss from "xss";
@@ -54,6 +55,22 @@ async function _handleRequest(
     for (const p of modifiersString.split(MODIFIER_SEP)) {
       const [key, value = ""] = p.split(MODIFIER_VAL_SEP);
       modifiers[safeString(key)] = safeString(decode(value));
+    }
+  }
+
+  // Auto format
+  const mFormat = modifiers.f || modifiers.format;
+  if (mFormat === "auto") {
+    const acceptHeader = request.headers?.accept || "";
+    const autoFormat = autoDetectFormat(
+      acceptHeader,
+      !!(modifiers.a || modifiers.animated)
+    );
+    delete modifiers.f;
+    delete modifiers.format;
+    if (autoFormat) {
+      modifiers.format = autoFormat;
+      res.headers.vary = "Accept";
     }
   }
 
@@ -143,6 +160,23 @@ export function createIPXMiddleware(ipx: IPX) {
 }
 
 // --- Utils ---
+
+function autoDetectFormat(acceptHeader: string, animated: boolean) {
+  if (animated) {
+    const acceptMime = negotiate(acceptHeader, ["image/webp", "image/gif"]);
+    return acceptMime?.split("/")[1] || "gif";
+  }
+  const acceptMime = negotiate(acceptHeader, [
+    "image/avif",
+    "image/webp",
+    "image/jpeg",
+    "image/png",
+    "image/tiff",
+    "image/heif",
+    "image/gif",
+  ]);
+  return acceptMime?.split("/")[1] || "jpeg";
+}
 
 function sanetizeReponse(res: IPXHResponse) {
   return <IPXHResponse>{

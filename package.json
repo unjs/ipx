@@ -28,6 +28,7 @@
     "test": "pnpm lint && vitest run --coverage"
   },
   "dependencies": {
+    "@fastify/accept-negotiator": "^1.1.0",
     "consola": "^3.1.0",
     "defu": "^6.1.2",
     "destr": "^1.2.2",

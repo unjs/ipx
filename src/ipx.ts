@@ -45,6 +45,7 @@ const SUPPORTED_FORMATS = new Set([
   "webp",
   "avif",
   "tiff",
+  "heif",
   "gif",
 ]);
 
@@ -114,11 +115,17 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
       const meta = imageMeta(data) as ImageMeta;
 
       // Determine format
-      const mFormat = modifiers.f || modifiers.format;
-      let format = mFormat || meta.type;
-      if (format === "jpg") {
-        format = "jpeg";
+      let mFormat = modifiers.f || modifiers.format;
+      if (mFormat === "jpg") {
+        mFormat = "jpeg";
       }
+      const format =
+        mFormat && SUPPORTED_FORMATS.has(mFormat)
+          ? mFormat
+          : SUPPORTED_FORMATS.has(meta.type) // eslint-disable-line unicorn/no-nested-ternary
+          ? meta.type
+          : "jpeg";
+
       // Use original svg if format not specified
       if (meta.type === "svg" && !mFormat) {
         return {
