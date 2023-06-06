@@ -115,13 +115,17 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
       const meta = imageMeta(data) as ImageMeta;
 
       // Determine format
-      const mFormat = modifiers.f || modifiers.format;
-      let format = ["jpg", ...SUPPORTED_FORMATS].includes(mFormat)
-        ? mFormat
-        : meta.type;
-      if (format === "jpg") {
-        format = "jpeg";
+      let mFormat = modifiers.f || modifiers.format;
+      if (mFormat === "jpg") {
+        mFormat = "jpeg";
       }
+      let format =
+        mFormat && SUPPORTED_FORMATS.has(mFormat)
+          ? mFormat
+          : SUPPORTED_FORMATS.has(meta.type)
+          ? meta.type
+          : "jpeg";
+
       // Use original svg if format not specified
       if (meta.type === "svg" && !mFormat) {
         return {
