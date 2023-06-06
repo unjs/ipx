@@ -7,7 +7,7 @@ import { IPX } from "./ipx";
 import { createError } from "./utils";
 
 const MODIFIER_SEP = /[&,]/g;
-const MODIFIER_VAL_SEP = /[:=_]/g;
+const MODIFIER_VAL_SEP = /[:=_]/;
 
 export interface IPXHRequest {
   url: string;
@@ -58,8 +58,10 @@ async function _handleRequest(
   // Read modifiers from first segment
   if (modifiersString !== "_") {
     for (const p of modifiersString.split(MODIFIER_SEP)) {
-      const [key, value = ""] = p.split(MODIFIER_VAL_SEP);
-      modifiers[safeString(key)] = safeString(decode(value));
+      const [key, ...values] = p.split(MODIFIER_VAL_SEP);
+      modifiers[safeString(key)] = values
+        .map((v) => safeString(decode(v)))
+        .join("_");
     }
   }
 
