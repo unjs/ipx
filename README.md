@@ -101,9 +101,6 @@ Config can be customized using `IPX_*` environment variables.
 
   - Default: `{}`
 
-- `IPX_FORMAT_AUTO_ENABLED`
-  - Default: `false`
-
 ## License
 
 MIT
