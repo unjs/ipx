@@ -119,7 +119,7 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
       if (mFormat === "jpg") {
         mFormat = "jpeg";
       }
-      let format =
+      const format =
         mFormat && SUPPORTED_FORMATS.has(mFormat)
           ? mFormat
           : SUPPORTED_FORMATS.has(meta.type)
