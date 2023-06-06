@@ -33,7 +33,7 @@ export function createError(
   return error;
 }
 
-export function isIPXError (val): val is IPXError {
+export function isIPXError(val: any): val is IPXError {
   if (!val || typeof val !== "object") {
     return false;
   }
@@ -42,6 +42,10 @@ export function isIPXError (val): val is IPXError {
     return true;
   }
 
-  return typeof val.statusMessage === "string" && val.statusMessage.startsWith("IPX: ") &&
-    typeof val.statusCode === "number" && val instanceof Error;
+  return (
+    typeof val.statusMessage === "string" &&
+    val.statusMessage.startsWith("IPX: ") &&
+    typeof val.statusCode === "number" &&
+    val instanceof Error
+  );
 }
