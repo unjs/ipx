@@ -15,9 +15,9 @@ describe("ipx", () => {
   });
 
   it("remote file", async () => {
-    // eslint-disable-next-line unicorn/prefer-module
     const listener = await listen(
       (request, res) => {
+        // eslint-disable-next-line unicorn/prefer-module
         serveHandler(request, res, { public: resolve(__dirname, "assets") });
       },
       { port: 0 }

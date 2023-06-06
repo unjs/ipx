@@ -186,8 +186,8 @@ export const median: Handler = {
 // https://sharp.pixelplumbing.com/api-operation#blur
 export const blur: Handler = {
   args: [VArgument, VArgument, VArgument],
-  apply: (_context, pipe) => {
-    return pipe.blur();
+  apply: (_context, pipe, sigma) => {
+    return pipe.blur(sigma);
   },
 };
 
