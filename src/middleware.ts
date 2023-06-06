@@ -157,8 +157,8 @@ function sanetizeReponse(res: IPXHResponse) {
 function safeString(input: string) {
   return JSON.stringify(input)
     .replace(/^"|"$/g, "")
-    .replaceAll("\\\\", "\\")
-    .replaceAll('\\"', '"');
+    .replace(/\\+/g, "\\")
+    .replace(/\\"/g, '"');
 }
 
 function safeStringObject(input: Record<string, string>) {
