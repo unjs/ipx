@@ -1,4 +1,4 @@
-import type { Sharp, Color, Metadata } from "sharp";
+import type { Sharp, Color } from "sharp";
 
 // TODO: Move to image-meta
 export interface ImageMeta {

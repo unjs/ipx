@@ -1,11 +1,11 @@
 import { defu } from "defu";
 import { imageMeta } from "image-meta";
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
+import type { SharpOptions } from "sharp";
 import type { ImageMeta, Source, SourceData } from "./types";
 import { createFilesystemSource, createHTTPSource } from "./sources";
 import { HandlerName, applyHandler, getHandler } from "./handlers";
 import { cachedPromise, getEnv as getEnvironment, createError } from "./utils";
-import type { SharpOptions } from "sharp";
 
 export interface IPXCTX {
   sources: Record<string, Source>;

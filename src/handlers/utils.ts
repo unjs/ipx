@@ -1,7 +1,7 @@
 import destr from "destr";
+import type { Sharp } from "sharp";
 import type { Handler, HandlerContext, ImageMeta } from "../types";
 import * as Handlers from "./handlers";
-import type { Sharp } from "sharp";
 
 export function VArg(argument: string) {
   return destr(argument);
