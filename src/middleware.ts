@@ -20,6 +20,11 @@ export interface IPXHResponse {
   statusMessage: string;
   headers: Record<string, string>;
   body: any;
+  error?: any;
+}
+
+export interface MiddlewareOptions {
+  fallthrough?: boolean;
 }
 
 async function _handleRequest(
@@ -139,16 +144,27 @@ export function handleRequest(
       statusMessage,
       body: "IPX Error: " + error,
       headers: {},
+      error,
     });
   });
 }
 
-export function createIPXMiddleware(ipx: IPX) {
-  return function IPXMiddleware(request: IncomingMessage, res: ServerResponse) {
+export function createIPXMiddleware(
+  ipx: IPX,
+  options: Partial<MiddlewareOptions> = {}
+) {
+  return function IPXMiddleware(
+    request: IncomingMessage,
+    res: ServerResponse,
+    next?: (err?: any) => void
+  ) {
     return handleRequest(
       { url: request.url || "/", headers: request.headers as any },
       ipx
     ).then((_res) => {
+      if (options.fallthrough && next && _res.error) {
+        return next(_res.error);
+      }
       res.statusCode = _res.statusCode;
       res.statusMessage = _res.statusMessage;
       for (const name in _res.headers) {

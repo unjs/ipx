@@ -32,3 +32,20 @@ export function createError(
   error.statusCode = statusCode;
   return error;
 }
+
+export function isIPXError(val: any): val is IPXError {
+  if (!val || typeof val !== "object") {
+    return false;
+  }
+
+  if (val instanceof IPXError) {
+    return true;
+  }
+
+  return (
+    typeof val.statusMessage === "string" &&
+    val.statusMessage.startsWith("IPX: ") &&
+    typeof val.statusCode === "number" &&
+    val instanceof Error
+  );
+}
