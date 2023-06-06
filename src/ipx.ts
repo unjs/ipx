@@ -122,7 +122,7 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
       const format =
         mFormat && SUPPORTED_FORMATS.has(mFormat)
           ? mFormat
-          : SUPPORTED_FORMATS.has(meta.type)
+          : SUPPORTED_FORMATS.has(meta.type) // eslint-disable-line unicorn/no-nested-ternary
           ? meta.type
           : "jpeg";
 
