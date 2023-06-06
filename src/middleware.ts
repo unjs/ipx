@@ -92,7 +92,7 @@ async function _handleRequest(
   // Caching headers
   if (source.mtime) {
     if (
-      request.headers["if-modified-since"] &&
+      request.headers?.["if-modified-since"] &&
       new Date(request.headers["if-modified-since"]) >= source.mtime
     ) {
       res.statusCode = 304;
@@ -112,7 +112,7 @@ async function _handleRequest(
   // ETag
   const etag = getEtag(data);
   res.headers.ETag = etag;
-  if (etag && request.headers["if-none-match"] === etag) {
+  if (etag && request.headers?.["if-none-match"] === etag) {
     res.statusCode = 304;
     return res;
   }
@@ -155,7 +155,7 @@ export function handleRequest(
 export function createIPXMiddleware(ipx: IPX) {
   return function IPXMiddleware(request: IncomingMessage, res: ServerResponse) {
     return handleRequest(
-      { url: request.url, headers: request.headers as any },
+      { url: request.url || "/", headers: request.headers as any },
       ipx
     ).then((_res) => {
       res.statusCode = _res.statusCode;
@@ -181,11 +181,14 @@ function sanetizeReponse(res: IPXHResponse) {
 }
 
 function safeString(input: string) {
-  return JSON.stringify(input).replace(/^"|"$/g, "");
+  return JSON.stringify(input)
+    .replace(/^"|"$/g, "")
+    .replace(/\\+/g, "\\")
+    .replace(/\\"/g, '"');
 }
 
 function safeStringObject(input: Record<string, string>) {
-  const dst = {};
+  const dst: typeof input = {};
   for (const key in input) {
     dst[key] = safeString(input[key]);
   }
