@@ -1,8 +1,7 @@
-# IPX
+# 🖼️ IPX
 
-[![NPM Vernion](https://flat.badgen.net/npm/v/ipx)](https://www.npmjs.com/package/ipx)
-[![NPM Downloads](https://flat.badgen.net/npm/dt/ipx)](https://www.npmjs.com/package/ipx)
-[![Package Size](https://flat.badgen.net/packagephobia/install/ipx)](https://packagephobia.now.sh/result?p=ipx)
+[![npm version][npm-version-src]][npm-version-href]
+[![npm downloads][npm-downloads-src]][npm-downloads-href]
 
 High performance, secure and easy to use image proxy based on [sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/libvips/libvips).
 
@@ -101,4 +100,19 @@ Config can be customized using `IPX_*` environment variables.
 
 ## License
 
-MIT
+[MIT](./LICENSE)
+
+<!-- Badges -->
+
+[npm-version-src]: https://img.shields.io/npm/v/ipx?style=flat&colorA=18181B&colorB=F0DB4F
+[npm-version-href]: https://npmjs.com/package/ipx
+[npm-downloads-src]: https://img.shields.io/npm/dm/ipx?style=flat&colorA=18181B&colorB=F0DB4F
+[npm-downloads-href]: https://npmjs.com/package/ipx
+[github-actions-src]: https://img.shields.io/github/workflow/status/unjs/ipx/ci/main?style=flat&colorA=18181B&colorB=F0DB4F
+[github-actions-href]: https://github.com/unjs/ipx/actions?query=workflow%3Aci
+[codecov-src]: https://img.shields.io/codecov/c/gh/unjs/ipx/main?style=flat&colorA=18181B&colorB=F0DB4F
+[codecov-href]: https://codecov.io/gh/unjs/ipx
+[bundle-src]: https://img.shields.io/bundlephobia/minzip/ipx?style=flat&colorA=18181B&colorB=F0DB4F
+[bundle-href]: https://bundlephobia.com/result?p=ipx
+[license-src]: https://img.shields.io/github/license/unjs/ipx.svg?style=flat&colorA=18181B&colorB=F0DB4F
+[license-href]: https://github.com/unjs/ipx/blob/main/LICENSE
