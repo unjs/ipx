@@ -58,29 +58,20 @@ async function _handleRequest(
     }
   }
 
-  // Experimental support, automatic format selection
-  const enabledAuto = getEnv("IPX_FORMAT_AUTO_ENABLED", false);
+  // Auto format
   const mFormat = modifiers.f || modifiers.format;
-  if (enabledAuto && mFormat === "auto") {
-    if (modifiers.animated !== undefined || modifiers.a !== undefined) {
-      const acceptMime = negotiate(req.headers.accept, [
-        "image/webp",
-        "image/gif",
-      ]);
-      modifiers.f = acceptMime?.split("/")[1] ?? "gif";
-    } else {
-      const acceptMime = negotiate(req.headers.accept, [
-        "image/avif",
-        "image/webp",
-        "image/jpeg",
-        "image/png",
-        "image/tiff",
-        "image/heif",
-        "image/gif",
-      ]);
-      modifiers.f = acceptMime?.split("/")[1] ?? "jpeg";
+  if (mFormat === "auto") {
+    const acceptHeader = request.headers?.accept || "";
+    const autoFormat = autoDetectFormat(
+      acceptHeader,
+      !!(modifiers.a || modifiers.animated)
+    );
+    delete modifiers.f;
+    delete modifiers.format;
+    if (autoFormat) {
+      modifiers.format = autoFormat;
+      res.headers.vary = "Accept";
     }
-    res.headers.vary = "Accept";
   }
 
   // Create request
@@ -169,6 +160,23 @@ export function createIPXMiddleware(ipx: IPX) {
 }
 
 // --- Utils ---
+
+function autoDetectFormat(acceptHeader: string, animated: boolean) {
+  if (animated) {
+    const acceptMime = negotiate(acceptHeader, ["image/webp", "image/gif"]);
+    return acceptMime?.split("/")[1] || "gif";
+  }
+  const acceptMime = negotiate(acceptHeader, [
+    "image/avif",
+    "image/webp",
+    "image/jpeg",
+    "image/png",
+    "image/tiff",
+    "image/heif",
+    "image/gif",
+  ]);
+  return acceptMime?.split("/")[1] || "jpeg";
+}
 
 function sanetizeReponse(res: IPXHResponse) {
   return <IPXHResponse>{
