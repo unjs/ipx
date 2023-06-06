@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.2.0
+
+[compare changes](https://github.com/unjs/ipx/compare/v1.1.0...v1.2.0)
+
+
+### 🚀 Enhancements
+
+  - Support experimental `auto` format ([#85](https://github.com/unjs/ipx/pull/85))
+  - **middleware:** Add fallthrough option to handle error with next callback ([#116](https://github.com/unjs/ipx/pull/116))
+  - Support working `extract` modifier` ([#114](https://github.com/unjs/ipx/pull/114))
+
+### 🩹 Fixes
+
+  - **middleware:** Sanitize double backslashes and quotes ([#115](https://github.com/unjs/ipx/pull/115))
+  - **middleware:** Handle multple argument modifiers ([e4ef303](https://github.com/unjs/ipx/commit/e4ef303))
+
+### 💅 Refactors
+
+  - Enable strict typechecks ([#133](https://github.com/unjs/ipx/pull/133))
+
+### 🏡 Chore
+
+  - Update dependencies ([1499333](https://github.com/unjs/ipx/commit/1499333))
+  - Simplify readme ([5391abb](https://github.com/unjs/ipx/commit/5391abb))
+  - Update badges ([3832a81](https://github.com/unjs/ipx/commit/3832a81))
+  - Update vitest ([e934194](https://github.com/unjs/ipx/commit/e934194))
+
+### ❤️  Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+- Haruaki OTAKE <aaharu@hotmail.com>
+
 ## v1.1.0
 
 [compare changes](https://github.com/unjs/ipx/compare/v1.0.1...v1.1.0)
