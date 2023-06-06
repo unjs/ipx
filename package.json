@@ -46,7 +46,7 @@
     "@vitest/coverage-c8": "^0.31.4",
     "changelogen": "^0.5.3",
     "eslint": "^8.42.0",
-    "eslint-config-unjs": "^0.2.1",
+    "eslint-config-unjs": "^0.2.0",
     "jiti": "^1.18.2",
     "nodemon": "^2.0.22",
     "prettier": "^2.8.8",
