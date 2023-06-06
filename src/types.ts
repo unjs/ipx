@@ -1,3 +1,13 @@
+import type { Sharp, Color } from "sharp";
+
+// TODO: Move to image-meta
+export interface ImageMeta {
+  width: number;
+  height: number;
+  type: string;
+  mimeType: string;
+}
+
 export interface SourceData {
   mtime?: Date;
   maxAge?: number;
@@ -11,8 +21,17 @@ export type Source = (
 
 export type SourceFactory<T = Record<string, any>> = (options: T) => Source;
 
+export interface HandlerContext {
+  quality?: number;
+  fit?: "contain" | "cover" | "fill" | "inside" | "outside";
+  position?: number | string;
+  background?: Color;
+  enlarge?: boolean;
+  meta: ImageMeta;
+}
+
 export interface Handler {
-  args: ((...args: any[]) => any)[];
+  args: ((argument: string) => any)[];
   order?: number;
-  apply: (context: any, pipe: any, ...arguments_: any[]) => any;
+  apply: (context: HandlerContext, pipe: Sharp, ...arguments_: any[]) => any;
 }

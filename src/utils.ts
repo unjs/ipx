@@ -1,6 +1,6 @@
 import destr from "destr";
 
-export function getEnv(name: string, defaultValue: any) {
+export function getEnv<T>(name: string, defaultValue: T): T {
   return destr(process.env[name]) ?? defaultValue;
 }
 

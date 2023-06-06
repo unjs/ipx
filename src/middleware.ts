@@ -1,4 +1,5 @@
 import { ServerResponse, IncomingMessage } from "node:http";
+import { negotiate } from "@fastify/accept-negotiator";
 import { decode } from "ufo";
 import getEtag from "etag";
 import xss from "xss";
@@ -62,6 +63,22 @@ async function _handleRequest(
     }
   }
 
+  // Auto format
+  const mFormat = modifiers.f || modifiers.format;
+  if (mFormat === "auto") {
+    const acceptHeader = request.headers?.accept || "";
+    const autoFormat = autoDetectFormat(
+      acceptHeader,
+      !!(modifiers.a || modifiers.animated)
+    );
+    delete modifiers.f;
+    delete modifiers.format;
+    if (autoFormat) {
+      modifiers.format = autoFormat;
+      res.headers.vary = "Accept";
+    }
+  }
+
   // Create request
   const img = ipx(id, modifiers, request.options);
 
@@ -71,7 +88,7 @@ async function _handleRequest(
   // Caching headers
   if (source.mtime) {
     if (
-      request.headers["if-modified-since"] &&
+      request.headers?.["if-modified-since"] &&
       new Date(request.headers["if-modified-since"]) >= source.mtime
     ) {
       res.statusCode = 304;
@@ -91,7 +108,7 @@ async function _handleRequest(
   // ETag
   const etag = getEtag(data);
   res.headers.ETag = etag;
-  if (etag && request.headers["if-none-match"] === etag) {
+  if (etag && request.headers?.["if-none-match"] === etag) {
     res.statusCode = 304;
     return res;
   }
@@ -142,7 +159,7 @@ export function createIPXMiddleware(
     next?: (err?: any) => void
   ) {
     return handleRequest(
-      { url: request.url, headers: request.headers as any },
+      { url: request.url || "/", headers: request.headers as any },
       ipx
     ).then((_res) => {
       if (options.fallthrough && next && _res.error) {
@@ -160,6 +177,23 @@ export function createIPXMiddleware(
 
 // --- Utils ---
 
+function autoDetectFormat(acceptHeader: string, animated: boolean) {
+  if (animated) {
+    const acceptMime = negotiate(acceptHeader, ["image/webp", "image/gif"]);
+    return acceptMime?.split("/")[1] || "gif";
+  }
+  const acceptMime = negotiate(acceptHeader, [
+    "image/avif",
+    "image/webp",
+    "image/jpeg",
+    "image/png",
+    "image/tiff",
+    "image/heif",
+    "image/gif",
+  ]);
+  return acceptMime?.split("/")[1] || "jpeg";
+}
+
 function sanetizeReponse(res: IPXHResponse) {
   return <IPXHResponse>{
     statusCode: res.statusCode || 200,
@@ -171,11 +205,14 @@ function sanetizeReponse(res: IPXHResponse) {
 }
 
 function safeString(input: string) {
-  return JSON.stringify(input).replace(/^"|"$/g, "");
+  return JSON.stringify(input)
+    .replace(/^"|"$/g, "")
+    .replace(/\\+/g, "\\")
+    .replace(/\\"/g, '"');
 }
 
 function safeStringObject(input: Record<string, string>) {
-  const dst = {};
+  const dst: typeof input = {};
   for (const key in input) {
     dst[key] = safeString(input[key]);
   }

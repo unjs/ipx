@@ -1,5 +1,6 @@
 import destr from "destr";
-import type { Handler } from "../types";
+import type { Sharp } from "sharp";
+import type { Handler, HandlerContext, ImageMeta } from "../types";
 import * as Handlers from "./handlers";
 
 export function VArg(argument: string) {
@@ -14,14 +15,16 @@ export function parseArgs(
   return mappers.map((v, index) => v(vargs[index]));
 }
 
-export function getHandler(key): Handler {
+export type HandlerName = keyof typeof Handlers;
+
+export function getHandler(key: HandlerName): Handler {
   // eslint-disable-next-line import/namespace
   return Handlers[key];
 }
 
 export function applyHandler(
-  context,
-  pipe,
+  context: HandlerContext,
+  pipe: Sharp,
   handler: Handler,
   argumentsString: string
 ) {
@@ -32,8 +35,8 @@ export function applyHandler(
 }
 
 export function clampDimensionsPreservingAspectRatio(
-  sourceDimensions,
-  desiredDimensions
+  sourceDimensions: ImageMeta,
+  desiredDimensions: { width: number; height: number }
 ) {
   const desiredAspectRatio = desiredDimensions.width / desiredDimensions.height;
   let { width, height } = desiredDimensions;
