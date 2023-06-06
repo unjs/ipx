@@ -4,7 +4,7 @@ import { decode } from "ufo";
 import getEtag from "etag";
 import xss from "xss";
 import { IPX } from "./ipx";
-import { createError, isIPXError } from "./utils";
+import { createError } from "./utils";
 
 const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/g;
