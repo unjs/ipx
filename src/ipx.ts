@@ -1,18 +1,11 @@
 import { defu } from "defu";
 import { imageMeta } from "image-meta";
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
-import type { Source, SourceData } from "./types";
+import type { ImageMeta, Source, SourceData } from "./types";
 import { createFilesystemSource, createHTTPSource } from "./sources";
-import { applyHandler, getHandler } from "./handlers";
+import { HandlerName, applyHandler, getHandler } from "./handlers";
 import { cachedPromise, getEnv as getEnvironment, createError } from "./utils";
-
-// TODO: Move to image-meta
-export interface ImageMeta {
-  width: number;
-  height: number;
-  type: string;
-  mimeType: string;
-}
+import type { SharpOptions } from "sharp";
 
 export interface IPXCTX {
   sources: Record<string, Source>;
@@ -20,7 +13,9 @@ export interface IPXCTX {
 
 export type IPX = (
   id: string,
-  modifiers?: Record<string, string>,
+  modifiers?: Partial<
+    Record<HandlerName | "f" | "format" | "a" | "animated", string>
+  >,
   requestOptions?: any
 ) => {
   src: () => Promise<SourceData>;
@@ -39,7 +34,7 @@ export interface IPXOptions {
   fetchOptions: RequestInit;
   // TODO: Create types
   // https://github.com/lovell/sharp/blob/master/lib/constructor.js#L130
-  sharp?: { [key: string]: any };
+  sharp?: SharpOptions;
 }
 
 // https://sharp.pixelplumbing.com/#formats
@@ -56,10 +51,10 @@ const SUPPORTED_FORMATS = new Set([
 export function createIPX(userOptions: Partial<IPXOptions>): IPX {
   const defaults = {
     dir: getEnvironment("IPX_DIR", "."),
-    domains: getEnvironment("IPX_DOMAINS", []),
-    alias: getEnvironment("IPX_ALIAS", {}),
-    fetchOptions: getEnvironment("IPX_FETCH_OPTIONS", {}),
-    maxAge: getEnvironment("IPX_MAX_AGE", 300),
+    domains: getEnvironment<string[]>("IPX_DOMAINS", []),
+    alias: getEnvironment<Record<string, string>>("IPX_ALIAS", {}),
+    fetchOptions: getEnvironment<RequestInit>("IPX_FETCH_OPTIONS", {}),
+    maxAge: getEnvironment<number>("IPX_MAX_AGE", 300),
     sharp: {},
   };
   const options: IPXOptions = defu(userOptions, defaults) as IPXOptions;
@@ -149,7 +144,7 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
       // Resolve modifiers to handlers and sort
       const handlers = Object.entries(modifiers)
         .map(([name, arguments_]) => ({
-          handler: getHandler(name),
+          handler: getHandler(name as HandlerName),
           name,
           args: arguments_,
         }))
