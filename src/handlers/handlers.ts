@@ -128,13 +128,12 @@ export const extend: Handler = {
 // https://sharp.pixelplumbing.com/api-resize#extract
 export const extract: Handler = {
   args: [VArgument, VArgument, VArgument, VArgument],
-  apply: (context, pipe, top, right, bottom, left) => {
-    return pipe.extend({
-      top,
+  apply: (_context, pipe, left, top, width, height) => {
+    return pipe.extract({
       left,
-      bottom,
-      right,
-      background: context.background,
+      top,
+      width,
+      height,
     });
   },
 };
