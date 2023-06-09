@@ -35,7 +35,7 @@
     "etag": "^1.8.1",
     "image-meta": "^0.1.1",
     "listhen": "^1.0.4",
-    "node-fetch-native": "^1.1.1",
+    "node-fetch-native": "^1.2.0",
     "pathe": "^1.1.1",
     "sharp": "^0.32.1",
     "ufo": "^1.1.2",
