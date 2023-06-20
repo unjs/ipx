@@ -25,11 +25,13 @@ export interface IPXHResponse {
 
 export interface MiddlewareOptions {
   fallthrough?: boolean;
+  autoSupportedMimes?: string[];
 }
 
 async function _handleRequest(
   request: IPXHRequest,
-  ipx: IPX
+  ipx: IPX,
+  options: Partial<MiddlewareOptions>
 ): Promise<IPXHResponse> {
   const res: IPXHResponse = {
     statusCode: 200,
@@ -71,7 +73,8 @@ async function _handleRequest(
     const acceptHeader = request.headers?.accept || "";
     const autoFormat = autoDetectFormat(
       acceptHeader,
-      !!(modifiers.a || modifiers.animated)
+      !!(modifiers.a || modifiers.animated),
+      options.autoSupportedMimes
     );
     delete modifiers.f;
     delete modifiers.format;
@@ -130,9 +133,10 @@ async function _handleRequest(
 
 export function handleRequest(
   request: IPXHRequest,
-  ipx: IPX
+  ipx: IPX,
+  options: Partial<MiddlewareOptions>
 ): Promise<IPXHResponse> {
-  return _handleRequest(request, ipx).catch((error) => {
+  return _handleRequest(request, ipx, options).catch((error) => {
     const statusCode = Number.parseInt(error.statusCode) || 500;
     // eslint-disable-next-line unicorn/prefer-logical-operator-over-ternary
     const statusMessage = error.statusMessage
@@ -162,7 +166,8 @@ export function createIPXMiddleware(
   ) {
     return handleRequest(
       { url: request.url || "/", headers: request.headers as any },
-      ipx
+      ipx,
+      options
     ).then((_res) => {
       if (options.fallthrough && next && _res.error) {
         return next(_res.error);
@@ -179,12 +184,10 @@ export function createIPXMiddleware(
 
 // --- Utils ---
 
-function autoDetectFormat(acceptHeader: string, animated: boolean) {
-  if (animated) {
-    const acceptMime = negotiate(acceptHeader, ["image/webp", "image/gif"]);
-    return acceptMime?.split("/")[1] || "gif";
-  }
-  const acceptMime = negotiate(acceptHeader, [
+function autoDetectFormat(
+  acceptHeader: string,
+  animated: boolean,
+  supportedMimes: string[] = [
     "image/avif",
     "image/webp",
     "image/jpeg",
@@ -192,7 +195,16 @@ function autoDetectFormat(acceptHeader: string, animated: boolean) {
     "image/tiff",
     "image/heif",
     "image/gif",
-  ]);
+  ]
+) {
+  if (animated) {
+    const acceptMime = negotiate(
+      acceptHeader,
+      supportedMimes.filter((val) => ["image/webp", "image/gif"].includes(val))
+    );
+    return acceptMime?.split("/")[1] || "gif";
+  }
+  const acceptMime = negotiate(acceptHeader, supportedMimes);
   return acceptMime?.split("/")[1] || "jpeg";
 }
 
