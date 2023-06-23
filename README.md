@@ -54,6 +54,7 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 | width / w      | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/width_200/buffalo.png`                             |
 | height / h     | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/height_200/buffalo.png`                            |
 | resize / s     | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/s_200x200/buffalo.png`                             |
+| kernel         | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/s_200x200,kernel_nearest/buffalo.png`              | Supported kernel: `nearest`, `cubic`, `mitchell`, `lanczos2` and `lanczos3` (default).                                                                            |
 | fit            | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/s_200x200,fit_outside/buffalo.png`                 | Sets `fit` option for `resize`.                                                                                                                                   |
 | position / pos | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/s_200x200,pos_top/buffalo.png`                     | Sets `position` option for `resize`.                                                                                                                              |
 | trim           | [Docs](https://sharp.pixelplumbing.com/api-resize#trim)         | `/trim_100/buffalo.png`                              |
