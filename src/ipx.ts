@@ -145,7 +145,8 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
       const Sharp = (await import("sharp").then(
         (r) => r.default || r
       )) as typeof import("sharp");
-      let sharp = Sharp(data, { animated, ...options.sharp})
+      let sharp = Sharp(data, { animated, ...options.sharp });
+      Object.assign((sharp as any).options, options.sharp);
 
       // Resolve modifiers to handlers and sort
       const handlers = Object.entries(modifiers)
