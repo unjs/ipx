@@ -19,14 +19,49 @@ The default server directory is the current working directory.
 
 ### Programatic Usage
 
-You can use IPX as a Connect/Express middleware or directly use ipx api.
+You can use IPX as a middleware or directly use ipx api.
+
+#### H3 Middleware
+[H3](https://github.com/unjs/h3) is a minimal h(ttp) framework built for high performance and portability. It is part of the [unjs](http://unjs.io) ecosystem to which `ipx` belongs.
 
 ```js
+import { createApp, eventHandler, toNodeListener } from "h3";
+import { createIPX, createIPXMiddleware } from "ipx";
+import { listen } from "listhen";
+
+const app = createApp();
+const ipx = createIPX({
+  domains: ['unjs.io']
+});
+
+const middleware = createIPXMiddleware(ipx)
+
+const handler = eventHandler(async (event) => {
+  await middleware(event.node.req, event.node.res);
+});
+
+app.use("/image", handler);
+
+listen(toNodeListener(app));
+```
+
+#### Express Middleware
+[Express](https://expressjs.com) is a fast, unopinionated, minimalist web framework for Node.js.
+
+```js
+import express from 'express';
 import { createIPX, createIPXMiddleware } from "ipx";
 
-const ipx = createIPX(/* options */);
 const app = express();
+const ipx = createIPX({
+  domains: ['unjs.io']
+});
+
 app.use("/image", createIPXMiddleware(ipx));
+
+app.listen(3000, () =>
+  console.log('Example app listening on port 3000!'),
+);
 ```
 
 ### Examples
