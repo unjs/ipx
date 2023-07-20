@@ -125,7 +125,7 @@ async function _handleRequest(
 
   res.body = data;
 
-  return sanetizeReponse(res);
+  return sanitizeReponse(res);
 }
 
 export function handleRequest(
@@ -141,7 +141,7 @@ export function handleRequest(
     if (process.env.NODE_ENV !== "production" && statusCode === 500) {
       console.error(error); // eslint-disable-line no-console
     }
-    return sanetizeReponse({
+    return sanitizeReponse({
       statusCode,
       statusMessage,
       body: "IPX Error: " + error,
@@ -196,7 +196,7 @@ function autoDetectFormat(acceptHeader: string, animated: boolean) {
   return acceptMime?.split("/")[1] || "jpeg";
 }
 
-function sanetizeReponse(res: IPXHResponse) {
+function sanitizeReponse(res: IPXHResponse) {
   return <IPXHResponse>{
     statusCode: res.statusCode || 200,
     statusMessage: res.statusMessage ? safeString(res.statusMessage) : "OK",
