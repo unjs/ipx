@@ -22,6 +22,7 @@ The default server directory is the current working directory.
 You can use IPX as a middleware or directly use ipx api.
 
 #### H3 Middleware
+
 [H3](https://github.com/unjs/h3) is a minimal h(ttp) framework built for high performance and portability. It is part of the [unjs](http://unjs.io) ecosystem to which `ipx` belongs.
 
 ```js
