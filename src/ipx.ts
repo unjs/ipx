@@ -35,6 +35,10 @@ export interface IPXOptions {
   // TODO: Create types
   // https://github.com/lovell/sharp/blob/master/lib/constructor.js#L130
   sharp?: SharpOptions;
+  limits: {
+    modifiers: Set<string>;
+    maxDimensions: number;
+  };
 }
 
 // https://sharp.pixelplumbing.com/#formats
@@ -57,6 +61,17 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
     fetchOptions: getEnvironment<RequestInit>("IPX_FETCH_OPTIONS", {}),
     maxAge: getEnvironment<number>("IPX_MAX_AGE", 300),
     sharp: {},
+    limits: {
+      modifiers: new Set(
+        getEnvironment<string>(
+          "IPX_LIMITS_MODIFIERS",
+          "width, w, height, h, resize, s"
+        )
+          .split(",")
+          .map((s) => s.trim())
+      ),
+      maxDimensions: getEnvironment<number>("IPX_LIMITS_MAX_DIMENSIONS", 8192),
+    },
   };
   const options: IPXOptions = defu(userOptions, defaults) as IPXOptions;
 
@@ -155,6 +170,7 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
           name,
           args: arguments_,
         }))
+        .filter((h) => options.limits.modifiers.has(h.name))
         .filter((h) => h.handler)
         .sort((a, b) => {
           const aKey = (a.handler.order || a.name || "").toString();
@@ -165,6 +181,27 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
       // Apply handlers
       const handlerContext: any = { meta };
       for (const h of handlers) {
+        switch (h.name) {
+          case "width":
+          case "w":
+          case "height":
+          case "h":
+          case "size":
+          case "s": {
+            const [width, height] = String(h.args).split("x").map(Number);
+            if (
+              width > options.limits.maxDimensions ||
+              height > options.limits.maxDimensions
+            ) {
+              throw createError(
+                "Request dimensions exceeds the limit.",
+                416,
+                options.limits.maxDimensions.toString()
+              );
+            }
+            break;
+          }
+        }
         sharp = applyHandler(handlerContext, sharp, h.handler, h.args) || sharp;
       }
 
