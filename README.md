@@ -106,7 +106,7 @@ Config can be customized using `IPX_*` environment variables.
 
 - `IPX_LIMITS_MODIFIERS`
 
-  - Default: `['width', 'w', 'height', 'h', 'resize', 's']` (Abbreviated modifiers will be treated as distinct variants.)
+  - Default: `['width', ' w', ' height', ' h', ' resize', ' s', ' fit', ' position', ' pos', ' trim', ' extend', ' extract', ' format', ' f', ' quality', ' q', ' rotate', ' enlarge', ' flip', ' flop', ' sharpen', ' median', ' blur', ' gamma', ' negate', ' normalize', ' threshold', ' tint', ' grayscale', ' animated']` (Abbreviated modifiers will be treated as distinct variants.)
 
   - e.g.: `IPX_LIMITS_MODIFIERS=w, enlarge`
 

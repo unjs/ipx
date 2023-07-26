@@ -65,7 +65,7 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
       modifiers: new Set(
         getEnvironment<string>(
           "IPX_LIMITS_MODIFIERS",
-          "width, w, height, h, resize, s"
+          "width, w, height, h, resize, s, fit, position, pos, trim, extend, extract, format, f, quality, q, rotate, enlarge, flip, flop, sharpen, median, blur, gamma, negate, normalize, threshold, tint, grayscale, animated"
         )
           .split(",")
           .map((s) => s.trim())
