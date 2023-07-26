@@ -49,7 +49,6 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 
 ### Modifiers
 
-* To prevent server abuse, only width, w, height, h, resize, and s modifiers are enabled by default. Other Modifiers should be defined in the configuration (Config).
 
 | Property       | Docs                                                            | Example                                              | Comments                                                                                                                                                          |
 | -------------- | :-------------------------------------------------------------- | :--------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
