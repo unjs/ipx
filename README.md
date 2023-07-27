@@ -89,7 +89,7 @@ Config can be customized using `IPX_*` environment variables.
 
   - Default: `[]`
 
-  - e.g.: `IPX_DOMAINS=https://avatars.githubusercontent.com, https://nuxtjs.org`
+  - e.g.: `IPX_DOMAINS=https://avatars.githubusercontent.com, https://nuxt.com`
 
 - `IPX_MAX_AGE`
 
