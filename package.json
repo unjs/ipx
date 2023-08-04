@@ -34,20 +34,20 @@
     "destr": "^1.2.2",
     "etag": "^1.8.1",
     "image-meta": "^0.1.1",
-    "listhen": "^1.1.2",
+    "listhen": "^1.2.2",
     "node-fetch-native": "^1.2.0",
     "pathe": "^1.1.1",
-    "sharp": "^0.32.3",
-    "ufo": "^1.1.2",
+    "sharp": "^0.32.4",
+    "ufo": "^1.2.0",
     "xss": "^1.0.14"
   },
   "devDependencies": {
     "@types/etag": "^1.8.1",
     "@types/is-valid-path": "^0.1.0",
     "@vitest/coverage-c8": "^0.33.0",
-    "@vitest/coverage-v8": "^0.33.0",
+    "@vitest/coverage-v8": "^0.34.1",
     "changelogen": "^0.5.4",
-    "eslint": "^8.45.0",
+    "eslint": "^8.46.0",
     "eslint-config-unjs": "^0.2.1",
     "jiti": "^1.19.1",
     "nodemon": "^2.0.22",
@@ -55,7 +55,7 @@
     "serve-handler": "^6.1.5",
     "typescript": "^5.1.6",
     "unbuild": "^1.2.1",
-    "vitest": "^0.33.0"
+    "vitest": "^0.34.1"
   },
-  "packageManager": "pnpm@8.6.9"
+  "packageManager": "pnpm@8.6.11"
 }
