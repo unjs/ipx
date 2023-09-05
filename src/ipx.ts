@@ -47,6 +47,7 @@ const SUPPORTED_FORMATS = new Set([
   "tiff",
   "heif",
   "gif",
+  "heic",
 ]);
 
 export function createIPX(userOptions: Partial<IPXOptions>): IPX {
