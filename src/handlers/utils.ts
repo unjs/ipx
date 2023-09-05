@@ -9,7 +9,7 @@ export function VArg(argument: string) {
 
 export function parseArgs(
   arguments_: string,
-  mappers: ((...args: any[]) => any)[]
+  mappers: ((...args: any[]) => any)[],
 ) {
   const vargs = arguments_.split("_");
   return mappers.map((v, index) => v(vargs[index]));
@@ -26,7 +26,7 @@ export function applyHandler(
   context: HandlerContext,
   pipe: Sharp,
   handler: Handler,
-  argumentsString: string
+  argumentsString: string,
 ) {
   const arguments_ = handler.args
     ? parseArgs(argumentsString, handler.args)
@@ -36,7 +36,7 @@ export function applyHandler(
 
 export function clampDimensionsPreservingAspectRatio(
   sourceDimensions: ImageMeta,
-  desiredDimensions: { width: number; height: number }
+  desiredDimensions: { width: number; height: number },
 ) {
   const desiredAspectRatio = desiredDimensions.width / desiredDimensions.height;
   let { width, height } = desiredDimensions;

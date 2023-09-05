@@ -28,7 +28,7 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
         }
         return new URL(d).hostname;
       })
-      .filter(Boolean)
+      .filter(Boolean),
   );
 
   return async (id: string, requestOptions) => {
@@ -51,7 +51,7 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
       throw createError(
         "Fetch error",
         response.status || 500,
-        response.statusText
+        response.statusText,
       );
     }
 
@@ -75,7 +75,7 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
       maxAge,
       // @ts-ignore
       getData: cachedPromise(() =>
-        response.arrayBuffer().then((ab) => Buffer.from(ab))
+        response.arrayBuffer().then((ab) => Buffer.from(ab)),
       ),
     };
   };
