@@ -85,27 +85,27 @@ async function _handleRequest(
   const img = ipx(id, modifiers, request.options);
 
   // Get image meta from source
-  const source = await img.src();
+  const sourceMeta = await img.getSourceMeta();
 
   // Caching headers
-  if (source.mtime) {
+  if (sourceMeta.mtime) {
     if (
       request.headers?.["if-modified-since"] &&
-      new Date(request.headers["if-modified-since"]) >= source.mtime
+      new Date(request.headers["if-modified-since"]) >= sourceMeta.mtime
     ) {
       res.statusCode = 304;
       return res;
     }
-    res.headers["Last-Modified"] = source.mtime.toUTCString();
+    res.headers["Last-Modified"] = sourceMeta.mtime.toUTCString();
   }
-  if (typeof source.maxAge === "number") {
+  if (typeof sourceMeta.maxAge === "number") {
     res.headers[
       "Cache-Control"
-    ] = `max-age=${+source.maxAge}, public, s-maxage=${+source.maxAge}`;
+    ] = `max-age=${+sourceMeta.maxAge}, public, s-maxage=${+sourceMeta.maxAge}`;
   }
 
   // Get converted image
-  const { data, format } = await img.data();
+  const { data, format } = await img.process();
 
   // ETag
   const etag = getEtag(data);

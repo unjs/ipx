@@ -1,25 +1,6 @@
 import type { Sharp, Color, KernelEnum } from "sharp";
 
-// TODO: Move to image-meta
-export interface ImageMeta {
-  width: number;
-  height: number;
-  type: string;
-  mimeType: string;
-}
-
-export interface SourceData {
-  mtime?: Date;
-  maxAge?: number;
-  getData: () => Promise<Buffer>;
-}
-
-export type Source = (
-  source: string,
-  requestOptions?: any,
-) => Promise<SourceData>;
-
-export type SourceFactory<T = Record<string, any>> = (options: T) => Source;
+// ---- Handlers ----
 
 export interface HandlerContext {
   quality?: number;
@@ -35,4 +16,38 @@ export interface Handler {
   args: ((argument: string) => any)[];
   order?: number;
   apply: (context: HandlerContext, pipe: Sharp, ...arguments_: any[]) => any;
+}
+
+// ---- Storage ----
+
+export type IPXStorageMeta = {
+  mtime?: Date | number | string;
+  maxAge?: number | string;
+};
+
+export type IPXStorageOptions = Record<string, unknown>;
+
+type MaybePromise<T> = T | Promise<T>;
+
+export interface IPXStorage {
+  name: string;
+
+  getMeta: (
+    id: string,
+    opts?: IPXStorageOptions,
+  ) => MaybePromise<IPXStorageMeta | undefined>;
+
+  getData: (
+    id: string,
+    opts?: IPXStorageOptions,
+  ) => MaybePromise<ArrayBuffer | undefined>;
+}
+
+// ---- External Types ----
+
+export interface ImageMeta {
+  width: number;
+  height: number;
+  type: string;
+  mimeType: string;
 }

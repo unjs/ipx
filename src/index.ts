@@ -1,3 +1,6 @@
 export * from "./ipx";
 export * from "./middleware";
-export type { Source, SourceData, SourceFactory } from "./types";
+export * from "./types";
+export * from "./storage/http";
+export * from "./storage/node-fs";
+export * from "./storage/unstorage";
