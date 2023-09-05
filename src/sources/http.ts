@@ -26,18 +26,31 @@ export const createHTTPSource: SourceFactory<HTTPSourceOptions> = (options) => {
         if (!HTTP_RE.test(d)) {
           d = "http://" + d;
         }
-        return new URL(d).hostname;
+        const { hostname, pathname } = new URL(d);
+        const regExpUrl = `${hostname}${pathname}`.replaceAll("*.", "(\\w*.)?");
+        return new RegExp(`^${regExpUrl}`);
       })
       .filter(Boolean),
   );
+  const validateDomain = (requestUrl: string): boolean => {
+    for (const domain of domains) {
+      if (domain.test(requestUrl)) {
+        return true;
+      }
+    }
+    return false;
+  };
 
   return async (id: string, requestOptions) => {
-    // Check hostname
-    const hostname = new URL(id).hostname;
+    // Check hostname and path ( include wildcard subdomain )
+    const { hostname, pathname } = new URL(id);
     if (!hostname) {
       throw createError("Hostname is missing", 403, id);
     }
-    if (!requestOptions?.bypassDomain && !domains.has(hostname)) {
+    if (
+      !requestOptions?.bypassDomain &&
+      !validateDomain(`${hostname}${pathname}`)
+    ) {
       throw createError("Forbidden host", 403, hostname);
     }
 
