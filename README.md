@@ -78,6 +78,7 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 
 ## Modifiers
 
+
 | Property       | Docs                                                            | Example                                              | Comments                                                                                                                                                          |
 | -------------- | :-------------------------------------------------------------- | :--------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | width / w      | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/width_200/buffalo.png`                             |
@@ -119,6 +120,8 @@ Config can be customized using `IPX_*` environment variables.
 
   - Default: `[]`
 
+  - e.g.: `IPX_DOMAINS=https://avatars.githubusercontent.com, https://nuxt.com`
+
 - `IPX_MAX_AGE`
 
   - Default: `300`
@@ -130,6 +133,17 @@ Config can be customized using `IPX_*` environment variables.
 - `IPX_FETCH_OPTIONS`
 
   - Default: `{}`
+
+- `IPX_LIMITS_MODIFIERS`
+
+  - Default: `['width', ' w', ' height', ' h', ' resize', ' s', ' fit', ' position', ' pos', ' trim', ' extend', ' extract', ' format', ' f', ' quality', ' q', ' rotate', ' enlarge', ' flip', ' flop', ' sharpen', ' median', ' blur', ' gamma', ' negate', ' normalize', ' threshold', ' tint', ' grayscale', ' animated']` (Abbreviated modifiers will be treated as distinct variants.)
+
+  - e.g.: `IPX_LIMITS_MODIFIERS=w, enlarge`
+
+- `IPX_LIMITS_MAX_DIMENSIONS`
+
+  - Default: `8192` (px, Both width and height will use this value.)
+
 
 ## License
 
