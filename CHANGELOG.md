@@ -2,6 +2,52 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.3.0
+
+[compare changes](https://github.com/unjs/ipx/compare/v1.2.0...v1.3.0)
+
+### 🚀 Enhancements
+
+- **handlers:** Support `kernel` modifier ([#143](https://github.com/unjs/ipx/pull/143))
+
+### 🩹 Fixes
+
+- Provide options to sharp method ([#138](https://github.com/unjs/ipx/pull/138))
+- Add `heic` to the supported formats ([#130](https://github.com/unjs/ipx/pull/130))
+
+### 📖 Documentation
+
+- Mention background modifier ([#156](https://github.com/unjs/ipx/pull/156))
+- Update `background` modifier example ([2c6ad22](https://github.com/unjs/ipx/commit/2c6ad22))
+- Add `h3` middleware example ([#144](https://github.com/unjs/ipx/pull/144))
+
+### 📦 Build
+
+- Update exports field for type support ([f43772b](https://github.com/unjs/ipx/commit/f43772b))
+
+### 🏡 Chore
+
+- Fix internal typo ([#148](https://github.com/unjs/ipx/pull/148))
+- Update dependencies ([5b34193](https://github.com/unjs/ipx/commit/5b34193))
+- Replace nodemon with listhen ([a008152](https://github.com/unjs/ipx/commit/a008152))
+
+### 🎨 Styles
+
+- Format with prettier v3 ([4c5e8bb](https://github.com/unjs/ipx/commit/4c5e8bb))
+
+### 🤖 CI
+
+- Add autofix ([3bffaa4](https://github.com/unjs/ipx/commit/3bffaa4))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+- Dominik Opyd <dominik.opyd@gmail.com>
+- Aura Román ([@kyranet](http://github.com/kyranet))
+- Paweł Szafrański <szafran89@gmail.com>
+- Lexpeartha 
+- Daniel Roe <daniel@roe.dev>
+
 ## v1.2.0
 
 [compare changes](https://github.com/unjs/ipx/compare/v1.1.0...v1.2.0)
