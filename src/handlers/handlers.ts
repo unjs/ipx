@@ -58,6 +58,13 @@ export const enlarge: Handler = {
   },
 };
 
+export const kernel: Handler = {
+  args: [VArgument],
+  apply: (context, _pipe, kernel) => {
+    context.kernel = kernel;
+  },
+};
+
 export const width: Handler = {
   args: [VArgument],
   apply: (context, pipe, width) => {
@@ -99,6 +106,7 @@ export const resize: Handler = {
       fit: context.fit,
       position: context.position,
       background: context.background,
+      kernel: context.kernel,
     });
   },
 };

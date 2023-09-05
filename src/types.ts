@@ -1,4 +1,4 @@
-import type { Sharp, Color } from "sharp";
+import type { Sharp, Color, KernelEnum } from "sharp";
 
 // TODO: Move to image-meta
 export interface ImageMeta {
@@ -27,6 +27,7 @@ export interface HandlerContext {
   position?: number | string;
   background?: Color;
   enlarge?: boolean;
+  kernel?: keyof KernelEnum;
   meta: ImageMeta;
 }
 
