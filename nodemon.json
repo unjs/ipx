@@ -1,5 +1,5 @@
 {
-  "watch": [ "src" ],
+  "watch": ["src"],
   "ext": "ts,json",
   "exec": "jiti ./src/cli.ts",
   "env": {

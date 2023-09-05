@@ -29,7 +29,7 @@ export interface MiddlewareOptions {
 
 async function _handleRequest(
   request: IPXHRequest,
-  ipx: IPX
+  ipx: IPX,
 ): Promise<IPXHResponse> {
   const res: IPXHResponse = {
     statusCode: 200,
@@ -71,7 +71,7 @@ async function _handleRequest(
     const acceptHeader = request.headers?.accept || "";
     const autoFormat = autoDetectFormat(
       acceptHeader,
-      !!(modifiers.a || modifiers.animated)
+      !!(modifiers.a || modifiers.animated),
     );
     delete modifiers.f;
     delete modifiers.format;
@@ -130,7 +130,7 @@ async function _handleRequest(
 
 export function handleRequest(
   request: IPXHRequest,
-  ipx: IPX
+  ipx: IPX,
 ): Promise<IPXHResponse> {
   return _handleRequest(request, ipx).catch((error) => {
     const statusCode = Number.parseInt(error.statusCode) || 500;
@@ -153,16 +153,16 @@ export function handleRequest(
 
 export function createIPXMiddleware(
   ipx: IPX,
-  options: Partial<MiddlewareOptions> = {}
+  options: Partial<MiddlewareOptions> = {},
 ) {
   return function IPXMiddleware(
     request: IncomingMessage,
     res: ServerResponse,
-    next?: (err?: any) => void
+    next?: (err?: any) => void,
   ) {
     return handleRequest(
       { url: request.url || "/", headers: request.headers as any },
-      ipx
+      ipx,
     ).then((_res) => {
       if (options.fallthrough && next && _res.error) {
         return next(_res.error);

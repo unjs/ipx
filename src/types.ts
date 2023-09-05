@@ -16,7 +16,7 @@ export interface SourceData {
 
 export type Source = (
   source: string,
-  requestOptions?: any
+  requestOptions?: any,
 ) => Promise<SourceData>;
 
 export type SourceFactory<T = Record<string, any>> = (options: T) => Source;

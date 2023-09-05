@@ -5,7 +5,7 @@ export function getEnv<T>(name: string, defaultValue: T): T {
 }
 
 export function cachedPromise<T extends (...arguments_: any[]) => any>(
-  function_: T
+  function_: T,
 ) {
   let p: ReturnType<T>;
   return (...arguments_: Parameters<T>) => {
@@ -25,7 +25,7 @@ export class IPXError extends Error {
 export function createError(
   statusMessage: string,
   statusCode: number,
-  trace?: string
+  trace?: string,
 ): IPXError {
   const error = new IPXError(statusMessage + (trace ? ` (${trace})` : ""));
   error.statusMessage = "IPX: " + statusMessage;

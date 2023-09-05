@@ -16,7 +16,7 @@ export type IPX = (
   modifiers?: Partial<
     Record<HandlerName | "f" | "format" | "a" | "animated", string>
   >,
-  requestOptions?: any
+  requestOptions?: any,
 ) => {
   src: () => Promise<SourceData>;
   data: () => Promise<{
@@ -62,7 +62,7 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
 
   // Normalize alias to start with leading slash
   options.alias = Object.fromEntries(
-    Object.entries(options.alias).map((e) => [withLeadingSlash(e[0]), e[1]])
+    Object.entries(options.alias).map((e) => [withLeadingSlash(e[0]), e[1]]),
   );
 
   const context: IPXCTX = {
@@ -143,7 +143,7 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
         format === "gif";
 
       const Sharp = (await import("sharp").then(
-        (r) => r.default || r
+        (r) => r.default || r,
       )) as typeof import("sharp");
       let sharp = Sharp(data, { animated });
       Object.assign((sharp as any).options, options.sharp);

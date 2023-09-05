@@ -9,7 +9,7 @@ export interface FilesystemSourceOptions {
 }
 
 export const createFilesystemSource: SourceFactory<FilesystemSourceOptions> = (
-  options
+  options,
 ) => {
   const rootDir = resolve(options.dir);
 

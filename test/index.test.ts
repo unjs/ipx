@@ -20,7 +20,7 @@ describe("ipx", () => {
         // eslint-disable-next-line unicorn/prefer-module
         serveHandler(request, res, { public: resolve(__dirname, "assets") });
       },
-      { port: 0 }
+      { port: 0 },
     );
     const source = await ipx(`${listener.url}/bliss.jpg`);
     const { data, format } = await source.data();
