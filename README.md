@@ -19,50 +19,42 @@ The default server directory is the current working directory.
 
 ### Programatic Usage
 
-You can use IPX as a middleware or directly use ipx api.
+You can use IPX as a middleware or directly use ipx api:
 
-#### H3 Middleware
+```ts
+import { createIPX, createIPXMiddleware } from "ipx";
 
-[H3](https://github.com/unjs/h3) is a minimal h(ttp) framework built for high performance and portability. It is part of the [unjs](http://unjs.io) ecosystem to which `ipx` belongs.
+const ipx = createIPX({ domains: ["unjs.io"] });
+```
+
+**Example**: Using with [unjs/h3](https://github.com/unjs/h3):
 
 ```js
-import { createApp, eventHandler, toNodeListener } from "h3";
 import { createIPX, createIPXMiddleware } from "ipx";
 import { listen } from "listhen";
+import { createApp, fromNodeMiddleware, toNodeListener } from "h3";
 
-const app = createApp();
-const ipx = createIPX({
-  domains: ['unjs.io']
-});
+const ipx = createIPX({ domains: ["unjs.io"] });
+const ipxMiddleware = createIPXMiddleware(ipx);
 
-const middleware = createIPXMiddleware(ipx)
-
-const handler = eventHandler(async (event) => {
-  await middleware(event.node.req, event.node.res);
-});
-
-app.use("/image", handler);
+const app = createApp().use("/", fromNodeMiddleware(ipxMiddleware));
 
 listen(toNodeListener(app));
 ```
 
-#### Express Middleware
-[Express](https://expressjs.com) is a fast, unopinionated, minimalist web framework for Node.js.
+**Example:** Using [express](https://expressjs.com):
 
 ```js
-import express from 'express';
 import { createIPX, createIPXMiddleware } from "ipx";
+import { listen } from "listhen";
+import express from "express";
 
-const app = express();
-const ipx = createIPX({
-  domains: ['unjs.io']
-});
+const ipx = createIPX({ domains: ["unjs.io"] });
+const ipxMiddleware = createIPXMiddleware(ipx);
 
-app.use("/image", createIPXMiddleware(ipx));
+const app = express().use("/", ipxMiddleware);
 
-app.listen(3000, () =>
-  console.log('Example app listening on port 3000!'),
-);
+listen(app);
 ```
 
 ### Examples
