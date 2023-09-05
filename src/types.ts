@@ -1,4 +1,4 @@
-import type { Sharp, Color } from "sharp";
+import type { Sharp, Color, KernelEnum } from "sharp";
 
 // TODO: Move to image-meta
 export interface ImageMeta {
@@ -16,7 +16,7 @@ export interface SourceData {
 
 export type Source = (
   source: string,
-  requestOptions?: any
+  requestOptions?: any,
 ) => Promise<SourceData>;
 
 export type SourceFactory<T = Record<string, any>> = (options: T) => Source;
@@ -27,6 +27,7 @@ export interface HandlerContext {
   position?: number | string;
   background?: Color;
   enlarge?: boolean;
+  kernel?: keyof KernelEnum;
   meta: ImageMeta;
 }
 
