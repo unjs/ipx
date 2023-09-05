@@ -5,26 +5,27 @@
 
 High performance, secure and easy to use image proxy based on [sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/libvips/libvips).
 
-## Usage
-
-### Quick Start
+## Using CLI
 
 You can use `ipx` command to start server using:
 
 ```bash
-$ npx ipx
+npx ipx@latest
 ```
 
 The default server directory is the current working directory.
 
-### Programatic Usage
+## Programatic API
 
-You can use IPX as a middleware or directly use ipx api:
+You can use IPX as a middleware or directly use IPX interface.
 
 ```ts
 import { createIPX, createIPXMiddleware } from "ipx";
 
 const ipx = createIPX({ domains: ["unjs.io"] });
+
+// (req, res) => void
+const ipxMiddleware = createIPXMiddleware(ipx);
 ```
 
 **Example**: Using with [unjs/h3](https://github.com/unjs/h3):
@@ -34,7 +35,7 @@ import { createIPX, createIPXMiddleware } from "ipx";
 import { listen } from "listhen";
 import { createApp, fromNodeMiddleware, toNodeListener } from "h3";
 
-const ipx = createIPX({ domains: ["unjs.io"] });
+const ipx = createIPX({});
 const ipxMiddleware = createIPXMiddleware(ipx);
 
 const app = createApp().use("/", fromNodeMiddleware(ipxMiddleware));
@@ -49,7 +50,7 @@ import { createIPX, createIPXMiddleware } from "ipx";
 import { listen } from "listhen";
 import express from "express";
 
-const ipx = createIPX({ domains: ["unjs.io"] });
+const ipx = createIPX({});
 const ipxMiddleware = createIPXMiddleware(ipx);
 
 const app = express().use("/", ipxMiddleware);
@@ -57,7 +58,7 @@ const app = express().use("/", ipxMiddleware);
 listen(app);
 ```
 
-### Examples
+## Examples
 
 Get original image:
 
@@ -75,7 +76,7 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 
 `/embed,f_webp,s_200x200/static/buffalo.png`
 
-### Modifiers
+## Modifiers
 
 | Property       | Docs                                                            | Example                                              | Comments                                                                                                                                                          |
 | -------------- | :-------------------------------------------------------------- | :--------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -106,7 +107,7 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 | grayscale      | [Docs](https://sharp.pixelplumbing.com/api-colour#grayscale)    | `/grayscale/buffalo.png`                             |
 | animated       | -                                                               | `/animated/buffalo.gif`                              | Experimental                                                                                                                                                      |
 
-### Config
+## Config
 
 Config can be customized using `IPX_*` environment variables.
 
