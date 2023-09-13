@@ -3,7 +3,9 @@
 [![npm version][npm-version-src]][npm-version-href]
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 
-High performance, secure and easy to use image proxy based on [sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/libvips/libvips).
+High performance, secure and easy-to-use image optimizer.
+
+Powered by [sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/libvips/libvips).
 
 ## Using CLI
 
@@ -12,13 +14,13 @@ You can use `ipx` command to start server.
 Using `npx`:
 
 ```bash
-npx ipx@latest
+npx ipx@latest serve --dir ./
 ```
 
 Usin `bun`
 
 ```bash
-bun x ipx@latest
+bun x ipx@latest serve --dir ./
 ```
 
 The default serve directory is the current working directory.
