@@ -7,22 +7,38 @@ High performance, secure and easy to use image proxy based on [sharp](https://gi
 
 ## Using CLI
 
-You can use `ipx` command to start server using:
+You can use `ipx` command to start server.
+
+Using npx:
 
 ```bash
 npx ipx@latest
 ```
 
-The default server directory is the current working directory.
+Usin `bun`
+
+```bash
+bun x ipx@latest
+```
+
+The default serve directory is the current working directory.
 
 ## Programatic API
 
 You can use IPX as a middleware or directly use IPX interface.
 
 ```ts
-import { createIPX, createIPXMiddleware } from "ipx";
+import {
+  createIPX,
+  createIPXMiddleware,
+  ipxFSStorage,
+  ipxHttpStorage,
+} from "./src";
 
-const ipx = createIPX({ domains: ["unjs.io"] });
+const ipx = createIPX({
+  storage: ipxFSStorage({ dir: "./public" }),
+  httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
+});
 
 // (req, res) => void
 const ipxMiddleware = createIPXMiddleware(ipx);
@@ -33,10 +49,6 @@ const ipxMiddleware = createIPXMiddleware(ipx);
 ```js
 import { createIPX, createIPXMiddleware } from "ipx";
 import { listen } from "listhen";
-import { createApp, fromNodeMiddleware, toNodeListener } from "h3";
-
-const ipx = createIPX({});
-const ipxMiddleware = createIPXMiddleware(ipx);
 
 const app = createApp().use("/", fromNodeMiddleware(ipxMiddleware));
 
@@ -46,19 +58,15 @@ listen(toNodeListener(app));
 **Example:** Using [express](https://expressjs.com):
 
 ```js
-import { createIPX, createIPXMiddleware } from "ipx";
 import { listen } from "listhen";
 import express from "express";
-
-const ipx = createIPX({});
-const ipxMiddleware = createIPXMiddleware(ipx);
 
 const app = express().use("/", ipxMiddleware);
 
 listen(app);
 ```
 
-## Examples
+## URL Examples
 
 Get original image:
 
