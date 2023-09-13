@@ -1,13 +1,13 @@
 import {
   createIPX,
   createIPXMiddleware,
-  nodeFSStorage,
-  httpStorage,
+  ipxFSStorage,
+  ipxHttpStorage,
 } from "./src";
 
 const ipx = createIPX({
-  storage: nodeFSStorage({ dir: "./test/assets" }),
-  httpStorage: httpStorage({
+  storage: ipxFSStorage({ dir: "./test/assets" }),
+  httpStorage: ipxHttpStorage({
     domains: ["picsum.photos"],
   }),
 });

@@ -84,10 +84,12 @@ export function createIPX(userOptions: IPXOptions): IPX {
     }
 
     // Resolve Storage
-    const storage =
-      hasProtocol(id) && options.httpStorage
-        ? options.httpStorage
-        : options.storage;
+    const storage = hasProtocol(id)
+      ? options.httpStorage || options.storage
+      : options.storage || options.httpStorage;
+    if (!storage) {
+      throw createError("No storage configured!", 500);
+    }
 
     // Resolve Resource
     const getSourceMeta = cachedPromise(async () => {
@@ -96,7 +98,10 @@ export function createIPX(userOptions: IPXOptions): IPX {
         throw createError(`Resource not found: ${id}`, 404);
       }
       return {
-        maxAge: options.maxAge,
+        maxAge:
+          typeof sourceMeta.maxAge === "string"
+            ? Number.parseInt(sourceMeta.maxAge)
+            : sourceMeta.maxAge,
         mtime: sourceMeta.mtime ? new Date(sourceMeta.mtime) : undefined,
       } satisfies IPXSourceMeta;
     });

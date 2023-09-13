@@ -10,8 +10,13 @@ export type HTTPStorageOptions = {
 
 const HTTP_RE = /^https?:\/\//;
 
-export function httpStorage(options: HTTPStorageOptions): IPXStorage {
-  let _domains = options.domains || [];
+export function ipxHttpStorage(_options: HTTPStorageOptions): IPXStorage {
+  let _domains = _options.domains || process.env.IPX_HTTP_DOMAINS || [];
+  const defaultMaxAge = _options.maxAge || process.env.IPX_HTTP_MAX_AGE;
+  const fetchOptions =
+    _options.fetchOptions ||
+    JSON.parse(process.env.IPX_HTTP_FETCH_OPTIONS || "null") ||
+    {};
 
   if (typeof _domains === "string") {
     _domains = _domains.split(",").map((s) => s.trim());
@@ -50,7 +55,7 @@ export function httpStorage(options: HTTPStorageOptions): IPXStorage {
       );
     }
 
-    let maxAge;
+    let maxAge = defaultMaxAge;
     const _cacheControl = response.headers.get("cache-control");
     if (_cacheControl) {
       const m = _cacheControl.match(/max-age=(\d+)/);
@@ -73,25 +78,16 @@ export function httpStorage(options: HTTPStorageOptions): IPXStorage {
     async getMeta(id, opts) {
       const url = validateId(id, opts);
       try {
-        const response = await fetch(url, {
-          ...options.fetchOptions,
-          method: "HEAD",
-        });
+        const response = await fetch(url, { ...fetchOptions, method: "HEAD" });
         const { maxAge, mtime } = parseResponse(response);
-        return {
-          mtime,
-          maxAge,
-        };
+        return { mtime, maxAge };
       } catch {
         return {};
       }
     },
     async getData(id, opts) {
       const url = validateId(id, opts);
-      const response = await fetch(url, {
-        ...options.fetchOptions,
-        method: "GET",
-      });
+      const response = await fetch(url, { ...fetchOptions, method: "GET" });
       return response.arrayBuffer();
     },
   };

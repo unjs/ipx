@@ -2,15 +2,15 @@ import { listen } from "listhen";
 import { resolve } from "pathe";
 import { describe, it, expect, beforeAll } from "vitest";
 import serveHandler from "serve-handler";
-import { IPX, createIPX, nodeFSStorage, httpStorage } from "../src";
+import { IPX, createIPX, ipxFSStorage, ipxHttpStorage } from "../src";
 
 describe("ipx", () => {
   let ipx: IPX;
   beforeAll(() => {
     ipx = createIPX({
       // eslint-disable-next-line unicorn/prefer-module
-      storage: nodeFSStorage({ dir: resolve(__dirname, "assets") }),
-      httpStorage: httpStorage({ domains: ["localhost:3000"] }),
+      storage: ipxFSStorage({ dir: resolve(__dirname, "assets") }),
+      httpStorage: ipxHttpStorage({ domains: ["localhost:3000"] }),
     });
   });
 

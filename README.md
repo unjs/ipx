@@ -76,6 +76,42 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 
 `/embed,f_webp,s_200x200/static/buffalo.png`
 
+## Config
+
+You can universally customize IPX configuration using `IPX_*` environment variables.
+
+- `IPX_ALIAS`
+
+  - Default: `{}`
+
+### Filesystem Source Options
+
+(enabled by default with CLI only)
+
+#### `IPX_FS_DIR`
+
+- Default: `.` (current working directory)
+
+#### `IPX_FS_MAX_AGE`
+
+- Default: `300`
+
+### HTTP(s) Source Options
+
+(enabled by default with CLI only)
+
+#### `IPX_HTTP_DOMAINS`
+
+- Default: `[]`
+
+#### `IPX_HTTP_MAX_AGE`
+
+- Default: `300`
+
+- `IPX_HTTP_FETCH_OPTIONS`
+
+  - Default: `{}`
+
 ## Modifiers
 
 | Property       | Docs                                                            | Example                                              | Comments                                                                                                                                                          |
@@ -106,30 +142,6 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 | tint           | [Docs](https://sharp.pixelplumbing.com/api-colour#tint)         | `/tint_1098123/buffalo.png`                          |
 | grayscale      | [Docs](https://sharp.pixelplumbing.com/api-colour#grayscale)    | `/grayscale/buffalo.png`                             |
 | animated       | -                                                               | `/animated/buffalo.gif`                              | Experimental                                                                                                                                                      |
-
-## Config
-
-Config can be customized using `IPX_*` environment variables.
-
-- `IPX_DIR`
-
-  - Default: `.` (current working directory)
-
-- `IPX_DOMAINS`
-
-  - Default: `[]`
-
-- `IPX_MAX_AGE`
-
-  - Default: `300`
-
-- `IPX_ALIAS`
-
-  - Default: `{}`
-
-- `IPX_FETCH_OPTIONS`
-
-  - Default: `{}`
 
 ## License
 

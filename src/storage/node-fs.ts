@@ -4,11 +4,13 @@ import { cachedPromise, createError } from "../utils";
 import type { IPXStorage } from "../types";
 
 export type NodeFSSOptions = {
-  dir: string;
+  dir?: string;
+  maxAge?: number;
 };
 
-export function nodeFSStorage(options: NodeFSSOptions): IPXStorage {
-  const rootDir = resolve(options.dir);
+export function ipxFSStorage(_options: NodeFSSOptions): IPXStorage {
+  const rootDir = resolve(_options.dir || process.env.IPX_FS_DIR || ".");
+  const maxAge = _options.maxAge || process.env.IPX_FS_MAX_AGE;
 
   const _resolve = (id: string) => {
     const resolved = join(rootDir, id);
@@ -42,6 +44,7 @@ export function nodeFSStorage(options: NodeFSSOptions): IPXStorage {
 
       return {
         mtime: stats.mtime,
+        maxAge,
       };
     },
     async getData(id) {
