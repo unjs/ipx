@@ -1,15 +1,10 @@
-import {
-  createIPX,
-  createIPXMiddleware,
-  ipxFSStorage,
-  ipxHttpStorage,
-} from "./src";
+import { createIPX, createIPXH3App, ipxFSStorage, ipxHttpStorage } from "./src";
 
 const ipx = createIPX({
-  storage: ipxFSStorage({ dir: "./test/assets" }),
+  storage: ipxFSStorage(),
   httpStorage: ipxHttpStorage({
     domains: ["picsum.photos"],
   }),
 });
 
-export default createIPXMiddleware(ipx);
+export default createIPXH3App(ipx);

@@ -37,10 +37,12 @@
   },
   "dependencies": {
     "@fastify/accept-negotiator": "^1.1.0",
+    "citty": "^0.1.4",
     "consola": "^3.2.3",
     "defu": "^6.1.2",
     "destr": "^2.0.1",
     "etag": "^1.8.1",
+    "h3": "^1.8.1",
     "image-meta": "^0.1.1",
     "listhen": "^1.5.0",
     "node-fetch-native": "^1.4.0",
