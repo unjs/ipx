@@ -1,15 +1,12 @@
 import { defu } from "defu";
-import { imageMeta } from "image-meta";
+import { imageMeta as getImageMeta } from "image-meta";
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import type { SharpOptions } from "sharp";
-import type { ImageMeta, Source, SourceData } from "./types";
-import { createFilesystemSource, createHTTPSource } from "./sources";
+import type { ImageMeta, IPXStorage } from "./types";
 import { HandlerName, applyHandler, getHandler } from "./handlers";
-import { cachedPromise, getEnv as getEnvironment, createError } from "./utils";
+import { cachedPromise, getEnv, createError } from "./utils";
 
-export interface IPXCTX {
-  sources: Record<string, Source>;
-}
+type IPXSourceMeta = { mtime?: Date; maxAge?: number };
 
 export type IPX = (
   id: string,
@@ -18,24 +15,22 @@ export type IPX = (
   >,
   requestOptions?: any,
 ) => {
-  src: () => Promise<SourceData>;
-  data: () => Promise<{
+  getSourceMeta: () => Promise<IPXSourceMeta>;
+  process: () => Promise<{
     data: Buffer;
     meta: ImageMeta;
     format: string;
   }>;
 };
 
-export interface IPXOptions {
-  dir?: false | string;
+export type IPXOptions = {
   maxAge?: number;
-  domains?: false | string[];
-  alias: Record<string, string>;
-  fetchOptions: RequestInit;
-  // TODO: Create types
-  // https://github.com/lovell/sharp/blob/master/lib/constructor.js#L130
-  sharp?: SharpOptions;
-}
+  alias?: Record<string, string>;
+  sharpOptions?: SharpOptions;
+
+  storage: IPXStorage;
+  httpStorage?: IPXStorage;
+};
 
 // https://sharp.pixelplumbing.com/#formats
 // (gif and svg are not supported as output)
@@ -50,47 +45,35 @@ const SUPPORTED_FORMATS = new Set([
   "heic",
 ]);
 
-export function createIPX(userOptions: Partial<IPXOptions>): IPX {
-  const defaults = {
-    dir: getEnvironment("IPX_DIR", "."),
-    domains: getEnvironment<string[]>("IPX_DOMAINS", []),
-    alias: getEnvironment<Record<string, string>>("IPX_ALIAS", {}),
-    fetchOptions: getEnvironment<RequestInit>("IPX_FETCH_OPTIONS", {}),
-    maxAge: getEnvironment<number>("IPX_MAX_AGE", 300),
-    sharp: {},
-  };
-  const options: IPXOptions = defu(userOptions, defaults) as IPXOptions;
+export function createIPX(userOptions: IPXOptions): IPX {
+  const options: IPXOptions = defu(userOptions, {
+    alias: getEnv<Record<string, string>>("IPX_ALIAS", {}),
+    maxAge: getEnv<number>("IPX_MAX_AGE", 300),
+    sharpOptions: {},
+  } satisfies Omit<IPXOptions, "storage">);
 
   // Normalize alias to start with leading slash
   options.alias = Object.fromEntries(
-    Object.entries(options.alias).map((e) => [withLeadingSlash(e[0]), e[1]]),
+    Object.entries(options.alias || {}).map((e) => [
+      withLeadingSlash(e[0]),
+      e[1],
+    ]),
   );
 
-  const context: IPXCTX = {
-    sources: {},
-  };
+  // Sharp loader
+  const getSharp = cachedPromise(async () => {
+    return (await import("sharp").then(
+      (r) => r.default || r,
+    )) as typeof import("sharp");
+  });
 
-  // Init sources
-  if (options.dir) {
-    context.sources.filesystem = createFilesystemSource({
-      dir: options.dir,
-      maxAge: options.maxAge,
-    });
-  }
-  if (options.domains) {
-    context.sources.http = createHTTPSource({
-      domains: options.domains,
-      fetchOptions: options.fetchOptions,
-      maxAge: options.maxAge,
-    });
-  }
-
-  return function ipx(id, modifiers = {}, requestOptions = {}) {
+  return function ipx(id, modifiers = {}, opts = {}) {
+    // Validate id
     if (!id) {
-      throw createError("resource id is missing", 400);
+      throw createError("resource `id` is missing", 400);
     }
 
-    // Enforce leading slash
+    // Enforce leading slash for non absolute urls
     id = hasProtocol(id) ? id : withLeadingSlash(id);
 
     // Resolve alias
@@ -100,20 +83,42 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
       }
     }
 
-    const getSource = cachedPromise(() => {
-      const source = hasProtocol(id) ? "http" : "filesystem";
-      if (!context.sources[source]) {
-        throw createError("Unknown source", 400, source);
+    // Resolve Storage
+    const storage = hasProtocol(id)
+      ? options.httpStorage || options.storage
+      : options.storage || options.httpStorage;
+    if (!storage) {
+      throw createError("No storage configured!", 500);
+    }
+
+    // Resolve Resource
+    const getSourceMeta = cachedPromise(async () => {
+      const sourceMeta = await storage.getMeta(id, opts);
+      if (!sourceMeta) {
+        throw createError(`Resource not found: ${id}`, 404);
       }
-      return context.sources[source](id, requestOptions);
+      return {
+        maxAge:
+          typeof sourceMeta.maxAge === "string"
+            ? Number.parseInt(sourceMeta.maxAge)
+            : sourceMeta.maxAge,
+        mtime: sourceMeta.mtime ? new Date(sourceMeta.mtime) : undefined,
+      } satisfies IPXSourceMeta;
+    });
+    const getSourceData = cachedPromise(async () => {
+      const sourceData = await storage.getData(id, opts);
+      if (!sourceData) {
+        throw createError(`Resource not found: ${id}`, 404);
+      }
+      return Buffer.from(sourceData);
     });
 
-    const getData = cachedPromise(async () => {
-      const source = await getSource();
-      const data = await source.getData();
+    const process = cachedPromise(async () => {
+      // const _sourceMeta = await getSourceMeta();
+      const sourceData = await getSourceData();
 
-      // Extract source meta
-      const meta = imageMeta(data) as ImageMeta;
+      // Detect source image meta
+      const imageMeta = getImageMeta(sourceData) as ImageMeta;
 
       // Determine format
       let mFormat = modifiers.f || modifiers.format;
@@ -123,16 +128,16 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
       const format =
         mFormat && SUPPORTED_FORMATS.has(mFormat)
           ? mFormat
-          : SUPPORTED_FORMATS.has(meta.type) // eslint-disable-line unicorn/no-nested-ternary
-          ? meta.type
+          : SUPPORTED_FORMATS.has(imageMeta.type) // eslint-disable-line unicorn/no-nested-ternary
+          ? imageMeta.type
           : "jpeg";
 
-      // Use original svg if format not specified
-      if (meta.type === "svg" && !mFormat) {
+      // Use original SVG if format is not specified
+      if (imageMeta.type === "svg" && !mFormat) {
         return {
-          data,
+          data: sourceData,
           format: "svg+xml",
-          meta,
+          meta: imageMeta,
         };
       }
 
@@ -143,11 +148,12 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
         modifiers.a !== undefined ||
         format === "gif";
 
-      const Sharp = (await import("sharp").then(
-        (r) => r.default || r,
-      )) as typeof import("sharp");
-      let sharp = Sharp(data, { animated, ...options.sharp });
-      Object.assign((sharp as any).options, options.sharp);
+      const Sharp = await getSharp();
+      let sharp = Sharp(sourceData, { animated, ...options.sharpOptions });
+      Object.assign(
+        (sharp as unknown as { options: SharpOptions }).options,
+        options.sharpOptions,
+      );
 
       // Resolve modifiers to handlers and sort
       const handlers = Object.entries(modifiers)
@@ -164,7 +170,7 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
         });
 
       // Apply handlers
-      const handlerContext: any = { meta };
+      const handlerContext: any = { meta: imageMeta };
       for (const h of handlers) {
         sharp = applyHandler(handlerContext, sharp, h.handler, h.args) || sharp;
       }
@@ -178,18 +184,18 @@ export function createIPX(userOptions: Partial<IPXOptions>): IPX {
       }
 
       // Convert to buffer
-      const newData = await sharp.toBuffer();
+      const processedImage = await sharp.toBuffer();
 
       return {
-        data: newData,
+        data: processedImage,
         format,
-        meta,
+        meta: imageMeta,
       };
     });
 
     return {
-      src: getSource,
-      data: getData,
+      getSourceMeta,
+      process,
     };
   };
 }

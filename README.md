@@ -7,24 +7,39 @@ High performance, secure and easy to use image proxy based on [sharp](https://gi
 
 ## Using CLI
 
-You can use `ipx` command to start server using:
+You can use `ipx` command to start server.
+
+Using `npx`:
 
 ```bash
 npx ipx@latest
 ```
 
-The default server directory is the current working directory.
+Usin `bun`
+
+```bash
+bun x ipx@latest
+```
+
+The default serve directory is the current working directory.
 
 ## Programatic API
 
 You can use IPX as a middleware or directly use IPX interface.
 
 ```ts
-import { createIPX, createIPXMiddleware } from "ipx";
+import {
+  createIPX,
+  createIPXMiddleware,
+  ipxFSStorage,
+  ipxHttpStorage,
+} from "./src";
 
-const ipx = createIPX({ domains: ["unjs.io"] });
+const ipx = createIPX({
+  storage: ipxFSStorage({ dir: "./public" }),
+  httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
+});
 
-// (req, res) => void
 const ipxMiddleware = createIPXMiddleware(ipx);
 ```
 
@@ -33,10 +48,6 @@ const ipxMiddleware = createIPXMiddleware(ipx);
 ```js
 import { createIPX, createIPXMiddleware } from "ipx";
 import { listen } from "listhen";
-import { createApp, fromNodeMiddleware, toNodeListener } from "h3";
-
-const ipx = createIPX({});
-const ipxMiddleware = createIPXMiddleware(ipx);
 
 const app = createApp().use("/", fromNodeMiddleware(ipxMiddleware));
 
@@ -46,19 +57,15 @@ listen(toNodeListener(app));
 **Example:** Using [express](https://expressjs.com):
 
 ```js
-import { createIPX, createIPXMiddleware } from "ipx";
 import { listen } from "listhen";
 import express from "express";
-
-const ipx = createIPX({});
-const ipxMiddleware = createIPXMiddleware(ipx);
 
 const app = express().use("/", ipxMiddleware);
 
 listen(app);
 ```
 
-## Examples
+## URL Examples
 
 Get original image:
 
@@ -75,6 +82,42 @@ Keep original format (`png`) and set width to `200`:
 Resize to `200x200px` using `embed` method and change format to `webp`:
 
 `/embed,f_webp,s_200x200/static/buffalo.png`
+
+## Config
+
+You can universally customize IPX configuration using `IPX_*` environment variables.
+
+- `IPX_ALIAS`
+
+  - Default: `{}`
+
+### Filesystem Source Options
+
+(enabled by default with CLI only)
+
+#### `IPX_FS_DIR`
+
+- Default: `.` (current working directory)
+
+#### `IPX_FS_MAX_AGE`
+
+- Default: `300`
+
+### HTTP(s) Source Options
+
+(enabled by default with CLI only)
+
+#### `IPX_HTTP_DOMAINS`
+
+- Default: `[]`
+
+#### `IPX_HTTP_MAX_AGE`
+
+- Default: `300`
+
+- `IPX_HTTP_FETCH_OPTIONS`
+
+  - Default: `{}`
 
 ## Modifiers
 
@@ -106,30 +149,6 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 | tint           | [Docs](https://sharp.pixelplumbing.com/api-colour#tint)         | `/tint_1098123/buffalo.png`                          |
 | grayscale      | [Docs](https://sharp.pixelplumbing.com/api-colour#grayscale)    | `/grayscale/buffalo.png`                             |
 | animated       | -                                                               | `/animated/buffalo.gif`                              | Experimental                                                                                                                                                      |
-
-## Config
-
-Config can be customized using `IPX_*` environment variables.
-
-- `IPX_DIR`
-
-  - Default: `.` (current working directory)
-
-- `IPX_DOMAINS`
-
-  - Default: `[]`
-
-- `IPX_MAX_AGE`
-
-  - Default: `300`
-
-- `IPX_ALIAS`
-
-  - Default: `{}`
-
-- `IPX_FETCH_OPTIONS`
-
-  - Default: `{}`
 
 ## License
 

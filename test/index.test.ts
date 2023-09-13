@@ -2,15 +2,15 @@ import { listen } from "listhen";
 import { resolve } from "pathe";
 import { describe, it, expect, beforeAll } from "vitest";
 import serveHandler from "serve-handler";
-import { IPX, createIPX } from "../src";
+import { IPX, createIPX, ipxFSStorage, ipxHttpStorage } from "../src";
 
 describe("ipx", () => {
   let ipx: IPX;
   beforeAll(() => {
     ipx = createIPX({
       // eslint-disable-next-line unicorn/prefer-module
-      dir: resolve(__dirname, "assets"),
-      domains: ["localhost:3000"],
+      storage: ipxFSStorage({ dir: resolve(__dirname, "assets") }),
+      httpStorage: ipxHttpStorage({ domains: ["localhost:3000"] }),
     });
   });
 
@@ -23,7 +23,7 @@ describe("ipx", () => {
       { port: 0 },
     );
     const source = await ipx(`${listener.url}/bliss.jpg`);
-    const { data, format } = await source.data();
+    const { data, format } = await source.process();
     expect(data).toBeInstanceOf(Buffer);
     expect(format).toBe("jpeg");
     await listener.close();
@@ -31,7 +31,7 @@ describe("ipx", () => {
 
   it("local file", async () => {
     const source = await ipx("bliss.jpg");
-    const { data, format } = await source.data();
+    const { data, format } = await source.process();
     expect(data).toBeInstanceOf(Buffer);
     expect(format).toBe("jpeg");
   });
