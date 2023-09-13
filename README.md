@@ -9,7 +9,7 @@ High performance, secure and easy to use image proxy based on [sharp](https://gi
 
 You can use `ipx` command to start server.
 
-Using npx:
+Using `npx`:
 
 ```bash
 npx ipx@latest
@@ -40,7 +40,6 @@ const ipx = createIPX({
   httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
 });
 
-// (req, res) => void
 const ipxMiddleware = createIPXMiddleware(ipx);
 ```
 

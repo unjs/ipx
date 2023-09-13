@@ -4,7 +4,7 @@ import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import type { SharpOptions } from "sharp";
 import type { ImageMeta, IPXStorage } from "./types";
 import { HandlerName, applyHandler, getHandler } from "./handlers";
-import { cachedPromise, getEnv as getEnvironment, createError } from "./utils";
+import { cachedPromise, getEnv, createError } from "./utils";
 
 type IPXSourceMeta = { mtime?: Date; maxAge?: number };
 
@@ -47,8 +47,8 @@ const SUPPORTED_FORMATS = new Set([
 
 export function createIPX(userOptions: IPXOptions): IPX {
   const options: IPXOptions = defu(userOptions, {
-    alias: getEnvironment<Record<string, string>>("IPX_ALIAS", {}),
-    maxAge: getEnvironment<number>("IPX_MAX_AGE", 300),
+    alias: getEnv<Record<string, string>>("IPX_ALIAS", {}),
+    maxAge: getEnv<number>("IPX_MAX_AGE", 300),
     sharpOptions: {},
   } satisfies Omit<IPXOptions, "storage">);
 

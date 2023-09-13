@@ -7,10 +7,8 @@ import { ipxHttpStorage } from "./storage/http";
 
 async function main() {
   const ipx = createIPX({
-    storage: ipxFSStorage({ dir: process.env.IPX_DIR || "." }),
-    httpStorage: ipxHttpStorage({
-      domains: ["picsum.photos"],
-    }),
+    storage: ipxFSStorage(),
+    httpStorage: ipxHttpStorage(),
   });
 
   const middleware = createIPXMiddleware(ipx);

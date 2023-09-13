@@ -1,5 +1,5 @@
 import { fetch } from "node-fetch-native";
-import { createError } from "../utils";
+import { createError, getEnv } from "../utils";
 import type { IPXStorage } from "../types";
 
 export type HTTPStorageOptions = {
@@ -10,13 +10,13 @@ export type HTTPStorageOptions = {
 
 const HTTP_RE = /^https?:\/\//;
 
-export function ipxHttpStorage(_options: HTTPStorageOptions): IPXStorage {
-  let _domains = _options.domains || process.env.IPX_HTTP_DOMAINS || [];
-  const defaultMaxAge = _options.maxAge || process.env.IPX_HTTP_MAX_AGE;
+export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
+  let _domains =
+    _options.domains || getEnv<string | string[]>("IPX_HTTP_DOMAINS") || [];
+  const defaultMaxAge =
+    _options.maxAge || getEnv<string | number>("IPX_HTTP_MAX_AGE");
   const fetchOptions =
-    _options.fetchOptions ||
-    JSON.parse(process.env.IPX_HTTP_FETCH_OPTIONS || "null") ||
-    {};
+    _options.fetchOptions || getEnv("IPX_HTTP_FETCH_OPTIONS") || {};
 
   if (typeof _domains === "string") {
     _domains = _domains.split(",").map((s) => s.trim());

@@ -1,6 +1,6 @@
 import type { Stats } from "node:fs";
 import { resolve, parse, join } from "pathe";
-import { cachedPromise, createError } from "../utils";
+import { cachedPromise, createError, getEnv } from "../utils";
 import type { IPXStorage } from "../types";
 
 export type NodeFSSOptions = {
@@ -8,9 +8,9 @@ export type NodeFSSOptions = {
   maxAge?: number;
 };
 
-export function ipxFSStorage(_options: NodeFSSOptions): IPXStorage {
-  const rootDir = resolve(_options.dir || process.env.IPX_FS_DIR || ".");
-  const maxAge = _options.maxAge || process.env.IPX_FS_MAX_AGE;
+export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
+  const rootDir = resolve(_options.dir || getEnv("IPX_FS_DIR") || ".");
+  const maxAge = _options.maxAge || getEnv("IPX_FS_MAX_AGE");
 
   const _resolve = (id: string) => {
     const resolved = join(rootDir, id);

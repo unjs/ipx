@@ -1,7 +1,7 @@
 import destr from "destr";
 
-export function getEnv<T>(name: string, defaultValue: T): T {
-  return destr(process.env[name]) ?? defaultValue;
+export function getEnv<T>(name: string): T | undefined {
+  return name in process.env ? destr(process.env[name]) : undefined;
 }
 
 export function cachedPromise<T extends (...arguments_: any[]) => any>(
