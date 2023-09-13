@@ -1,12 +1,12 @@
 import { defu } from "defu";
 import { imageMeta as getImageMeta } from "image-meta";
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
-import { joinKeys } from "unstorage";
 import type { SharpOptions } from "sharp";
-import type { ImageMeta } from "./types";
+import type { ImageMeta, IPXStorage } from "./types";
 import { HandlerName, applyHandler, getHandler } from "./handlers";
 import { cachedPromise, getEnv as getEnvironment, createError } from "./utils";
-import { IPXStorage } from "./storage";
+
+type IPXSourceMeta = { mtime?: Date; maxAge?: number };
 
 export type IPX = (
   id: string,
@@ -15,7 +15,7 @@ export type IPX = (
   >,
   requestOptions?: any,
 ) => {
-  getSourceMeta: () => Promise<{ mtime?: Date; maxAge?: number }>;
+  getSourceMeta: () => Promise<IPXSourceMeta>;
   process: () => Promise<{
     data: Buffer;
     meta: ImageMeta;
@@ -95,7 +95,10 @@ export function createIPX(userOptions: IPXOptions): IPX {
       if (!sourceMeta) {
         throw createError(`Resource not found: ${id}`, 404);
       }
-      return sourceMeta;
+      return {
+        maxAge: options.maxAge,
+        mtime: sourceMeta.mtime ? new Date(sourceMeta.mtime) : undefined,
+      } satisfies IPXSourceMeta;
     });
     const getSourceData = cachedPromise(async () => {
       const sourceData = await storage.getData(id, opts);

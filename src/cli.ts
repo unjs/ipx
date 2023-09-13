@@ -2,12 +2,12 @@ import consola from "consola";
 import { listen } from "listhen";
 import { createIPX } from "./ipx";
 import { createIPXMiddleware } from "./middleware";
-import { nodeFS } from "./storage/node-fs";
+import { nodeFSStorage } from "./storage/node-fs";
 import { httpStorage } from "./storage/http";
 
 async function main() {
   const ipx = createIPX({
-    storage: nodeFS({ dir: "./test/fixture" }),
+    storage: nodeFSStorage({ dir: "./test/fixture" }),
     httpStorage: httpStorage({
       domains: ["picsum.photos"],
     }),
