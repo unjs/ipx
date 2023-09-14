@@ -7,6 +7,9 @@ High performance, secure and easy-to-use image optimizer.
 
 Powered by [sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/libvips/libvips).
 
+> [!IMPORTANT]  
+> This is the development branch for IPX v2. Check out [ipx/v1](https://github.com/unjs/ipx/tree/v1) for latest stable docs.
+
 ## Using CLI
 
 You can use `ipx` command to start server.
