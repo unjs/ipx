@@ -30,7 +30,7 @@ dependencies:
     specifier: ^0.1.1
     version: 0.1.1
   listhen:
-    specifier: ^1.5.2
+    specifier: ^1.5.0
     version: 1.5.2
   node-fetch-native:
     specifier: ^1.4.0
