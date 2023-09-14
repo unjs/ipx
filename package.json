@@ -32,7 +32,7 @@
     "lint:fix": "eslint --ext .ts . --fix && prettier -w src test",
     "prepack": "pnpm build",
     "release": "pnpm test && changelogen --release --push && npm publish",
-    "prerelease": "pnpm test && pnpm build && changelogen --release --prerelease --push --publish --publishTag v2",
+    "prerelease": "pnpm test && pnpm build && changelogen --release --prerelease --push --publish --publishTag next-2",
     "start": "node bin/ipx.js",
     "test": "pnpm lint && vitest run --coverage"
   },
