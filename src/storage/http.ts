@@ -1,5 +1,6 @@
 import { fetch } from "node-fetch-native";
-import { createError, getEnv } from "../utils";
+import { createError } from "h3";
+import { getEnv } from "../utils";
 import type { IPXStorage } from "../types";
 
 export type HTTPStorageOptions = {
@@ -37,10 +38,16 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
   function validateId(id: string, opts: { bypassDomain?: boolean } = {}) {
     const url = new URL(decodeURIComponent(id));
     if (!url.hostname) {
-      throw createError("Hostname is missing", 403, id);
+      throw createError({
+        statusCode: 403,
+        message: `Hostname is missing: ${id}`,
+      });
     }
     if (!opts?.bypassDomain && !domains.has(url.hostname)) {
-      throw createError("Forbidden host", 403, url.hostname);
+      throw createError({
+        statusCode: 403,
+        message: `Forbidden host: ${url.hostname}`,
+      });
     }
     return url.toString();
   }
@@ -48,11 +55,10 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
   // eslint-disable-next-line unicorn/consistent-function-scoping
   function parseResponse(response: Response) {
     if (!response.ok) {
-      throw createError(
-        "Fetch error",
-        response.status || 500,
-        response.statusText,
-      );
+      throw createError({
+        statusCode: response.status || 500,
+        message: `Fetch error: ${response.statusText}`,
+      });
     }
 
     let maxAge = defaultMaxAge;

@@ -10,9 +10,9 @@ import {
   toNodeListener,
   toPlainHandler,
   toWebHandler,
+  createError,
 } from "h3";
 import { IPX } from "./ipx";
-import { createError } from "./utils";
 
 const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/;
@@ -28,10 +28,16 @@ export function createIPXH3Handler(ipx: IPX) {
 
     // Validate
     if (!modifiersString) {
-      throw createError("Modifiers are missing", 400, event.path);
+      throw createError({
+        statusCode: 400,
+        message: `Modifiers are missing: ${id}`,
+      });
     }
     if (!id || id === "/") {
-      throw createError("Resource id is missing", 400, event.path);
+      throw createError({
+        statusCode: 400,
+        message: `Resource id is missing: ${event.path}`,
+      });
     }
 
     // Contruct modifiers
@@ -113,7 +119,7 @@ export function createIPXH3Handler(ipx: IPX) {
 }
 
 export function createIPXH3App(ipx: IPX) {
-  const app = createApp();
+  const app = createApp({ debug: true });
   app.use(createIPXH3Handler(ipx));
   return app;
 }

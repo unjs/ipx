@@ -2,9 +2,10 @@ import { defu } from "defu";
 import { imageMeta as getImageMeta } from "image-meta";
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import type { SharpOptions } from "sharp";
+import { createError } from "h3";
 import type { ImageMeta, IPXStorage } from "./types";
 import { HandlerName, applyHandler, getHandler } from "./handlers";
-import { cachedPromise, getEnv, createError } from "./utils";
+import { cachedPromise, getEnv } from "./utils";
 
 type IPXSourceMeta = { mtime?: Date; maxAge?: number };
 
@@ -47,8 +48,8 @@ const SUPPORTED_FORMATS = new Set([
 
 export function createIPX(userOptions: IPXOptions): IPX {
   const options: IPXOptions = defu(userOptions, {
-    alias: getEnv<Record<string, string>>("IPX_ALIAS", {}),
-    maxAge: getEnv<number>("IPX_MAX_AGE", 300),
+    alias: getEnv<Record<string, string>>("IPX_ALIAS") || {},
+    maxAge: getEnv<number>("IPX_MAX_AGE") || 300,
     sharpOptions: {},
   } satisfies Omit<IPXOptions, "storage">);
 
@@ -70,7 +71,10 @@ export function createIPX(userOptions: IPXOptions): IPX {
   return function ipx(id, modifiers = {}, opts = {}) {
     // Validate id
     if (!id) {
-      throw createError("resource `id` is missing", 400);
+      throw createError({
+        statusCode: 400,
+        message: `Resource id is missing`,
+      });
     }
 
     // Enforce leading slash for non absolute urls
@@ -88,14 +92,20 @@ export function createIPX(userOptions: IPXOptions): IPX {
       ? options.httpStorage || options.storage
       : options.storage || options.httpStorage;
     if (!storage) {
-      throw createError("No storage configured!", 500);
+      throw createError({
+        statusCode: 500,
+        message: "No storage configured!",
+      });
     }
 
     // Resolve Resource
     const getSourceMeta = cachedPromise(async () => {
       const sourceMeta = await storage.getMeta(id, opts);
       if (!sourceMeta) {
-        throw createError(`Resource not found: ${id}`, 404);
+        throw createError({
+          statusCode: 404,
+          message: `Resource not found: ${id}`,
+        });
       }
       return {
         maxAge:
@@ -108,7 +118,10 @@ export function createIPX(userOptions: IPXOptions): IPX {
     const getSourceData = cachedPromise(async () => {
       const sourceData = await storage.getData(id, opts);
       if (!sourceData) {
-        throw createError(`Resource not found: ${id}`, 404);
+        throw createError({
+          statusCode: 404,
+          message: `Resource not found: ${id}`,
+        });
       }
       return Buffer.from(sourceData);
     });
