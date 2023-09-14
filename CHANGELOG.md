@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v2.0.0-0
+
+[compare changes](https://github.com/unjs/ipx/compare/v1.3.0...v2.0.0-0)
+
+### 🚀 Enhancements
+
+- **cli:** ⚠️  Rewrite with citty ([#167](https://github.com/unjs/ipx/pull/167))
+- Reimplement server with h3 ([#168](https://github.com/unjs/ipx/pull/168))
+
+### 💅 Refactors
+
+- ⚠️  Rewrite storage system ([#164](https://github.com/unjs/ipx/pull/164))
+
+### 📖 Documentation
+
+- Add note about branch ([4883457](https://github.com/unjs/ipx/commit/4883457))
+
+### 🏡 Chore
+
+- Update lockfile ([58df066](https://github.com/unjs/ipx/commit/58df066))
+- Add prerelease script ([0c5a2d0](https://github.com/unjs/ipx/commit/0c5a2d0))
+- Update prerelease script ([8299814](https://github.com/unjs/ipx/commit/8299814))
+
+#### ⚠️ Breaking Changes
+
+- **cli:** ⚠️  Rewrite with citty ([#167](https://github.com/unjs/ipx/pull/167))
+- ⚠️  Rewrite storage system ([#164](https://github.com/unjs/ipx/pull/164))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v1.3.0
 
 [compare changes](https://github.com/unjs/ipx/compare/v1.2.0...v1.3.0)
