@@ -6,7 +6,7 @@ import {
 } from "listhen/cli";
 import { name, version, description } from "../package.json";
 import { createIPX } from "./ipx";
-import { createIPXMiddleware } from "./middleware";
+import { createIPXNodeServer } from "./server";
 import { ipxFSStorage } from "./storage/node-fs";
 import { ipxHttpStorage } from "./storage/http";
 
@@ -37,8 +37,7 @@ const serve = defineCommand({
         domains: args.domains,
       }),
     });
-    const middleware = createIPXMiddleware(ipx);
-    await listen(middleware, {
+    await listen(createIPXNodeServer(ipx), {
       name: "IPX",
       ...parseListhenArgs(args),
     });

@@ -117,9 +117,13 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 
 - Default: `300`
 
-- `IPX_HTTP_FETCH_OPTIONS`
+#### `IPX_HTTP_FETCH_OPTIONS`
 
-  - Default: `{}`
+- Default: `{}`
+
+#### `IPX_HTTP_ALLOW_ALL_DOMAINS`
+
+- Default: `false`
 
 ## Modifiers
 

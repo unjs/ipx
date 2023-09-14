@@ -1,16 +1,19 @@
 import { fetch } from "node-fetch-native";
-import { createError, getEnv } from "../utils";
+import { createError } from "h3";
+import { getEnv } from "../utils";
 import type { IPXStorage } from "../types";
 
 export type HTTPStorageOptions = {
   fetchOptions?: RequestInit;
   maxAge?: number;
   domains?: string | string[];
+  allowAllDomains?: boolean;
 };
 
 const HTTP_RE = /^https?:\/\//;
 
 export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
+  const allowAllDomains = getEnv("IPX_HTTP_ALLOW_ALL_DOMAINS") ?? false;
   let _domains =
     _options.domains || getEnv<string | string[]>("IPX_HTTP_DOMAINS") || [];
   const defaultMaxAge =
@@ -34,13 +37,19 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
   );
 
   // eslint-disable-next-line unicorn/consistent-function-scoping
-  function validateId(id: string, opts: { bypassDomain?: boolean } = {}) {
+  function validateId(id: string) {
     const url = new URL(decodeURIComponent(id));
     if (!url.hostname) {
-      throw createError("Hostname is missing", 403, id);
+      throw createError({
+        statusCode: 403,
+        message: `Hostname is missing: ${id}`,
+      });
     }
-    if (!opts?.bypassDomain && !domains.has(url.hostname)) {
-      throw createError("Forbidden host", 403, url.hostname);
+    if (!allowAllDomains && !domains.has(url.hostname)) {
+      throw createError({
+        statusCode: 403,
+        message: `Forbidden host: ${url.hostname}`,
+      });
     }
     return url.toString();
   }
@@ -48,11 +57,10 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
   // eslint-disable-next-line unicorn/consistent-function-scoping
   function parseResponse(response: Response) {
     if (!response.ok) {
-      throw createError(
-        "Fetch error",
-        response.status || 500,
-        response.statusText,
-      );
+      throw createError({
+        statusCode: response.status || 500,
+        message: `Fetch error: ${response.statusText}`,
+      });
     }
 
     let maxAge = defaultMaxAge;
@@ -75,8 +83,8 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
 
   return {
     name: "ipx:http",
-    async getMeta(id, opts) {
-      const url = validateId(id, opts);
+    async getMeta(id) {
+      const url = validateId(id);
       try {
         const response = await fetch(url, { ...fetchOptions, method: "HEAD" });
         const { maxAge, mtime } = parseResponse(response);
@@ -85,8 +93,8 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
         return {};
       }
     },
-    async getData(id, opts) {
-      const url = validateId(id, opts);
+    async getData(id) {
+      const url = validateId(id);
       const response = await fetch(url, { ...fetchOptions, method: "GET" });
       return response.arrayBuffer();
     },

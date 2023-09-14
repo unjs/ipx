@@ -8,6 +8,9 @@ dependencies:
   '@fastify/accept-negotiator':
     specifier: ^1.1.0
     version: 1.1.0
+  citty:
+    specifier: ^0.1.4
+    version: 0.1.4
   consola:
     specifier: ^3.2.3
     version: 3.2.3
@@ -18,6 +21,9 @@ dependencies:
     specifier: ^2.0.1
     version: 2.0.1
   etag:
+    specifier: ^1.8.1
+    version: 1.8.1
+  h3:
     specifier: ^1.8.1
     version: 1.8.1
   image-meta:
@@ -41,9 +47,6 @@ dependencies:
   unstorage:
     specifier: ^1.9.0
     version: 1.9.0
-  xss:
-    specifier: ^1.0.14
-    version: 1.0.14
 
 devDependencies:
   '@types/etag':
@@ -1746,10 +1749,6 @@ packages:
     resolution: {integrity: sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==}
     dev: true
 
-  /commander@2.20.3:
-    resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
-    dev: false
-
   /commondir@1.0.1:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
     dev: true
@@ -1786,10 +1785,6 @@ packages:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
-
-  /cssfilter@0.0.10:
-    resolution: {integrity: sha512-FAaLDaplstoRsDR8XGYH51znUN0UY7nMc6Z9/fvE8EXGwvJE9hu7W2vHwx1+bd6gCYnln9nLbzxFTrcO9YQDZw==}
-    dev: false
 
   /debug@3.2.7:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
@@ -4916,15 +4911,6 @@ packages:
 
   /wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
-
-  /xss@1.0.14:
-    resolution: {integrity: sha512-og7TEJhXvn1a7kzZGQ7ETjdQVS2UfZyTlsEdDOqvQF7GoxNfY+0YLCzBy1kPdsDDx4QuNAonQPddpsn6Xl/7sw==}
-    engines: {node: '>= 0.10.0'}
-    hasBin: true
-    dependencies:
-      commander: 2.20.3
-      cssfilter: 0.0.10
-    dev: false
 
   /yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}

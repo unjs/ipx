@@ -1,6 +1,7 @@
 import type { Stats } from "node:fs";
 import { resolve, parse, join } from "pathe";
-import { cachedPromise, createError, getEnv } from "../utils";
+import { createError } from "h3";
+import { cachedPromise, getEnv } from "../utils";
 import type { IPXStorage } from "../types";
 
 export type NodeFSSOptions = {
@@ -15,7 +16,10 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
   const _resolve = (id: string) => {
     const resolved = join(rootDir, id);
     if (!isValidPath(resolved) || !resolved.startsWith(rootDir)) {
-      throw createError("Forbidden path", 403, id);
+      throw createError({
+        statusCode: 403,
+        message: `Forbidden path: ${id}`,
+      });
     }
     return resolved;
   };
@@ -31,15 +35,22 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
       try {
         const fs = await _getFS();
         stats = await fs.stat(fsPath);
-      } catch (error_: any) {
-        const error =
-          error_.code === "ENOENT"
-            ? createError("File not found", 404, fsPath)
-            : createError("File access error " + error_.code, 403, fsPath);
-        throw error;
+      } catch (error: any) {
+        throw error.code === "ENOENT"
+          ? createError({
+              statusCode: 404,
+              message: `File not found: ${fsPath}`,
+            })
+          : createError({
+              statusCode: 403,
+              message: `File access error: (${error.code}) ${fsPath}`,
+            });
       }
       if (!stats.isFile()) {
-        throw createError("Path should be a file", 400, fsPath);
+        throw createError({
+          statusCode: 400,
+          message: `Path should be a file: ${fsPath}`,
+        });
       }
 
       return {
