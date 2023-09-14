@@ -42,7 +42,7 @@
     "destr": "^2.0.1",
     "etag": "^1.8.1",
     "image-meta": "^0.1.1",
-    "listhen": "^1.5.0",
+    "listhen": "^1.5.2",
     "node-fetch-native": "^1.4.0",
     "pathe": "^1.1.1",
     "sharp": "^0.32.5",
