@@ -38,7 +38,7 @@ import {
   createIPXMiddleware,
   ipxFSStorage,
   ipxHttpStorage,
-} from "./src";
+} from "ipx";
 
 const ipx = createIPX({
   storage: ipxFSStorage({ dir: "./public" }),
