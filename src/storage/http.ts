@@ -1,4 +1,4 @@
-import { fetch } from "node-fetch-native";
+import { ofetch } from "ofetch";
 import { createError } from "h3";
 import { getEnv } from "../utils";
 import type { IPXStorage } from "../types";
@@ -58,14 +58,6 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
 
   // eslint-disable-next-line unicorn/consistent-function-scoping
   function parseResponse(response: Response) {
-    if (!response.ok) {
-      throw createError({
-        statusCode: response.status || 500,
-        statusText: response.statusText || `IPX_FETCH_ERROR`,
-        message: `Fetch error: [${response.status}] [${response.statusText}]`,
-      });
-    }
-
     let maxAge = defaultMaxAge;
     const _cacheControl = response.headers.get("cache-control");
     if (_cacheControl) {
@@ -89,7 +81,10 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     async getMeta(id) {
       const url = validateId(id);
       try {
-        const response = await fetch(url, { ...fetchOptions, method: "HEAD" });
+        const response = await ofetch.raw(url, {
+          ...fetchOptions,
+          method: "HEAD",
+        });
         const { maxAge, mtime } = parseResponse(response);
         return { mtime, maxAge };
       } catch {
@@ -98,8 +93,12 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     },
     async getData(id) {
       const url = validateId(id);
-      const response = await fetch(url, { ...fetchOptions, method: "GET" });
-      return response.arrayBuffer();
+      const response = await ofetch(url, {
+        ...fetchOptions,
+        method: "GET",
+        responseType: "arrayBuffer",
+      });
+      return response;
     },
   };
 }
