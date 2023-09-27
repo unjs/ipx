@@ -42,12 +42,14 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     if (!url.hostname) {
       throw createError({
         statusCode: 403,
+        statusText: `IPX_MISSING_HOSTNAME`,
         message: `Hostname is missing: ${id}`,
       });
     }
     if (!allowAllDomains && !domains.has(url.hostname)) {
       throw createError({
         statusCode: 403,
+        statusText: `IPX_FORBIDDEN_HOST`,
         message: `Forbidden host: ${url.hostname}`,
       });
     }
@@ -59,7 +61,8 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     if (!response.ok) {
       throw createError({
         statusCode: response.status || 500,
-        message: `Fetch error: ${response.statusText}`,
+        statusText: response.statusText || `IPX_FETCH_ERROR`,
+        message: `Fetch error: [${response.status}] [${response.statusText}]`,
       });
     }
 

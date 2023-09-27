@@ -73,6 +73,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
     if (!id) {
       throw createError({
         statusCode: 400,
+        statusText: `IPX_MISSING_ID`,
         message: `Resource id is missing`,
       });
     }
@@ -94,6 +95,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
     if (!storage) {
       throw createError({
         statusCode: 500,
+        statusText: `IPX_NO_STORAGE`,
         message: "No storage configured!",
       });
     }
@@ -104,6 +106,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
       if (!sourceMeta) {
         throw createError({
           statusCode: 404,
+          statusText: `IPX_RESOURCE_NOT_FOUND`,
           message: `Resource not found: ${id}`,
         });
       }
@@ -120,6 +123,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
       if (!sourceData) {
         throw createError({
           statusCode: 404,
+          statusText: `IPX_RESOURCE_NOT_FOUND`,
           message: `Resource not found: ${id}`,
         });
       }
@@ -131,7 +135,16 @@ export function createIPX(userOptions: IPXOptions): IPX {
       const sourceData = await getSourceData();
 
       // Detect source image meta
-      const imageMeta = getImageMeta(sourceData) as ImageMeta;
+      let imageMeta: ImageMeta;
+      try {
+        imageMeta = getImageMeta(sourceData) as ImageMeta;
+      } catch {
+        throw createError({
+          statusCode: 400,
+          statusText: `IPX_INVALID_IMAGE`,
+          message: `Cannot parse image metadata: ${id}`,
+        });
+      }
 
       // Determine format
       let mFormat = modifiers.f || modifiers.format;

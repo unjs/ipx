@@ -18,6 +18,7 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
     if (!isValidPath(resolved) || !resolved.startsWith(rootDir)) {
       throw createError({
         statusCode: 403,
+        statusText: `IPX_FORBIDDEN_PATH`,
         message: `Forbidden path: ${id}`,
       });
     }
@@ -39,16 +40,19 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
         throw error.code === "ENOENT"
           ? createError({
               statusCode: 404,
+              statusText: `IPX_FILE_NOT_FOUND`,
               message: `File not found: ${id}`,
             })
           : createError({
               statusCode: 403,
-              message: `File access error: (${error.code}) ${id}`,
+              statusText: `IPX_FORBIDDEN_FILE`,
+              message: `File access forbidden: (${error.code}) ${id}`,
             });
       }
       if (!stats.isFile()) {
         throw createError({
           statusCode: 400,
+          statusText: `IPX_INVALID_FILE`,
           message: `Path should be a file: ${id}`,
         });
       }

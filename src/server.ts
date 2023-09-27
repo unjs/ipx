@@ -32,12 +32,14 @@ export function createIPXH3Handler(ipx: IPX) {
     if (!modifiersString) {
       throw createError({
         statusCode: 400,
+        statusText: `IPX_MISSING_MODIFIERS`,
         message: `Modifiers are missing: ${id}`,
       });
     }
     if (!id || id === "/") {
       throw createError({
         statusCode: 400,
+        statusText: `IPX_MISSING_ID`,
         message: `Resource id is missing: ${event.path}`,
       });
     }
@@ -124,9 +126,13 @@ export function createIPXH3Handler(ipx: IPX) {
       return await _handler(event);
     } catch (_error: unknown) {
       const error = createError(_error as H3Error);
-      setResponseStatus(event, error.statusCode, "IPXError");
+      setResponseStatus(event, error.statusCode, error.statusMessage);
       return {
-        error: "[IPXError] " + error.message,
+        error: {
+          message: `[${error.statusCode}] [${
+            error.statusMessage || "IPX_ERROR"
+          }] ${error.message}`,
+        },
       };
     }
   });
