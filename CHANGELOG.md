@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v2.0.0-1
+
+[compare changes](https://github.com/unjs/ipx/compare/v2.0.0-0...v2.0.0-1)
+
+### 🚀 Enhancements
+
+- Use `ofetch` to improve http error handling ([ac30512](https://github.com/unjs/ipx/commit/ac30512))
+
+### 💅 Refactors
+
+- Improve error handling ([9826cda](https://github.com/unjs/ipx/commit/9826cda))
+
+### 📖 Documentation
+
+- Typo ([dcd8d72](https://github.com/unjs/ipx/commit/dcd8d72))
+
+### 🏡 Chore
+
+- Update prerelease script ([26cb3e9](https://github.com/unjs/ipx/commit/26cb3e9))
+- Update docs ([b88925e](https://github.com/unjs/ipx/commit/b88925e))
+- Update lockfile ([ad2e7f9](https://github.com/unjs/ipx/commit/ad2e7f9))
+- Add alias to playground ([062305b](https://github.com/unjs/ipx/commit/062305b))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+- Sébastien Chopin ([@Atinux](http://github.com/Atinux))
+
 ## v2.0.0-0
 
 [compare changes](https://github.com/unjs/ipx/compare/v1.3.0...v2.0.0-0)
