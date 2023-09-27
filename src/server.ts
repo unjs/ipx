@@ -11,6 +11,8 @@ import {
   toPlainHandler,
   toWebHandler,
   createError,
+  H3Event,
+  H3Error,
 } from "h3";
 import { IPX } from "./ipx";
 
@@ -18,7 +20,7 @@ const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/;
 
 export function createIPXH3Handler(ipx: IPX) {
-  return defineEventHandler(async (event) => {
+  const _handler = async (event: H3Event) => {
     // Parse URL
     const [modifiersString = "", ...idSegments] = event.path
       .slice(1 /* leading slash */)
@@ -115,6 +117,18 @@ export function createIPXH3Handler(ipx: IPX) {
     setResponseHeader(event, "content-security-policy", "default-src 'none'");
 
     return data;
+  };
+
+  return defineEventHandler(async (event) => {
+    try {
+      return await _handler(event);
+    } catch (_error: unknown) {
+      const error = createError(_error as H3Error);
+      setResponseStatus(event, error.statusCode, "IPXError");
+      return {
+        error: "[IPXError] " + error.message,
+      };
+    }
   });
 }
 

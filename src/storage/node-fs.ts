@@ -39,17 +39,17 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
         throw error.code === "ENOENT"
           ? createError({
               statusCode: 404,
-              message: `File not found: ${fsPath}`,
+              message: `File not found: ${id}`,
             })
           : createError({
               statusCode: 403,
-              message: `File access error: (${error.code}) ${fsPath}`,
+              message: `File access error: (${error.code}) ${id}`,
             });
       }
       if (!stats.isFile()) {
         throw createError({
           statusCode: 400,
-          message: `Path should be a file: ${fsPath}`,
+          message: `Path should be a file: ${id}`,
         });
       }
 
