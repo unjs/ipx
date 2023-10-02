@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v1.3.1
+
+[compare changes](https://github.com/unjs/ipx/compare/v1.3.0...v1.3.1)
+
+### 🩹 Fixes
+
+- Update sharp to `^0.32.6` (v1) ([#177](https://github.com/unjs/ipx/pull/177))
+
+### 🏡 Chore
+
+- Update non-major dependencies ([6254052](https://github.com/unjs/ipx/commit/6254052))
+
+### 🤖 CI
+
+- Enable ci for v1 branch ([61e851b](https://github.com/unjs/ipx/commit/61e851b))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+- Matt Kane <m@mk.gg>
+
 ## v1.3.0
 
 [compare changes](https://github.com/unjs/ipx/compare/v1.2.0...v1.3.0)
