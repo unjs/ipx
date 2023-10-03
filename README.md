@@ -33,11 +33,24 @@ The default serve directory is the current working directory.
 You can use IPX as a middleware or directly use IPX interface.
 
 ```ts
+import { createIPX, ipxFSStorage, ipxHttpStorage } from "ipx";
+
+const ipx = createIPX({
+  storage: ipxFSStorage({ dir: "./public" }),
+  httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
+});
+```
+
+**Example**: Using with [unjs/h3](https://github.com/unjs/h3):
+
+```js
+import { listen } from "listhen";
+import { createApp, toNodeListener } from "h3";
 import {
   createIPX,
-  createIPXMiddleware,
   ipxFSStorage,
   ipxHttpStorage,
+  createIPXH3Handler,
 } from "ipx";
 
 const ipx = createIPX({
@@ -45,16 +58,7 @@ const ipx = createIPX({
   httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
 });
 
-const ipxMiddleware = createIPXMiddleware(ipx);
-```
-
-**Example**: Using with [unjs/h3](https://github.com/unjs/h3):
-
-```js
-import { createIPX, createIPXMiddleware } from "ipx";
-import { listen } from "listhen";
-
-const app = createApp().use("/", fromNodeMiddleware(ipxMiddleware));
+const app = createApp().use("/", createIPXH3Handler(ipx));
 
 listen(toNodeListener(app));
 ```
@@ -64,8 +68,19 @@ listen(toNodeListener(app));
 ```js
 import { listen } from "listhen";
 import express from "express";
+import {
+  createIPX,
+  ipxFSStorage,
+  ipxHttpStorage,
+  createIPXNodeServer,
+} from "ipx";
 
-const app = express().use("/", ipxMiddleware);
+const ipx = createIPX({
+  storage: ipxFSStorage({ dir: "./public" }),
+  httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
+});
+
+const app = express().use("/", createIPXNodeServer(ipx));
 
 listen(app);
 ```
