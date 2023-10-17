@@ -13,6 +13,7 @@ import {
   createError,
   H3Event,
   H3Error,
+  send,
 } from "h3";
 import { IPX } from "./ipx";
 
@@ -79,18 +80,10 @@ export function createIPXH3Handler(ipx: IPX) {
     // Get image meta from source
     const sourceMeta = await img.getSourceMeta();
 
-    // Caching headers
-    if (sourceMeta.mtime) {
-      if (
-        getRequestHeader(event, "if-modified-since") &&
-        new Date(getRequestHeader(event, "if-modified-since") || "") >=
-          sourceMeta.mtime
-      ) {
-        setResponseStatus(event, 304);
-        return null;
-      }
-      setResponseHeader(event, "last-modified", sourceMeta.mtime.toUTCString());
-    }
+    // Send CSP headers to prevent XSS
+    setResponseHeader(event, "content-security-policy", "default-src 'none'");
+
+    // Send Cache-Control header
     if (typeof sourceMeta.maxAge === "number") {
       setResponseHeader(
         event,
@@ -99,24 +92,36 @@ export function createIPXH3Handler(ipx: IPX) {
       );
     }
 
-    // Get converted image
-    const { data, format } = await img.process();
+    // Handle modified time if available
+    if (sourceMeta.mtime) {
+      // Send Last-Modified header
+      setResponseHeader(event, "last-modified", sourceMeta.mtime.toUTCString());
 
-    // ETag
-    const etag = getEtag(data);
-    setResponseHeader(event, "etag", etag);
-    if (etag && getRequestHeader(event, "if-none-match") === etag) {
-      setResponseStatus(event, 304);
-      return null;
+      // Check for last-modified request header
+      const _ifModifiedSince = getRequestHeader(event, "if-modified-since");
+      if (_ifModifiedSince && new Date(_ifModifiedSince) >= sourceMeta.mtime) {
+        setResponseStatus(event, 304);
+        return send(event);
+      }
     }
 
-    // Mime
+    // Process image
+    const { data, format } = await img.process();
+
+    // Generate and send ETag header
+    const etag = getEtag(data);
+    setResponseHeader(event, "etag", etag);
+
+    // Check for if-none-match request header
+    if (etag && getRequestHeader(event, "if-none-match") === etag) {
+      setResponseStatus(event, 304);
+      return send(event);
+    }
+
+    // Content-Type header
     if (format) {
       setResponseHeader(event, "content-type", `image/${format}`);
     }
-
-    // Prevent XSS
-    setResponseHeader(event, "content-security-policy", "default-src 'none'");
 
     return data;
   };
