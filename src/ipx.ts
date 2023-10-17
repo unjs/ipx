@@ -49,7 +49,7 @@ const SUPPORTED_FORMATS = new Set([
 export function createIPX(userOptions: IPXOptions): IPX {
   const options: IPXOptions = defu(userOptions, {
     alias: getEnv<Record<string, string>>("IPX_ALIAS") || {},
-    maxAge: getEnv<number>("IPX_MAX_AGE") || 300,
+    maxAge: getEnv<number>("IPX_MAX_AGE") ?? 60 /* 1 minute */,
     sharpOptions: {},
   } satisfies Omit<IPXOptions, "storage">);
 
@@ -110,11 +110,9 @@ export function createIPX(userOptions: IPXOptions): IPX {
           message: `Resource not found: ${id}`,
         });
       }
+      const _maxAge = sourceMeta.maxAge ?? options.maxAge;
       return {
-        maxAge:
-          typeof sourceMeta.maxAge === "string"
-            ? Number.parseInt(sourceMeta.maxAge)
-            : sourceMeta.maxAge,
+        maxAge: typeof _maxAge === "string" ? parseInt(_maxAge) : _maxAge,
         mtime: sourceMeta.mtime ? new Date(sourceMeta.mtime) : undefined,
       } satisfies IPXSourceMeta;
     });
