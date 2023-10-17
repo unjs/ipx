@@ -15,6 +15,7 @@ import {
   H3Error,
   send,
   appendResponseHeader,
+  getResponseHeader,
 } from "h3";
 import { IPX } from "./ipx";
 
@@ -82,11 +83,15 @@ export function createIPXH3Handler(ipx: IPX) {
     const sourceMeta = await img.getSourceMeta();
 
     // Send CSP headers to prevent XSS
-    setResponseHeader(event, "content-security-policy", "default-src 'none'");
+    sendResponseHeaderIfNotSet(
+      event,
+      "content-security-policy",
+      "default-src 'none'",
+    );
 
     // Send Cache-Control header
     if (typeof sourceMeta.maxAge === "number") {
-      setResponseHeader(
+      sendResponseHeaderIfNotSet(
         event,
         "cache-control",
         `max-age=${+sourceMeta.maxAge}, public, s-maxage=${+sourceMeta.maxAge}`,
@@ -96,7 +101,11 @@ export function createIPXH3Handler(ipx: IPX) {
     // Handle modified time if available
     if (sourceMeta.mtime) {
       // Send Last-Modified header
-      setResponseHeader(event, "last-modified", sourceMeta.mtime.toUTCString());
+      sendResponseHeaderIfNotSet(
+        event,
+        "last-modified",
+        sourceMeta.mtime.toUTCString(),
+      );
 
       // Check for last-modified request header
       const _ifModifiedSince = getRequestHeader(event, "if-modified-since");
@@ -111,7 +120,7 @@ export function createIPXH3Handler(ipx: IPX) {
 
     // Generate and send ETag header
     const etag = getEtag(data);
-    setResponseHeader(event, "etag", etag);
+    sendResponseHeaderIfNotSet(event, "etag", etag);
 
     // Check for if-none-match request header
     if (etag && getRequestHeader(event, "if-none-match") === etag) {
@@ -121,7 +130,7 @@ export function createIPXH3Handler(ipx: IPX) {
 
     // Content-Type header
     if (format) {
-      setResponseHeader(event, "content-type", `image/${format}`);
+      sendResponseHeaderIfNotSet(event, "content-type", `image/${format}`);
     }
 
     return data;
@@ -163,6 +172,12 @@ export function createIPXPlainServer(ipx: IPX) {
 }
 
 // --- Utils ---
+
+function sendResponseHeaderIfNotSet(event: H3Event, name: string, value: any) {
+  if (!getResponseHeader(event, name)) {
+    setResponseHeader(event, name, value);
+  }
+}
 
 function autoDetectFormat(acceptHeader: string, animated: boolean) {
   if (animated) {
