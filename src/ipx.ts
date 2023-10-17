@@ -112,7 +112,8 @@ export function createIPX(userOptions: IPXOptions): IPX {
       }
       const _maxAge = sourceMeta.maxAge ?? options.maxAge;
       return {
-        maxAge: typeof _maxAge === "string" ? parseInt(_maxAge) : _maxAge,
+        maxAge:
+          typeof _maxAge === "string" ? Number.parseInt(_maxAge) : _maxAge,
         mtime: sourceMeta.mtime ? new Date(sourceMeta.mtime) : undefined,
       } satisfies IPXSourceMeta;
     });
