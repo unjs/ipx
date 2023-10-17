@@ -14,6 +14,7 @@ import {
   H3Event,
   H3Error,
   send,
+  appendResponseHeader,
 } from "h3";
 import { IPX } from "./ipx";
 
@@ -70,7 +71,7 @@ export function createIPXH3Handler(ipx: IPX) {
       delete modifiers.format;
       if (autoFormat) {
         modifiers.format = autoFormat;
-        setResponseHeader(event, "vary", "Accept");
+        appendResponseHeader(event, "vary", "Accept");
       }
     }
 
