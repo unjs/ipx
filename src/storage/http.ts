@@ -8,6 +8,7 @@ export type HTTPStorageOptions = {
   maxAge?: number;
   domains?: string | string[];
   allowAllDomains?: boolean;
+  ignoreCacheControl?: boolean;
 };
 
 const HTTP_RE = /^https?:\/\//;
@@ -59,11 +60,13 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
   // eslint-disable-next-line unicorn/consistent-function-scoping
   function parseResponse(response: Response) {
     let maxAge = defaultMaxAge;
-    const _cacheControl = response.headers.get("cache-control");
-    if (_cacheControl) {
-      const m = _cacheControl.match(/max-age=(\d+)/);
-      if (m && m[1]) {
-        maxAge = Number.parseInt(m[1]);
+    if (_options.ignoreCacheControl) {
+      const _cacheControl = response.headers.get("cache-control");
+      if (_cacheControl) {
+        const m = _cacheControl.match(/max-age=(\d+)/);
+        if (m && m[1]) {
+          maxAge = Number.parseInt(m[1]);
+        }
       }
     }
 
