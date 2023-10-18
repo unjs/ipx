@@ -1,16 +1,14 @@
 import type { CustomPlugin } from "svgo";
 
-// Source: https://github.com/svg/svgo/pull/1664 by @cakeinpanic
-
 /**
  * Remove possible XSS attacks
  *
  * Sometimes it's not enough just to remove <script> tag, XSS may be hidden under event listeners
- * @author Katya Pavlenko
+ * @author Katya Pavlenko (@cakeinpanic)
  *
- * @type {import('../lib/types').Plugin<void>}
+ * Based on https://github.com/svg/svgo/pull/1664
  */
-export default {
+export const xss = {
   name: "removeXSS",
   fn() {
     return {
