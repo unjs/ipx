@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v2.0.0
+
+[compare changes](https://github.com/unjs/ipx/compare/v2.0.0-1...v2.0.0)
+
+### 🚀 Enhancements
+
+- **http:** Allow ignoring `cache-control` header via `ignoreCacheControl` ([4690342](https://github.com/unjs/ipx/commit/4690342))
+- Optimize + sanitize svg sources with svgo ([#180](https://github.com/unjs/ipx/pull/180))
+
+### 🩹 Fixes
+
+- Respect global `maxAge` option as fallback ([2abe014](https://github.com/unjs/ipx/commit/2abe014))
+- **server:** Improve 304 handling ([06820b5](https://github.com/unjs/ipx/commit/06820b5))
+- **server:** Append `vary` header instead of overriding it ([fb3cf1d](https://github.com/unjs/ipx/commit/fb3cf1d))
+- **server:** Set headers only if not already set ([ce0cf0e](https://github.com/unjs/ipx/commit/ce0cf0e))
+
+### 💅 Refactors
+
+- Upgrade to image-meta 0.2.x ([1017deb](https://github.com/unjs/ipx/commit/1017deb))
+
+### 🏡 Chore
+
+- Downgrade codecov-action ([2716500](https://github.com/unjs/ipx/commit/2716500))
+- Update to full examples ([7aefb83](https://github.com/unjs/ipx/commit/7aefb83))
+- Update dependencies ([2c33ece](https://github.com/unjs/ipx/commit/2c33ece))
+- Apply automated fixes ([6e884b3](https://github.com/unjs/ipx/commit/6e884b3))
+- Fix type issues ([3a2d92d](https://github.com/unjs/ipx/commit/3a2d92d))
+- Update readme ([e234110](https://github.com/unjs/ipx/commit/e234110))
+- Update readme ([acab74a](https://github.com/unjs/ipx/commit/acab74a))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v2.0.0-1
 
 [compare changes](https://github.com/unjs/ipx/compare/v2.0.0-0...v2.0.0-1)
