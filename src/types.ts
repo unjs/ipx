@@ -1,3 +1,4 @@
+import type { ImageMeta } from "image-meta";
 import type { Sharp, Color, KernelEnum } from "sharp";
 
 // ---- Handlers ----
@@ -41,13 +42,4 @@ export interface IPXStorage {
     id: string,
     opts?: IPXStorageOptions,
   ) => MaybePromise<ArrayBuffer | undefined>;
-}
-
-// ---- External Types ----
-
-export interface ImageMeta {
-  width: number;
-  height: number;
-  type: string;
-  mimeType: string;
 }

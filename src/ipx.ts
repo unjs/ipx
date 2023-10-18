@@ -1,9 +1,9 @@
 import { defu } from "defu";
-import { imageMeta as getImageMeta } from "image-meta";
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import type { SharpOptions } from "sharp";
 import { createError } from "h3";
-import type { ImageMeta, IPXStorage } from "./types";
+import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
+import type { IPXStorage } from "./types";
 import { HandlerName, applyHandler, getHandler } from "./handlers";
 import { cachedPromise, getEnv } from "./utils";
 
@@ -19,8 +19,8 @@ export type IPX = (
   getSourceMeta: () => Promise<IPXSourceMeta>;
   process: () => Promise<{
     data: Buffer;
-    meta: ImageMeta;
-    format: string;
+    meta?: ImageMeta;
+    format?: string;
   }>;
 };
 
@@ -153,7 +153,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
       const format =
         mFormat && SUPPORTED_FORMATS.has(mFormat)
           ? mFormat
-          : SUPPORTED_FORMATS.has(imageMeta.type) // eslint-disable-line unicorn/no-nested-ternary
+          : SUPPORTED_FORMATS.has(imageMeta.type || "") // eslint-disable-line unicorn/no-nested-ternary
           ? imageMeta.type
           : "jpeg";
 
@@ -201,7 +201,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
       }
 
       // Apply format
-      if (SUPPORTED_FORMATS.has(format)) {
+      if (SUPPORTED_FORMATS.has(format || "")) {
         sharp = sharp.toFormat(format as any, {
           quality: handlerContext.quality,
           progressive: format === "jpeg",
