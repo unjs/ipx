@@ -1,6 +1,7 @@
 import destr from "destr";
 import type { Sharp } from "sharp";
-import type { Handler, HandlerContext, ImageMeta } from "../types";
+import type { ImageMeta } from "image-meta";
+import type { Handler, HandlerContext } from "../types";
 import * as Handlers from "./handlers";
 
 export function VArg(argument: string) {
@@ -40,11 +41,11 @@ export function clampDimensionsPreservingAspectRatio(
 ) {
   const desiredAspectRatio = desiredDimensions.width / desiredDimensions.height;
   let { width, height } = desiredDimensions;
-  if (width > sourceDimensions.width) {
+  if (sourceDimensions.width && width > sourceDimensions.width) {
     width = sourceDimensions.width;
     height = Math.round(sourceDimensions.width / desiredAspectRatio);
   }
-  if (height > sourceDimensions.height) {
+  if (sourceDimensions.height && height > sourceDimensions.height) {
     height = sourceDimensions.height;
     width = Math.round(sourceDimensions.height * desiredAspectRatio);
   }
