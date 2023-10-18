@@ -3,12 +3,12 @@
 [![npm version][npm-version-src]][npm-version-href]
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 
-High performance, secure and easy-to-use image optimizer.
-
-Powered by [sharp](https://github.com/lovell/sharp), [libvips](https://github.com/libvips/libvips), [unjs/image-meta](https://github.com/unjs/image-meta) and [svgo](https://github.com/svg/svgo).
-
 > [!NOTE]
-> This is the active branch for IPX v2. Check out [ipx/v1](https://github.com/unjs/ipx/tree/v1) for ipx v1 docs.
+> This is the active branch for IPX v2. Check out [ipx/v1](https://github.com/unjs/ipx/tree/v1) for v1 docs.
+
+High performance, secure and easy-to-use image optimizer powered by [sharp](https://github.com/lovell/sharp) and [svgo](https://github.com/svg/svgo).
+
+Used by [Nuxt Image](https://image.nuxt.com/) and [Netlify](https://www.npmjs.com/package/@netlify/ipx) and open to everyone!
 
 ## Using CLI
 
