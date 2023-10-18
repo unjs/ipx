@@ -5,10 +5,10 @@
 
 High performance, secure and easy-to-use image optimizer.
 
-Powered by [sharp](https://github.com/lovell/sharp) and [libvips](https://github.com/libvips/libvips).
+Powered by [sharp](https://github.com/lovell/sharp), [libvips](https://github.com/libvips/libvips), [unjs/image-meta](https://github.com/unjs/image-meta) and [svgo](https://github.com/svg/svgo).
 
-> [!IMPORTANT]
-> This is the development branch for IPX v2. Check out [ipx/v1](https://github.com/unjs/ipx/tree/v1) for latest stable docs and [#71](https://github.com/unjs/ipx/issues/171) for v2 roadmap.
+> [!NOTE]
+> This is the active branch for IPX v2. Check out [ipx/v1](https://github.com/unjs/ipx/tree/v1) for ipx v1 docs.
 
 ## Using CLI
 
@@ -17,13 +17,13 @@ You can use `ipx` command to start server.
 Using `npx`:
 
 ```bash
-npx ipx@next-2 serve --dir ./
+npx ipx serve --dir ./
 ```
 
 Usin `bun`
 
 ```bash
-bun x npx ipx@next-2 serve --dir ./
+bun x npx ipx serve --dir ./
 ```
 
 The default serve directory is the current working directory.
