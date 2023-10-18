@@ -3,7 +3,7 @@ import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import type { SharpOptions } from "sharp";
 import { createError } from "h3";
 import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
-import type { Config } from "svgo";
+import type { Config as SVGOConfig } from "svgo";
 import type { IPXStorage } from "./types";
 import { HandlerName, applyHandler, getHandler } from "./handlers";
 import { cachedPromise, getEnv } from "./utils";
@@ -33,7 +33,7 @@ export type IPXOptions = {
   storage: IPXStorage;
   httpStorage?: IPXStorage;
 
-  svgo?: false | Config;
+  svgo?: false | SVGOConfig;
 };
 
 // https://sharp.pixelplumbing.com/#formats
