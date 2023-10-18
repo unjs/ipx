@@ -3,6 +3,8 @@ import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import type { SharpOptions } from "sharp";
 import { createError } from "h3";
 import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
+import { optimize as optimizeSVG } from "svgo";
+import svgoXSSPlugin from "./lib/svgo-xss";
 import type { IPXStorage } from "./types";
 import { HandlerName, applyHandler, getHandler } from "./handlers";
 import { cachedPromise, getEnv } from "./utils";
@@ -159,8 +161,12 @@ export function createIPX(userOptions: IPXOptions): IPX {
 
       // Use original SVG if format is not specified
       if (imageMeta.type === "svg" && !mFormat) {
+        // https://github.com/svg/svgo
+        const svg = optimizeSVG(sourceData.toString("utf8"), {
+          plugins: [svgoXSSPlugin],
+        }).data;
         return {
-          data: sourceData,
+          data: svg,
           format: "svg+xml",
           meta: imageMeta,
         };
