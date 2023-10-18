@@ -3,6 +3,7 @@ import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import type { SharpOptions } from "sharp";
 import { createError } from "h3";
 import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
+import type { Config as SVGOConfig } from "svgo";
 import type { IPXStorage } from "./types";
 import { HandlerName, applyHandler, getHandler } from "./handlers";
 import { cachedPromise, getEnv } from "./utils";
@@ -18,7 +19,7 @@ export type IPX = (
 ) => {
   getSourceMeta: () => Promise<IPXSourceMeta>;
   process: () => Promise<{
-    data: Buffer;
+    data: Buffer | string;
     meta?: ImageMeta;
     format?: string;
   }>;
@@ -31,6 +32,8 @@ export type IPXOptions = {
 
   storage: IPXStorage;
   httpStorage?: IPXStorage;
+
+  svgo?: false | SVGOConfig;
 };
 
 // https://sharp.pixelplumbing.com/#formats
@@ -66,6 +69,12 @@ export function createIPX(userOptions: IPXOptions): IPX {
     return (await import("sharp").then(
       (r) => r.default || r,
     )) as typeof import("sharp");
+  });
+
+  const getSVGO = cachedPromise(async () => {
+    const { optimize } = await import("svgo");
+    const { xss } = await import("./lib/svgo-xss");
+    return { optimize, xss };
   });
 
   return function ipx(id, modifiers = {}, opts = {}) {
@@ -159,11 +168,25 @@ export function createIPX(userOptions: IPXOptions): IPX {
 
       // Use original SVG if format is not specified
       if (imageMeta.type === "svg" && !mFormat) {
-        return {
-          data: sourceData,
-          format: "svg+xml",
-          meta: imageMeta,
-        };
+        if (options.svgo === false) {
+          return {
+            data: sourceData,
+            format: "svg+xml",
+            meta: imageMeta,
+          };
+        } else {
+          // https://github.com/svg/svgo
+          const { optimize, xss } = await getSVGO();
+          const svg = optimize(sourceData.toString("utf8"), {
+            ...options.svgo,
+            plugins: [xss, ...(options.svgo?.plugins || [])],
+          }).data;
+          return {
+            data: svg,
+            format: "svg+xml",
+            meta: imageMeta,
+          };
+        }
       }
 
       // Experimental animated support
