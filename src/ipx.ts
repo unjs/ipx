@@ -20,7 +20,7 @@ export type IPX = (
 ) => {
   getSourceMeta: () => Promise<IPXSourceMeta>;
   process: () => Promise<{
-    data: Buffer;
+    data: Buffer | string;
     meta?: ImageMeta;
     format?: string;
   }>;
