@@ -1,12 +1,15 @@
 import type { CustomPlugin } from "svgo";
 
 /**
- * Remove possible XSS attacks
+ * Remove possible XSS attacks.
  *
- * Sometimes it's not enough just to remove <script> tag, XSS may be hidden under event listeners
+ * * Remove <script> elements.
+ * * Removes known event attributes.
+ * * Removes JavaScript URIs.
+ *
  * @author Katya Pavlenko (@cakeinpanic)
  *
- * Based on https://github.com/svg/svgo/pull/1664
+ * Based on https://github.com/svg/svgo/blob/main/plugins/removeScriptElement.js
  */
 export const xss = {
   name: "removeXSS",
@@ -22,9 +25,33 @@ export const xss = {
             return;
           }
           for (const event of ALL_EVENTS) {
-            for (const [name] of Object.entries(node.attributes)) {
-              if (name === event) {
-                delete node.attributes[name];
+            if (node.attributes[event] != null) {
+              delete node.attributes[event];
+            }
+          }
+        },
+        exit: (node, parentNode) => {
+          if (node.name !== "a") {
+            return;
+          }
+
+          for (const attr of Object.keys(node.attributes)) {
+            if (attr === "href" || attr.endsWith(":href")) {
+              if (
+                node.attributes[attr] == null ||
+                !node.attributes[attr].trimStart().startsWith("javascript:")
+              ) {
+                continue;
+              }
+
+              const index = parentNode.children.indexOf(node);
+              parentNode.children.splice(index, 1, ...node.children);
+
+              for (const child of node.children) {
+                Object.defineProperty(child, "parentNode", {
+                  writable: true,
+                  value: parentNode,
+                });
               }
             }
           }
@@ -35,24 +62,18 @@ export const xss = {
 } satisfies CustomPlugin;
 
 const ALL_EVENTS = [
-  "onbegin",
-  "onend",
-  "onrepeat",
   "onabort",
-  "onerror",
-  "onresize",
-  "onscroll",
-  "onunload",
+  "onactivate",
   "onbegin",
-  "onend",
-  "onrepeat",
   "oncancel",
   "oncanplay",
   "oncanplaythrough",
   "onchange",
   "onclick",
   "onclose",
+  "oncopy",
   "oncuechange",
+  "oncut",
   "ondblclick",
   "ondrag",
   "ondragend",
@@ -63,9 +84,12 @@ const ALL_EVENTS = [
   "ondrop",
   "ondurationchange",
   "onemptied",
+  "onend",
   "onended",
   "onerror",
   "onfocus",
+  "onfocusin",
+  "onfocusout",
   "oninput",
   "oninvalid",
   "onkeydown",
@@ -83,11 +107,13 @@ const ALL_EVENTS = [
   "onmouseover",
   "onmouseup",
   "onmousewheel",
+  "onpaste",
   "onpause",
   "onplay",
   "onplaying",
   "onprogress",
   "onratechange",
+  "onrepeat",
   "onreset",
   "onresize",
   "onscroll",
@@ -100,12 +126,8 @@ const ALL_EVENTS = [
   "onsuspend",
   "ontimeupdate",
   "ontoggle",
+  "onunload",
   "onvolumechange",
   "onwaiting",
-  "oncopy",
-  "oncut",
-  "onpaste",
-  "onactivate",
-  "onfocusin",
-  "onfocusout",
+  "onzoom",
 ];
