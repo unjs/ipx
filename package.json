@@ -1,6 +1,6 @@
 {
   "name": "ipx",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "repository": "unjs/ipx",
   "description": "High performance, secure and easy-to-use image optimizer.",
   "license": "MIT",
