@@ -73,8 +73,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
 
   const getSVGO = cachedPromise(async () => {
     const { optimize } = await import("svgo");
-    const { xss } = await import("./lib/svgo-xss");
-    return { optimize, xss };
+    return { optimize };
   });
 
   return function ipx(id, modifiers = {}, opts = {}) {
@@ -176,10 +175,10 @@ export function createIPX(userOptions: IPXOptions): IPX {
           };
         } else {
           // https://github.com/svg/svgo
-          const { optimize, xss } = await getSVGO();
+          const { optimize } = await getSVGO();
           const svg = optimize(sourceData.toString("utf8"), {
             ...options.svgo,
-            plugins: [xss, ...(options.svgo?.plugins || [])],
+            plugins: ["removeScriptElement", ...(options.svgo?.plugins || [])],
           }).data;
           return {
             data: svg,
