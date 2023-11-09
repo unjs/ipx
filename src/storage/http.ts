@@ -14,7 +14,8 @@ export type HTTPStorageOptions = {
 const HTTP_RE = /^https?:\/\//;
 
 export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
-  const allowAllDomains = getEnv("IPX_HTTP_ALLOW_ALL_DOMAINS") ?? false;
+  const allowAllDomains =
+    _options.allowAllDomains ?? getEnv("IPX_HTTP_ALLOW_ALL_DOMAINS") ?? false;
   let _domains =
     _options.domains || getEnv<string | string[]>("IPX_HTTP_DOMAINS") || [];
   const defaultMaxAge =
