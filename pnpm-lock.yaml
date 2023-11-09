@@ -42,8 +42,8 @@ dependencies:
     specifier: ^0.32.6
     version: 0.32.6
   svgo:
-    specifier: ^3.0.2
-    version: 3.0.2
+    specifier: ^3.0.3
+    version: 3.0.3
   ufo:
     specifier: ^1.3.1
     version: 1.3.1
@@ -4482,8 +4482,8 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /svgo@3.0.2:
-    resolution: {integrity: sha512-Z706C1U2pb1+JGP48fbazf3KxHrWOsLme6Rv7imFBn5EnuanDW1GPaA/P1/dvObE670JDePC3mnj0k0B7P0jjQ==}
+  /svgo@3.0.3:
+    resolution: {integrity: sha512-X4UZvLhOglD5Xrp834HzGHf8RKUW0Ahigg/08yRO1no9t2NxffOkMiQ0WmaMIbaGlVTlSst2zWANsdhz5ybXgA==}
     engines: {node: '>=14.0.0'}
     hasBin: true
     dependencies:
