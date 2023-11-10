@@ -14,27 +14,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-      # - run: corepack enable
-      # - uses: actions/setup-node@v4
-      #   with:
-      #     node-version: 18
-      #     cache: "pnpm"
-      # - run: pnpm install
-      # - run: pnpm lint
-      # - run: pnpm build
-      # - run: pnpm vitest run --coverage
-      # - uses: codecov/codecov-action@v3
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "pnpm"
+      - run: pnpm install
+      - run: pnpm lint
+      - run: pnpm build
+      - run: pnpm vitest run --coverage
+      - uses: codecov/codecov-action@v3
       - name: nightly release
-        # if: |
-        #   github.ref_name == 'refs/heads/build/nightly' &&
-        #   !contains(github.event.head_commit.message, '[skip-release]') &&
-        #   !contains(github.event.head_commit.message, 'docs')
+        if: |
+          github.ref_name == 'build/nightly' &&
+          !contains(github.event.head_commit.message, '[skip-release]') &&
+          !contains(github.event.head_commit.message, 'docs')
         run: |
-          echo "Ref name ${GITHUB_REF_NAME}" &&
-          echo "Ref  ${GITHUB_REF}" &&
-          echo "Workflow Ref ${GITHUB_WORKFLOW_REF}"
-          # echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc &&
-          # pnpm changelogen --canary nightly --publish
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc &&
+          pnpm changelogen --canary nightly --publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
