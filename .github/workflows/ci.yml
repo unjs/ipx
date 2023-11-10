@@ -23,3 +23,14 @@ jobs:
       - run: pnpm build
       - run: pnpm vitest run --coverage
       - uses: codecov/codecov-action@v3
+      - name: nightly release
+        if: |
+          github.ref_name == 'refs/heads/build/nightly' &&
+          !contains(github.event.head_commit.message, '[skip-release]') &&
+          !contains(github.event.head_commit.message, 'docs')
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc &&
+          pnpm changelogen --canary nightly --publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
