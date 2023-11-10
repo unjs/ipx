@@ -25,7 +25,7 @@ jobs:
       - uses: codecov/codecov-action@v3
       - name: nightly release
         if: |
-          github.ref_name == 'refs/heads/build/nightly' &&
+          github.ref_name == 'build/nightly' &&
           !contains(github.event.head_commit.message, '[skip-release]') &&
           !contains(github.event.head_commit.message, 'docs')
         run: |
