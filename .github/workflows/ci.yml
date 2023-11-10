@@ -31,7 +31,7 @@ jobs:
         run: |
           echo "Ref name ${GITHUB_REF_NAME}" &&
           echo "Ref  ${GITHUB_REF}" &&
-          echo "Workflow Ref  ${GITHUB_WORKFLOW_REF}" &&
+          echo "Workflow Ref ${GITHUB_WORKFLOW_REF}"
           # echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc &&
           # pnpm changelogen --canary nightly --publish
         env:
