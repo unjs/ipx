@@ -162,8 +162,8 @@ export function createIPX(userOptions: IPXOptions): IPX {
         mFormat && SUPPORTED_FORMATS.has(mFormat)
           ? mFormat
           : SUPPORTED_FORMATS.has(imageMeta.type || "") // eslint-disable-line unicorn/no-nested-ternary
-          ? imageMeta.type
-          : "jpeg";
+            ? imageMeta.type
+            : "jpeg";
 
       // Use original SVG if format is not specified
       if (imageMeta.type === "svg" && !mFormat) {
