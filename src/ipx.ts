@@ -53,7 +53,9 @@ export function createIPX(userOptions: IPXOptions): IPX {
   const options: IPXOptions = defu(userOptions, {
     alias: getEnv<Record<string, string>>("IPX_ALIAS") || {},
     maxAge: getEnv<number>("IPX_MAX_AGE") ?? 60 /* 1 minute */,
-    sharpOptions: {},
+    sharpOptions: {
+      jpegProgressive: true
+    },
   } satisfies Omit<IPXOptions, "storage">);
 
   // Normalize alias to start with leading slash
@@ -226,7 +228,6 @@ export function createIPX(userOptions: IPXOptions): IPX {
       if (SUPPORTED_FORMATS.has(format || "")) {
         sharp = sharp.toFormat(format as any, {
           quality: handlerContext.quality,
-          progressive: format === "jpeg",
         });
       }
 
