@@ -54,7 +54,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
     alias: getEnv<Record<string, string>>("IPX_ALIAS") || {},
     maxAge: getEnv<number>("IPX_MAX_AGE") ?? 60 /* 1 minute */,
     sharpOptions: {
-      jpegProgressive: true
+      jpegProgressive: true,
     },
   } satisfies Omit<IPXOptions, "storage">);
 
