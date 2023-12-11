@@ -53,7 +53,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
   const options: IPXOptions = defu(userOptions, {
     alias: getEnv<Record<string, string>>("IPX_ALIAS") || {},
     maxAge: getEnv<number>("IPX_MAX_AGE") ?? 60 /* 1 minute */,
-    sharpOptions: {
+    sharpOptions: <SharpOptions>{
       jpegProgressive: true,
     },
   } satisfies Omit<IPXOptions, "storage">);
