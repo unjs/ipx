@@ -23,9 +23,18 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
   const dirs = resolveDirs(_options);
   const maxAge = _options.maxAge || getEnv("IPX_FS_MAX_AGE");
 
-  const _getFS = cachedPromise(() => import("node:fs/promises"));
+  const _getFS = cachedPromise(() =>
+    import("node:fs/promises").catch(() => {
+      throw createError({
+        statusCode: 500,
+        statusText: `IPX_FILESYSTEM_ERROR`,
+        message: `Failed to resolve filesystem module`,
+      });
+    }),
+  );
 
   const resolveFile = async (id: string) => {
+    const fs = await _getFS();
     const errors = new Set<string>();
 
     for (const dir of dirs) {
@@ -36,7 +45,6 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
       }
 
       try {
-        const fs = await _getFS();
         const stats = await fs.stat(filePath);
         return { stats, filePath };
       } catch (error: any) {
