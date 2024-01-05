@@ -1,54 +1,71 @@
-import type { Stats } from "node:fs";
 import { resolve, parse, join } from "pathe";
 import { createError } from "h3";
 import { cachedPromise, getEnv } from "../utils";
 import type { IPXStorage } from "../types";
 
 export type NodeFSSOptions = {
-  dir?: string;
+  dir?: string | string[];
   maxAge?: number;
 };
 
+function resolveDirs(options: NodeFSSOptions) {
+  if (!options.dir || !Array.isArray(options.dir)) {
+    const dir = resolve(options.dir || getEnv("IPX_FS_DIR") || ".");
+    return [dir];
+  }
+
+  return options.dir.map((dir) => {
+    return resolve(dir);
+  });
+}
+
 export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
-  const rootDir = resolve(_options.dir || getEnv("IPX_FS_DIR") || ".");
+  const dirs = resolveDirs(_options);
   const maxAge = _options.maxAge || getEnv("IPX_FS_MAX_AGE");
 
-  const _resolve = (id: string) => {
-    const resolved = join(rootDir, id);
-    if (!isValidPath(resolved) || !resolved.startsWith(rootDir)) {
+  const _getFS = cachedPromise(() => import("node:fs/promises"));
+
+  const getMeta = async (id: string) => {
+    const errors = new Set<string>();
+
+    for (const dir of dirs) {
+      const filePath = join(dir, id);
+
+      if (!isValidPath(filePath) || !filePath.startsWith(dir)) {
+        errors.add("IPX_FORBIDDEN_PATH");
+      }
+
+      try {
+        const fs = await _getFS();
+        const stats = await fs.stat(filePath);
+        return { stats, filePath };
+      } catch (error: any) {
+        errors.add(
+          error.code === "ENOENT" ? "IPX_FILE_NOT_FOUND" : "IPX_FORBIDDEN_FILE",
+        );
+      }
+    }
+
+    if (errors.has("IPX_FORBIDDEN_FILE")) {
       throw createError({
         statusCode: 403,
         statusText: `IPX_FORBIDDEN_PATH`,
         message: `Forbidden path: ${id}`,
       });
     }
-    return resolved;
-  };
 
-  const _getFS = cachedPromise(() => import("node:fs/promises"));
+    throw createError({
+      statusCode: 404,
+      statusText: `IPX_FILE_NOT_FOUND`,
+      message: `File not found: ${id}`,
+    });
+  };
 
   return {
     name: "ipx:node-fs",
     async getMeta(id) {
-      const fsPath = _resolve(id);
+      const { stats } = await getMeta(id);
 
-      let stats: Stats;
-      try {
-        const fs = await _getFS();
-        stats = await fs.stat(fsPath);
-      } catch (error: any) {
-        throw error.code === "ENOENT"
-          ? createError({
-              statusCode: 404,
-              statusText: `IPX_FILE_NOT_FOUND`,
-              message: `File not found: ${id}`,
-            })
-          : createError({
-              statusCode: 403,
-              statusText: `IPX_FORBIDDEN_FILE`,
-              message: `File access forbidden: (${error.code}) ${id}`,
-            });
-      }
       if (!stats.isFile()) {
         throw createError({
           statusCode: 400,
@@ -63,10 +80,9 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
       };
     },
     async getData(id) {
-      const fsPath = _resolve(id);
+      const { filePath } = await getMeta(id);
       const fs = await _getFS();
-      const contents = await fs.readFile(fsPath);
-      return contents;
+      return fs.readFile(filePath);
     },
   };
 }
