@@ -25,7 +25,7 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
 
   const _getFS = cachedPromise(() => import("node:fs/promises"));
 
-  const getMeta = async (id: string) => {
+  const resolveFile = async (id: string) => {
     const errors = new Set<string>();
 
     for (const dir of dirs) {
@@ -72,7 +72,7 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
   return {
     name: "ipx:node-fs",
     async getMeta(id) {
-      const { stats } = await getMeta(id);
+      const { stats } = await resolveFile(id);
 
       if (!stats.isFile()) {
         throw createError({
@@ -88,7 +88,7 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
       };
     },
     async getData(id) {
-      const { filePath } = await getMeta(id);
+      const { filePath } = await resolveFile(id);
       const fs = await _getFS();
       return fs.readFile(filePath);
     },
