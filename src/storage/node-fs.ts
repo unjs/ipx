@@ -40,17 +40,25 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
         const stats = await fs.stat(filePath);
         return { stats, filePath };
       } catch (error: any) {
-        errors.add(
-          error.code === "ENOENT" ? "IPX_FILE_NOT_FOUND" : "IPX_FORBIDDEN_FILE",
-        );
+        if (error.code !== "ENOENT") {
+          errors.add("IPX_FORBIDDEN_FILE");
+        }
       }
+    }
+
+    if (errors.has("IPX_FORBIDDEN_PATH")) {
+      throw createError({
+        statusCode: 403,
+        statusText: `IPX_FORBIDDEN_PATH`,
+        message: `Forbidden path: ${id}`,
+      });
     }
 
     if (errors.has("IPX_FORBIDDEN_FILE")) {
       throw createError({
         statusCode: 403,
-        statusText: `IPX_FORBIDDEN_PATH`,
-        message: `Forbidden path: ${id}`,
+        statusText: `IPX_FORBIDDEN_FILE`,
+        message: `File access forbidden: ${id}`,
       });
     }
 
