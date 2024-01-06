@@ -23,7 +23,7 @@ async function parseData(data: any) {
   }
 
   try {
-    // IPX requires a Buffer, attempt to parse in storage layer to normalize expected error
+    // IPX requires a Buffer, attempt parse and normalize error
     return Buffer.from(data);
   } catch (error: any) {
     throw createError({
