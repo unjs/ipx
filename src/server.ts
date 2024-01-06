@@ -26,6 +26,7 @@ export function createIPXH3Handler(ipx: IPX) {
   const _handler = async (event: H3Event) => {
     // Parse URL
     const [modifiersString = "", ...idSegments] = event.path
+      .split("?")[0]
       .slice(1 /* leading slash */)
       .split("/");
 
