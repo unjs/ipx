@@ -34,6 +34,7 @@ const variants = [
     setup: async () => {
       const storage = createStorage();
       await storage.setItemRaw("bliss.jpg", await getFile());
+      await storage.setItemRaw("nested:bliss.jpg", await getFile());
       return createIPX({ storage: unstorageToIPXStorage(storage) });
     },
   },
@@ -69,6 +70,13 @@ describe.each(variants)(`unstorage: $name`, ({ setup, condition }) => {
 
   it.runIf(shouldRun)("file found", async () => {
     const source = await ipx("bliss.jpg");
+    const { data, format } = await source.process();
+    expect(data).toBeInstanceOf(Buffer);
+    expect(format).toBe("jpeg");
+  });
+
+  it.runIf(shouldRun)("file found nested", async () => {
+    const source = await ipx("nested/bliss.jpg");
     const { data, format } = await source.process();
     expect(data).toBeInstanceOf(Buffer);
     expect(format).toBe("jpeg");
