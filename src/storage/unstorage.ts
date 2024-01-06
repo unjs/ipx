@@ -1,5 +1,6 @@
 import type { Storage, Driver } from "unstorage";
 import { createError } from "h3";
+import { defu } from "defu";
 import type { IPXStorage, IPXStorageMeta } from "../types";
 
 export type UnstorageIPXStorageOptions = {
@@ -34,12 +35,17 @@ async function parseData(data: any) {
 
 export function unstorageToIPXStorage(
   storage: Storage | Driver,
-  options?: UnstorageIPXStorageOptions,
+  _options?: UnstorageIPXStorageOptions | string,
 ): IPXStorage {
+  const options = defu(
+    typeof _options === "string" ? { prefix: _options } : _options,
+    {},
+  );
+
   const resolveKey = (id: string) => {
     id = id.replaceAll("/", ":");
 
-    if (options && options.prefix) {
+    if (options.prefix) {
       return `${options.prefix}:${id}`;
     }
 
