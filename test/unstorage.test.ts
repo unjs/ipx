@@ -34,32 +34,18 @@ const variants = [
     setup: async () => {
       const storage = createStorage();
       await storage.setItemRaw("bliss.jpg", await getFile());
-      await storage.setItemRaw("nested:bliss.jpg", await getFile());
+      await storage.setItemRaw("nested/bliss.jpg", await getFile());
       return createIPX({ storage: unstorageToIPXStorage(storage) });
     },
   },
   {
-    name: "memory (separator = '/')",
-    setup: async () => {
-      const storage = createStorage();
-      await storage.setItemRaw("bliss.jpg", await getFile());
-      await storage.setItemRaw("nested/bliss.jpg", await getFile());
-      return createIPX({
-        storage: unstorageToIPXStorage(storage, { separator: "/" }),
-      });
-    },
-  },
-  {
-    name: "memory (prefix = 'images', separator = '/')",
+    name: "memory (prefix = 'images')",
     setup: async () => {
       const storage = createStorage();
       await storage.setItemRaw("images/bliss.jpg", await getFile());
       await storage.setItemRaw("images/nested/bliss.jpg", await getFile());
       return createIPX({
-        storage: unstorageToIPXStorage(storage, {
-          prefix: "images",
-          separator: "/",
-        }),
+        storage: unstorageToIPXStorage(storage, { prefix: "images" }),
       });
     },
   },
