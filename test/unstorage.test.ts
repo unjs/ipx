@@ -39,7 +39,7 @@ const variants = [
     },
   },
   {
-    name: "memory (prefix = 'images')",
+    name: "memory (prefix)",
     setup: async () => {
       const storage = createStorage();
       await storage.setItemRaw("images/bliss.jpg", await getFile());
