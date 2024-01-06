@@ -5,6 +5,7 @@ import type { IPXStorage, IPXStorageMeta } from "../types";
 
 export type UnstorageIPXStorageOptions = {
   prefix: string | undefined;
+  replaceSlash: boolean;
 };
 
 async function parseData(data: any) {
@@ -39,11 +40,13 @@ export function unstorageToIPXStorage(
 ): IPXStorage {
   const options = defu(
     typeof _options === "string" ? { prefix: _options } : _options,
-    {},
+    { replaceSlash: true },
   );
 
   const resolveKey = (id: string) => {
-    id = id.replaceAll("/", ":");
+    if (options.replaceSlash) {
+      id = id.replaceAll("/", ":");
+    }
 
     if (options.prefix) {
       return `${options.prefix}:${id}`;
