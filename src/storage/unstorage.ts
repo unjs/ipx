@@ -4,8 +4,8 @@ import { defu } from "defu";
 import type { IPXStorage, IPXStorageMeta } from "../types";
 
 export type UnstorageIPXStorageOptions = {
-  prefix: string | undefined;
-  replaceSlash: boolean;
+  prefix?: string;
+  separator?: string;
 };
 
 async function parseData(data: any) {
@@ -40,16 +40,16 @@ export function unstorageToIPXStorage(
 ): IPXStorage {
   const options = defu(
     typeof _options === "string" ? { prefix: _options } : _options,
-    { replaceSlash: true },
+    { separator: ":" },
   );
 
   const resolveKey = (id: string) => {
-    if (options.replaceSlash) {
-      id = id.replaceAll("/", ":");
+    if (options.separator) {
+      id = id.replaceAll("/", options.separator);
     }
 
     if (options.prefix) {
-      return `${options.prefix}:${id}`;
+      return `${options.prefix}${options.separator}${id}`;
     }
 
     return id;

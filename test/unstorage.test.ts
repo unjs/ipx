@@ -39,6 +39,31 @@ const variants = [
     },
   },
   {
+    name: "memory (separator = '/')",
+    setup: async () => {
+      const storage = createStorage();
+      await storage.setItemRaw("bliss.jpg", await getFile());
+      await storage.setItemRaw("nested/bliss.jpg", await getFile());
+      return createIPX({
+        storage: unstorageToIPXStorage(storage, { separator: "/" }),
+      });
+    },
+  },
+  {
+    name: "memory (prefix = 'images', separator = '/')",
+    setup: async () => {
+      const storage = createStorage();
+      await storage.setItemRaw("images/bliss.jpg", await getFile());
+      await storage.setItemRaw("images/nested/bliss.jpg", await getFile());
+      return createIPX({
+        storage: unstorageToIPXStorage(storage, {
+          prefix: "images",
+          separator: "/",
+        }),
+      });
+    },
+  },
+  {
     name: "github",
     setup: () => {
       const driver = githubDriver({ repo: "unjs/ipx", dir: "test/assets" });
