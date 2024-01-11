@@ -19,7 +19,7 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
   let _domains =
     _options.domains || getEnv<string | string[]>("IPX_HTTP_DOMAINS") || [];
   const defaultMaxAge =
-    _options.maxAge || getEnv<string | number>("IPX_HTTP_MAX_AGE");
+    _options.maxAge || getEnv<string | number>("IPX_HTTP_MAX_AGE") || 300;
   const fetchOptions =
     _options.fetchOptions || getEnv("IPX_HTTP_FETCH_OPTIONS") || {};
 
