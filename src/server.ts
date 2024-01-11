@@ -89,15 +89,6 @@ export function createIPXH3Handler(ipx: IPX) {
       "default-src 'none'",
     );
 
-    // Send Cache-Control header
-    if (typeof sourceMeta.maxAge === "number") {
-      sendResponseHeaderIfNotSet(
-        event,
-        "cache-control",
-        `max-age=${+sourceMeta.maxAge}, public, s-maxage=${+sourceMeta.maxAge}`,
-      );
-    }
-
     // Handle modified time if available
     if (sourceMeta.mtime) {
       // Send Last-Modified header
@@ -117,6 +108,15 @@ export function createIPXH3Handler(ipx: IPX) {
 
     // Process image
     const { data, format } = await img.process();
+
+    // Send Cache-Control header
+    if (typeof sourceMeta.maxAge === "number") {
+      sendResponseHeaderIfNotSet(
+        event,
+        "cache-control",
+        `max-age=${+sourceMeta.maxAge}, public, s-maxage=${+sourceMeta.maxAge}`,
+      );
+    }
 
     // Generate and send ETag header
     const etag = getEtag(data);
