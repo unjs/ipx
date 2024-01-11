@@ -22,7 +22,6 @@ export function unstorageToIPXStorage(
       if (!storage.getMeta) {
         return;
       }
-
       const storageKey = resolveKey(id);
       const meta = await storage.getMeta(storageKey, opts);
 
@@ -32,7 +31,6 @@ export function unstorageToIPXStorage(
       if (!storage.getItemRaw) {
         return;
       }
-
       const storageKey = resolveKey(id);
 
       // Known possible data types: ArrayBuffer, Buffer, String, Blob
