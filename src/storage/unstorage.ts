@@ -24,7 +24,6 @@ export function unstorageToIPXStorage(
       }
       const storageKey = resolveKey(id);
       const meta = await storage.getMeta(storageKey, opts);
-
       return meta as IPXStorageMeta;
     },
     async getData(id, opts = {}) {
