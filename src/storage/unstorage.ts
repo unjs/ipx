@@ -7,32 +7,6 @@ export type UnstorageIPXStorageOptions = {
   prefix?: string;
 };
 
-async function parseData(data: any) {
-  // Known possible data types:
-  // ArrayBuffer, Buffer, String, Blob, any
-  // Ref: https://github.com/unjs/unstorage/tree/main/src/drivers
-
-  if (!data) {
-    // File not found, do not attempt to parse
-    return;
-  }
-
-  if (data instanceof Blob) {
-    data = await data.arrayBuffer();
-  }
-
-  try {
-    // IPX requires a Buffer, attempt parse and normalize error
-    return Buffer.from(data);
-  } catch (error: any) {
-    throw createError({
-      statusCode: 500,
-      statusText: `IPX_STORAGE_ERROR`,
-      message: `Failed to parse storage data to Buffer:\n${error.message}`,
-    });
-  }
-}
-
 export function unstorageToIPXStorage(
   storage: Storage | Driver,
   _options?: UnstorageIPXStorageOptions | string,
@@ -68,9 +42,29 @@ export function unstorageToIPXStorage(
       }
 
       const storageKey = resolveKey(id);
-      const data = await storage.getItemRaw(storageKey, opts);
 
-      return parseData(data);
+      // Known possible data types: ArrayBuffer, Buffer, String, Blob
+      let data = await storage.getItemRaw(storageKey, opts);
+
+      if (!data) {
+        // File not found, do not attempt to parse
+        return;
+      }
+
+      if (data instanceof Blob) {
+        data = await data.arrayBuffer();
+      }
+
+      try {
+        // IPX requires a Buffer, attempt parse and normalize error
+        return Buffer.from(data as ArrayBuffer);
+      } catch (error: any) {
+        throw createError({
+          statusCode: 500,
+          statusText: `IPX_STORAGE_ERROR`,
+          message: `Failed to parse storage data to Buffer:\n${error.message}`,
+        });
+      }
     },
   };
 }
