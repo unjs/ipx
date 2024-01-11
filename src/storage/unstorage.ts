@@ -52,6 +52,7 @@ export function unstorageToIPXStorage(
           statusCode: 500,
           statusText: `IPX_STORAGE_ERROR`,
           message: `Failed to parse storage data to Buffer:\n${error.message}`,
+          cause: error,
         });
       }
     },
