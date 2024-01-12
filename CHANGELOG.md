@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v3.0.0
+
+[compare changes](https://github.com/unjs/ipx/compare/v2.1.1-0...v3.0.0)
+
+### 🏡 Chore
+
+- Bump to v3.0.0 rc ([624b9db](https://github.com/unjs/ipx/commit/624b9db))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v2.1.0
 
 [compare changes](https://github.com/unjs/ipx/compare/v2.0.2...v2.1.0)
