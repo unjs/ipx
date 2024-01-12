@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - build/nightly
   pull_request:
     branches:
       - main
@@ -31,7 +30,7 @@ jobs:
       - uses: codecov/codecov-action@v3
       - name: nightly release
         if: |
-          github.ref_name == 'build/nightly' &&
+          github.ref_name == 'main' &&
           !contains(github.event.head_commit.message, '[skip-release]') &&
           !startsWith(github.event.head_commit.message, 'docs')
         run: |
