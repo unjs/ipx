@@ -1,15 +1,16 @@
-import { resolve } from "pathe";
+import { fileURLToPath } from "node:url";
 import { describe, it, expect, beforeAll } from "vitest";
 import { IPX, createIPX, ipxFSStorage } from "../src";
 
-describe("ipx", () => {
+describe("ipx: fs with multiple dirs", () => {
   let ipx: IPX;
 
   beforeAll(() => {
     ipx = createIPX({
       storage: ipxFSStorage({
-        // eslint-disable-next-line unicorn/prefer-module
-        dir: [resolve(__dirname, "assets"), resolve(__dirname, "assets-2")],
+        dir: ["assets", "assets2"].map((d) =>
+          fileURLToPath(new URL(d, import.meta.url)),
+        ),
       }),
     });
   });

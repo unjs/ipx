@@ -8,19 +8,8 @@ export type NodeFSSOptions = {
   maxAge?: number;
 };
 
-function resolveDirs(options: NodeFSSOptions) {
-  if (!options.dir || !Array.isArray(options.dir)) {
-    const dir = resolve(options.dir || getEnv("IPX_FS_DIR") || ".");
-    return [dir];
-  }
-
-  return options.dir.map((dir) => {
-    return resolve(dir);
-  });
-}
-
 export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
-  const dirs = resolveDirs(_options);
+  const dirs = resolveDirs(_options.dir);
   const maxAge = _options.maxAge || getEnv("IPX_FS_MAX_AGE");
 
   const _getFS = cachedPromise(() =>
@@ -35,39 +24,31 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
 
   const resolveFile = async (id: string) => {
     const fs = await _getFS();
-    const errors = new Set<string>();
 
     for (const dir of dirs) {
       const filePath = join(dir, id);
 
       if (!isValidPath(filePath) || !filePath.startsWith(dir)) {
-        errors.add("IPX_FORBIDDEN_PATH");
+        throw createError({
+          statusCode: 403,
+          statusText: `IPX_FORBIDDEN_PATH`,
+          message: `Forbidden path: ${id}`,
+        });
       }
 
       try {
         const stats = await fs.stat(filePath);
         return { stats, filePath };
       } catch (error: any) {
-        if (error.code !== "ENOENT") {
-          errors.add("IPX_FORBIDDEN_FILE");
+        if (error.code === "ENOENT") {
+          continue; // Keep looking in other dirs
         }
+        throw createError({
+          statusCode: 403,
+          statusText: `IPX_FORBIDDEN_FILE`,
+          message: `Cannot acess file: ${id}`,
+        });
       }
-    }
-
-    if (errors.has("IPX_FORBIDDEN_PATH")) {
-      throw createError({
-        statusCode: 403,
-        statusText: `IPX_FORBIDDEN_PATH`,
-        message: `Forbidden path: ${id}`,
-      });
-    }
-
-    if (errors.has("IPX_FORBIDDEN_FILE")) {
-      throw createError({
-        statusCode: 403,
-        statusText: `IPX_FORBIDDEN_FILE`,
-        message: `File access forbidden: ${id}`,
-      });
     }
 
     throw createError({
@@ -116,4 +97,12 @@ function isValidPath(fp: string) {
     return false;
   }
   return true;
+}
+
+function resolveDirs(dirs?: string | string[]) {
+  if (!dirs || !Array.isArray(dirs)) {
+    const dir = resolve(dirs || getEnv("IPX_FS_DIR") || ".");
+    return [dir];
+  }
+  return dirs.map((dirs) => resolve(dirs));
 }
