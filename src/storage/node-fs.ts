@@ -24,10 +24,8 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
 
   const resolveFile = async (id: string) => {
     const fs = await _getFS();
-
     for (const dir of dirs) {
       const filePath = join(dir, id);
-
       if (!isValidPath(filePath) || !filePath.startsWith(dir)) {
         throw createError({
           statusCode: 403,
@@ -35,22 +33,28 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
           message: `Forbidden path: ${id}`,
         });
       }
-
       try {
         const stats = await fs.stat(filePath);
-        return { stats, filePath };
+        if (!stats.isFile()) {
+          // Keep looking in other dirs we are looking for a file!
+          continue;
+        }
+        return {
+          stats,
+          read: () => fs.readFile(filePath),
+        };
       } catch (error: any) {
         if (error.code === "ENOENT") {
-          continue; // Keep looking in other dirs
+          // Keep looking in other dirs
+          continue;
         }
         throw createError({
           statusCode: 403,
           statusText: `IPX_FORBIDDEN_FILE`,
-          message: `Cannot acess file: ${id}`,
+          message: `Cannot access file: ${id}`,
         });
       }
     }
-
     throw createError({
       statusCode: 404,
       statusText: `IPX_FILE_NOT_FOUND`,
@@ -62,24 +66,14 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
     name: "ipx:node-fs",
     async getMeta(id) {
       const { stats } = await resolveFile(id);
-
-      if (!stats.isFile()) {
-        throw createError({
-          statusCode: 400,
-          statusText: `IPX_INVALID_FILE`,
-          message: `Path should be a file: ${id}`,
-        });
-      }
-
       return {
         mtime: stats.mtime,
         maxAge,
       };
     },
     async getData(id) {
-      const { filePath } = await resolveFile(id);
-      const fs = await _getFS();
-      return fs.readFile(filePath);
+      const { read } = await resolveFile(id);
+      return read();
     },
   };
 }
