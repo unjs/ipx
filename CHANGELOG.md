@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v2.1.0
+
+[compare changes](https://github.com/unjs/ipx/compare/v2.0.2...v2.1.0)
+
+### 🚀 Enhancements
+
+- **node-fs:** Add support for multiple dirs ([#203](https://github.com/unjs/ipx/pull/203))
+
+### 🩹 Fixes
+
+- Missing maxAge default ([#197](https://github.com/unjs/ipx/pull/197))
+- **server:** Set `cache-control` header only after processing image ([#200](https://github.com/unjs/ipx/pull/200))
+- Improve data parsing for unstorage ([#204](https://github.com/unjs/ipx/pull/204))
+
+### 💅 Refactors
+
+- Jpeg progressive setting via sharpOptions ([#198](https://github.com/unjs/ipx/pull/198))
+
+### 📦 Build
+
+- `ipx-nightly` release channel ([#191](https://github.com/unjs/ipx/pull/191))
+
+### 🏡 Chore
+
+- Update dependencies ([39c7199](https://github.com/unjs/ipx/commit/39c7199))
+
+### 🤖 CI
+
+- Fix nightly release job conditional ([#195](https://github.com/unjs/ipx/pull/195))
+
+### ❤️ Contributors
+
+- Arkadiusz Sygulski <aareksio@gmail.com>
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+- Ucw 
+- James Wragg <me@jameswragg.com>
+- Bobbie Goede <bobbiegoede@gmail.com>
+
 ## v2.0.2
 
 [compare changes](https://github.com/unjs/ipx/compare/v2.0.1...v2.0.2)
