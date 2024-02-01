@@ -30,8 +30,8 @@ dependencies:
     specifier: ^0.2.0
     version: 0.2.0
   listhen:
-    specifier: ^1.5.6
-    version: 1.5.6
+    specifier: ^1.6.0
+    version: 1.6.0
   ofetch:
     specifier: ^1.3.3
     version: 1.3.3
@@ -840,8 +840,8 @@ packages:
       fastq: 1.16.0
     dev: true
 
-  /@parcel/watcher-android-arm64@2.3.0:
-    resolution: {integrity: sha512-f4o9eA3dgk0XRT3XhB0UWpWpLnKgrh1IwNJKJ7UJek7eTYccQ8LR7XUWFKqw6aEq5KUNlCcGvSzKqSX/vtWVVA==}
+  /@parcel/watcher-android-arm64@2.4.0:
+    resolution: {integrity: sha512-+fPtO/GsbYX1LJnCYCaDVT3EOBjvSFdQN9Mrzh9zWAOOfvidPWyScTrHIZHHfJBvlHzNA0Gy0U3NXFA/M7PHUA==}
     engines: {node: '>= 10.0.0'}
     cpu: [arm64]
     os: [android]
@@ -849,8 +849,8 @@ packages:
     dev: false
     optional: true
 
-  /@parcel/watcher-darwin-arm64@2.3.0:
-    resolution: {integrity: sha512-mKY+oijI4ahBMc/GygVGvEdOq0L4DxhYgwQqYAz/7yPzuGi79oXrZG52WdpGA1wLBPrYb0T8uBaGFo7I6rvSKw==}
+  /@parcel/watcher-darwin-arm64@2.4.0:
+    resolution: {integrity: sha512-T/At5pansFuQ8VJLRx0C6C87cgfqIYhW2N/kBfLCUvDhCah0EnLLwaD/6MW3ux+rpgkpQAnMELOCTKlbwncwiA==}
     engines: {node: '>= 10.0.0'}
     cpu: [arm64]
     os: [darwin]
@@ -858,8 +858,8 @@ packages:
     dev: false
     optional: true
 
-  /@parcel/watcher-darwin-x64@2.3.0:
-    resolution: {integrity: sha512-20oBj8LcEOnLE3mgpy6zuOq8AplPu9NcSSSfyVKgfOhNAc4eF4ob3ldj0xWjGGbOF7Dcy1Tvm6ytvgdjlfUeow==}
+  /@parcel/watcher-darwin-x64@2.4.0:
+    resolution: {integrity: sha512-vZMv9jl+szz5YLsSqEGCMSllBl1gU1snfbRL5ysJU03MEa6gkVy9OMcvXV1j4g0++jHEcvzhs3Z3LpeEbVmY6Q==}
     engines: {node: '>= 10.0.0'}
     cpu: [x64]
     os: [darwin]
@@ -867,8 +867,8 @@ packages:
     dev: false
     optional: true
 
-  /@parcel/watcher-freebsd-x64@2.3.0:
-    resolution: {integrity: sha512-7LftKlaHunueAEiojhCn+Ef2CTXWsLgTl4hq0pkhkTBFI3ssj2bJXmH2L67mKpiAD5dz66JYk4zS66qzdnIOgw==}
+  /@parcel/watcher-freebsd-x64@2.4.0:
+    resolution: {integrity: sha512-dHTRMIplPDT1M0+BkXjtMN+qLtqq24sLDUhmU+UxxLP2TEY2k8GIoqIJiVrGWGomdWsy5IO27aDV1vWyQ6gfHA==}
     engines: {node: '>= 10.0.0'}
     cpu: [x64]
     os: [freebsd]
@@ -876,8 +876,8 @@ packages:
     dev: false
     optional: true
 
-  /@parcel/watcher-linux-arm-glibc@2.3.0:
-    resolution: {integrity: sha512-1apPw5cD2xBv1XIHPUlq0cO6iAaEUQ3BcY0ysSyD9Kuyw4MoWm1DV+W9mneWI+1g6OeP6dhikiFE6BlU+AToTQ==}
+  /@parcel/watcher-linux-arm-glibc@2.4.0:
+    resolution: {integrity: sha512-9NQXD+qk46RwATNC3/UB7HWurscY18CnAPMTFcI9Y8CTbtm63/eex1SNt+BHFinEQuLBjaZwR2Lp+n7pmEJPpQ==}
     engines: {node: '>= 10.0.0'}
     cpu: [arm]
     os: [linux]
@@ -885,8 +885,8 @@ packages:
     dev: false
     optional: true
 
-  /@parcel/watcher-linux-arm64-glibc@2.3.0:
-    resolution: {integrity: sha512-mQ0gBSQEiq1k/MMkgcSB0Ic47UORZBmWoAWlMrTW6nbAGoLZP+h7AtUM7H3oDu34TBFFvjy4JCGP43JlylkTQA==}
+  /@parcel/watcher-linux-arm64-glibc@2.4.0:
+    resolution: {integrity: sha512-QuJTAQdsd7PFW9jNGaV9Pw+ZMWV9wKThEzzlY3Lhnnwy7iW23qtQFPql8iEaSFMCVI5StNNmONUopk+MFKpiKg==}
     engines: {node: '>= 10.0.0'}
     cpu: [arm64]
     os: [linux]
@@ -894,8 +894,8 @@ packages:
     dev: false
     optional: true
 
-  /@parcel/watcher-linux-arm64-musl@2.3.0:
-    resolution: {integrity: sha512-LXZAExpepJew0Gp8ZkJ+xDZaTQjLHv48h0p0Vw2VMFQ8A+RKrAvpFuPVCVwKJCr5SE+zvaG+Etg56qXvTDIedw==}
+  /@parcel/watcher-linux-arm64-musl@2.4.0:
+    resolution: {integrity: sha512-oyN+uA9xcTDo/45bwsd6TFHa7Lc7hKujyMlvwrCLvSckvWogndCEoVYFNfZ6JJ2KNL/6fFiGPcbjp8jJmEh5Ng==}
     engines: {node: '>= 10.0.0'}
     cpu: [arm64]
     os: [linux]
@@ -903,8 +903,8 @@ packages:
     dev: false
     optional: true
 
-  /@parcel/watcher-linux-x64-glibc@2.3.0:
-    resolution: {integrity: sha512-P7Wo91lKSeSgMTtG7CnBS6WrA5otr1K7shhSjKHNePVmfBHDoAOHYRXgUmhiNfbcGk0uMCHVcdbfxtuiZCHVow==}
+  /@parcel/watcher-linux-x64-glibc@2.4.0:
+    resolution: {integrity: sha512-KphV8awJmxU3q52JQvJot0QMu07CIyEjV+2Tb2ZtbucEgqyRcxOBDMsqp1JNq5nuDXtcCC0uHQICeiEz38dPBQ==}
     engines: {node: '>= 10.0.0'}
     cpu: [x64]
     os: [linux]
@@ -912,8 +912,8 @@ packages:
     dev: false
     optional: true
 
-  /@parcel/watcher-linux-x64-musl@2.3.0:
-    resolution: {integrity: sha512-+kiRE1JIq8QdxzwoYY+wzBs9YbJ34guBweTK8nlzLKimn5EQ2b2FSC+tAOpq302BuIMjyuUGvBiUhEcLIGMQ5g==}
+  /@parcel/watcher-linux-x64-musl@2.4.0:
+    resolution: {integrity: sha512-7jzcOonpXNWcSijPpKD5IbC6xC7yTibjJw9jviVzZostYLGxbz8LDJLUnLzLzhASPlPGgpeKLtFUMjAAzM+gSA==}
     engines: {node: '>= 10.0.0'}
     cpu: [x64]
     os: [linux]
@@ -921,19 +921,18 @@ packages:
     dev: false
     optional: true
 
-  /@parcel/watcher-wasm@2.3.0:
-    resolution: {integrity: sha512-ejBAX8H0ZGsD8lSICDNyMbSEtPMWgDL0WFCt/0z7hyf5v8Imz4rAM8xY379mBsECkq/Wdqa5WEDLqtjZ+6NxfA==}
+  /@parcel/watcher-wasm@2.4.0:
+    resolution: {integrity: sha512-MNgQ4WCbBybqQ97KwR/hqJGYTg3+s8qHpgIyFWB2qJOBvoJWbXuJGmm4ZkPLq2bMaANqCZqrXwmKYagZTkMKZA==}
     engines: {node: '>= 10.0.0'}
     dependencies:
       is-glob: 4.0.3
       micromatch: 4.0.5
-      napi-wasm: 1.1.0
     dev: false
     bundledDependencies:
       - napi-wasm
 
-  /@parcel/watcher-win32-arm64@2.3.0:
-    resolution: {integrity: sha512-35gXCnaz1AqIXpG42evcoP2+sNL62gZTMZne3IackM+6QlfMcJLy3DrjuL6Iks7Czpd3j4xRBzez3ADCj1l7Aw==}
+  /@parcel/watcher-win32-arm64@2.4.0:
+    resolution: {integrity: sha512-NOej2lqlq8bQNYhUMnOD0nwvNql8ToQF+1Zhi9ULZoG+XTtJ9hNnCFfyICxoZLXor4bBPTOnzs/aVVoefYnjIg==}
     engines: {node: '>= 10.0.0'}
     cpu: [arm64]
     os: [win32]
@@ -941,8 +940,8 @@ packages:
     dev: false
     optional: true
 
-  /@parcel/watcher-win32-ia32@2.3.0:
-    resolution: {integrity: sha512-FJS/IBQHhRpZ6PiCjFt1UAcPr0YmCLHRbTc00IBTrelEjlmmgIVLeOx4MSXzx2HFEy5Jo5YdhGpxCuqCyDJ5ow==}
+  /@parcel/watcher-win32-ia32@2.4.0:
+    resolution: {integrity: sha512-IO/nM+K2YD/iwjWAfHFMBPz4Zqn6qBDqZxY4j2n9s+4+OuTSRM/y/irksnuqcspom5DjkSeF9d0YbO+qpys+JA==}
     engines: {node: '>= 10.0.0'}
     cpu: [ia32]
     os: [win32]
@@ -950,8 +949,8 @@ packages:
     dev: false
     optional: true
 
-  /@parcel/watcher-win32-x64@2.3.0:
-    resolution: {integrity: sha512-dLx+0XRdMnVI62kU3wbXvbIRhLck4aE28bIGKbRGS7BJNt54IIj9+c/Dkqb+7DJEbHUZAX1bwaoM8PqVlHJmCA==}
+  /@parcel/watcher-win32-x64@2.4.0:
+    resolution: {integrity: sha512-pAUyUVjfFjWaf/pShmJpJmNxZhbMvJASUpdes9jL6bTEJ+gDxPRSpXTIemNyNsb9AtbiGXs9XduP1reThmd+dA==}
     engines: {node: '>= 10.0.0'}
     cpu: [x64]
     os: [win32]
@@ -959,8 +958,8 @@ packages:
     dev: false
     optional: true
 
-  /@parcel/watcher@2.3.0:
-    resolution: {integrity: sha512-pW7QaFiL11O0BphO+bq3MgqeX/INAk9jgBldVDYjlQPO4VddoZnF22TcF9onMhnLVHuNqBJeRf+Fj7eezi/+rQ==}
+  /@parcel/watcher@2.4.0:
+    resolution: {integrity: sha512-XJLGVL0DEclX5pcWa2N9SX1jCGTDd8l972biNooLFtjneuGqodupPQh6XseXIBBeVIMaaJ7bTcs3qGvXwsp4vg==}
     engines: {node: '>= 10.0.0'}
     dependencies:
       detect-libc: 1.0.3
@@ -968,18 +967,18 @@ packages:
       micromatch: 4.0.5
       node-addon-api: 7.0.0
     optionalDependencies:
-      '@parcel/watcher-android-arm64': 2.3.0
-      '@parcel/watcher-darwin-arm64': 2.3.0
-      '@parcel/watcher-darwin-x64': 2.3.0
-      '@parcel/watcher-freebsd-x64': 2.3.0
-      '@parcel/watcher-linux-arm-glibc': 2.3.0
-      '@parcel/watcher-linux-arm64-glibc': 2.3.0
-      '@parcel/watcher-linux-arm64-musl': 2.3.0
-      '@parcel/watcher-linux-x64-glibc': 2.3.0
-      '@parcel/watcher-linux-x64-musl': 2.3.0
-      '@parcel/watcher-win32-arm64': 2.3.0
-      '@parcel/watcher-win32-ia32': 2.3.0
-      '@parcel/watcher-win32-x64': 2.3.0
+      '@parcel/watcher-android-arm64': 2.4.0
+      '@parcel/watcher-darwin-arm64': 2.4.0
+      '@parcel/watcher-darwin-x64': 2.4.0
+      '@parcel/watcher-freebsd-x64': 2.4.0
+      '@parcel/watcher-linux-arm-glibc': 2.4.0
+      '@parcel/watcher-linux-arm64-glibc': 2.4.0
+      '@parcel/watcher-linux-arm64-musl': 2.4.0
+      '@parcel/watcher-linux-x64-glibc': 2.4.0
+      '@parcel/watcher-linux-x64-musl': 2.4.0
+      '@parcel/watcher-win32-arm64': 2.4.0
+      '@parcel/watcher-win32-ia32': 2.4.0
+      '@parcel/watcher-win32-x64': 2.4.0
     dev: false
 
   /@rollup/plugin-alias@5.1.0(rollup@3.29.4):
@@ -1904,6 +1903,10 @@ packages:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
+
+  /crossws@0.1.1:
+    resolution: {integrity: sha512-c9c/o7bS3OjsdpSkvexpka0JNlesBF2JU9B2V1yNsYGwRbAafxhJQ7VI9b48D5bpONz/oxbPGMzBojy9sXoQIQ==}
+    dev: false
 
   /css-declaration-sorter@7.1.1(postcss@8.4.33):
     resolution: {integrity: sha512-dZ3bVTEEc1vxr3Bek9vGwfB5Z6ESPULhcRvO472mfjVnj8jRcTnKO8/JTczlvxM10Myb+wBM++1MtdO76eWcaQ==}
@@ -3503,15 +3506,16 @@ packages:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
     dev: true
 
-  /listhen@1.5.6:
-    resolution: {integrity: sha512-gTpEJhT5L85L0bFgmu+Boqu5rP4DwDtEb4Exq5gdQUxWRwx4jbzdInZkmyLONo5EwIcQB0k7ZpWlpCDPdL77EQ==}
+  /listhen@1.6.0:
+    resolution: {integrity: sha512-z0RcEXVX5oTpY1bO02SKoTU/kmZSrFSngNNzHRM6KICR17PTq7ANush6AE6ztGJwJD4RLpBrVHd9GnV51J7s3w==}
     hasBin: true
     dependencies:
-      '@parcel/watcher': 2.3.0
-      '@parcel/watcher-wasm': 2.3.0
+      '@parcel/watcher': 2.4.0
+      '@parcel/watcher-wasm': 2.4.0
       citty: 0.1.5
       clipboardy: 4.0.0
       consola: 3.2.3
+      crossws: 0.1.1
       defu: 6.1.4
       get-port-please: 3.1.2
       h3: 1.10.1
@@ -3765,10 +3769,6 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
     dev: true
-
-  /napi-wasm@1.1.0:
-    resolution: {integrity: sha512-lHwIAJbmLSjF9VDRm9GoVOy9AGp3aIvkjv+Kvz9h16QR3uSVYH78PNQUnT2U4X53mhlnV2M7wrhibQ3GHicDmg==}
-    dev: false
 
   /natural-compare-lite@1.4.0:
     resolution: {integrity: sha512-Tj+HTDSJJKaZnfiuw+iaF9skdPpTo2GtEly5JHnWV/hfv2Qj/9RKsGISQtLh2ox3l5EAGw487hnBee0sIJ6v2g==}
@@ -5172,7 +5172,7 @@ packages:
       destr: 2.0.2
       h3: 1.10.1
       ioredis: 5.3.2
-      listhen: 1.5.6
+      listhen: 1.6.0
       lru-cache: 10.1.0
       mri: 1.2.0
       node-fetch-native: 1.6.1
