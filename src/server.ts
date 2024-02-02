@@ -22,11 +22,11 @@ import { IPX } from "./ipx";
 const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/;
 
-export function createIPXH3Handler(ipx: IPX) {
+export function createIPXH3Handler(ipx: IPX, options = { base: "/" }) {
   const _handler = async (event: H3Event) => {
     // Parse URL
     const [modifiersString = "", ...idSegments] = event.path
-      .slice(1 /* leading slash */)
+      .replace(options.base, "")
       .split("/");
 
     const id = safeString(decode(idSegments.join("/")));
@@ -47,7 +47,7 @@ export function createIPXH3Handler(ipx: IPX) {
       });
     }
 
-    // Contruct modifiers
+    // Construct modifiers
     const modifiers: Record<string, string> = Object.create(null);
 
     // Read modifiers from first segment
