@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v3.0.1-0
+
+[compare changes](https://github.com/unjs/ipx/compare/v3.0.0...v3.0.1-0)
+
+### 🩹 Fixes
+
+- **http:** Properly respect `ignoreCacheControl` option ([96a8489](https://github.com/unjs/ipx/commit/96a8489))
+
+### 🏡 Chore
+
+- Update lockfile ([6b132ab](https://github.com/unjs/ipx/commit/6b132ab))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v3.0.0
 
 [compare changes](https://github.com/unjs/ipx/compare/v2.1.1-0...v3.0.0)
