@@ -61,7 +61,7 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
   // eslint-disable-next-line unicorn/consistent-function-scoping
   function parseResponse(response: Response) {
     let maxAge = defaultMaxAge;
-    if (_options.ignoreCacheControl) {
+    if (_options.ignoreCacheControl !== true) {
       const _cacheControl = response.headers.get("cache-control");
       if (_cacheControl) {
         const m = _cacheControl.match(/max-age=(\d+)/);
