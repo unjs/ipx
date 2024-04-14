@@ -3,9 +3,22 @@ import { createError } from "h3";
 import type { IPXStorage, IPXStorageMeta } from "../types";
 
 export type UnstorageIPXStorageOptions = {
+  /**
+   * Optional prefix to be placed in front of each storage key, which can help to name or categorise stored items.
+   * @optional
+   */
   prefix?: string;
 };
 
+/**
+ * Adapts an Unstorage driver or storage system to comply with the IPXStorage interface required by IPX.
+ * This allows various Unstorage-compatible storage systems to be used to manage image data with IPX.
+ *
+ * @param {Storage | Driver} storage - The Unstorage driver or storage instance to adapt. See {@link Storage} and {@link Driver}.
+ * @param {UnstorageIPXStorageOptions | string} [_options={}] - Configuration options for the adapter, which can be a simple string prefix or an options object. See {@link UnstorageIPXStorageOptions}.
+ * @returns {IPXStorage}. An IPXStorage compliant object that implements the necessary methods to interact with the provided unstorage driver or storage system. See {@link IPXStorage}.
+ * @throws {H3Error} If there is a problem retrieving or converting the storage data, detailed error information is thrown. See {@link H3Error}.
+ */
 export function unstorageToIPXStorage(
   storage: Storage | Driver,
   _options: UnstorageIPXStorageOptions | string = {},

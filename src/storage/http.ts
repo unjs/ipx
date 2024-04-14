@@ -4,15 +4,47 @@ import { getEnv } from "../utils";
 import type { IPXStorage } from "../types";
 
 export type HTTPStorageOptions = {
+  /**
+   * Custom options for fetch operations, such as headers or method overrides.
+   * @optional
+   */
   fetchOptions?: RequestInit;
+
+  /**
+   * Default maximum age (in seconds) for cache control. If not specified, defaults to the environment setting or 300 seconds.
+   * @optional
+   */
   maxAge?: number;
+
+  /**
+   * Whitelist of domains from which resource fetching is allowed. Can be a single string or an array of strings.
+   * @optional
+   */
   domains?: string | string[];
+
+  /**
+   * If set to true, allows retrieval from any domain. Overrides the domain whitelist.
+   * @optional
+   */
   allowAllDomains?: boolean;
+
+  /**
+   * If set to true, ignore the cache control header in responses and use the default or specified maxAge.
+   * @optional
+   */
   ignoreCacheControl?: boolean;
 };
 
 const HTTP_RE = /^https?:\/\//;
 
+/**
+ * Creates an HTTP storage handler for IPX that fetches image data from external URLs.
+ * This handler allows configuration to specify allowed domains, caching behaviour and custom fetch options.
+ *
+ * @param {HTTPStorageOptions} [_options={}] - Configuration options for HTTP storage, with defaults possibly taken from environment variables. See {@link HTTPStorageOptions}.
+ * @returns {IPXStorage} An IPXStorage interface implementation for retrieving images over HTTP. See {@link IPXStorage}.
+ * @throws {H3Error} If validation of the requested URL fails due to a missing hostname or denied host access. See {@link H3Error}.
+ */
 export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
   const allowAllDomains =
     _options.allowAllDomains ?? getEnv("IPX_HTTP_ALLOW_ALL_DOMAINS") ?? false;

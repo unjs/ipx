@@ -22,6 +22,13 @@ import { IPX } from "./ipx";
 const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/;
 
+/**
+ * Creates an H3 handler to handle images using IPX.
+ * @param {IPX} ipx - An IPX instance to handle image requests.
+ * @returns {H3Event} An H3 event handler that processes image requests, applies modifiers, handles caching,
+ * and returns the processed image data. See {@link H3Event}.
+ * @throws {H3Error} If there are problems with the request parameters or processing the image. See {@link H3Error}.
+ */
 export function createIPXH3Handler(ipx: IPX) {
   const _handler = async (event: H3Event) => {
     // Parse URL
@@ -153,20 +160,40 @@ export function createIPXH3Handler(ipx: IPX) {
   });
 }
 
+/**
+ * Creates an H3 application configured to handle image processing using a supplied IPX instance.
+ * @param {IPX} ipx - An IPX instance to handle image handling requests.
+ * @returns {any} An H3 application configured to use the IPX image handler.
+ */
 export function createIPXH3App(ipx: IPX) {
   const app = createApp({ debug: true });
   app.use(createIPXH3Handler(ipx));
   return app;
 }
 
+/**
+ * Creates a web server that can handle IPX image processing requests using an H3 application.
+ * @param {IPX} ipx - An IPX instance configured for the server. See {@link IPX}.
+ * @returns {any} A web handler suitable for use with web server environments that support the H3 library.
+ */
 export function createIPXWebServer(ipx: IPX) {
   return toWebHandler(createIPXH3App(ipx));
 }
 
+/**
+ * Creates a web server that can handle IPX image processing requests using an H3 application.
+ * @param {IPX} ipx - An IPX instance configured for the server. See {@link IPX}.
+ * @returns {any} A web handler suitable for use with web server environments that support the H3 library.
+ */
 export function createIPXNodeServer(ipx: IPX) {
   return toNodeListener(createIPXH3App(ipx));
 }
 
+/**
+ * Creates a simple server that can handle IPX image processing requests using an H3 application.
+ * @param {IPX} ipx - An IPX instance configured for the server.
+ * @returns {any} A handler suitable for plain HTTP server environments that support the H3 library.
+ */
 export function createIPXPlainServer(ipx: IPX) {
   return toPlainHandler(createIPXH3App(ipx));
 }
