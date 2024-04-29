@@ -1,7 +1,10 @@
 {
   "name": "ipx",
   "version": "3.0.1",
-  "repository": "unjs/ipx",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unjs/ipx.git"
+  },
   "description": "High performance, secure and easy-to-use image optimizer.",
   "license": "MIT",
   "exports": {
@@ -19,7 +22,9 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "bin": "./bin/ipx.mjs",
+  "bin": {
+    "ipx": "bin/ipx.mjs"
+  },
   "files": [
     "dist",
     "bin"
