@@ -95,6 +95,10 @@ Change format to `webp` and keep other things same as source:
 
 `/f_webp/static/buffalo.png`
 
+Automatically convert to a preferred format (avif/webp/jpeg). Uses the browsers `accept` header to negotiate:
+
+`/f_auto/static/buffalo.png`
+
 Keep original format (`png`) and set width to `200`:
 
 `/w_200/static/buffalo.png`
