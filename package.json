@@ -59,7 +59,7 @@
     "@types/is-valid-path": "^0.1.2",
     "@vitest/coverage-v8": "^1.5.2",
     "changelogen": "^0.5.5",
-    "eslint": "^8.57.0",
+    "eslint": "^9.18.0",
     "eslint-config-unjs": "^0.2.1",
     "jiti": "^1.21.0",
     "prettier": "^3.2.5",
