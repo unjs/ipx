@@ -38,7 +38,6 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
       .filter(Boolean),
   );
 
-  // eslint-disable-next-line unicorn/consistent-function-scoping
   function validateId(id: string) {
     const url = new URL(decodeURIComponent(id));
     if (!url.hostname) {
@@ -58,7 +57,6 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     return url.toString();
   }
 
-  // eslint-disable-next-line unicorn/consistent-function-scoping
   function parseResponse(response: Response) {
     let maxAge = defaultMaxAge;
     if (_options.ignoreCacheControl !== true) {

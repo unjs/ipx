@@ -19,7 +19,6 @@ export function parseArgs(
 export type HandlerName = keyof typeof Handlers;
 
 export function getHandler(key: HandlerName): Handler {
-  // eslint-disable-next-line import/namespace
   return Handlers[key];
 }
 

@@ -8,7 +8,6 @@ describe("ipx", () => {
   let ipx: IPX;
   beforeAll(() => {
     ipx = createIPX({
-      // eslint-disable-next-line unicorn/prefer-module
       storage: ipxFSStorage({ dir: resolve(__dirname, "assets") }),
       httpStorage: ipxHttpStorage({ domains: ["localhost:3000"] }),
     });
@@ -17,7 +16,6 @@ describe("ipx", () => {
   it("remote file", async () => {
     const listener = await listen(
       (request, res) => {
-        // eslint-disable-next-line unicorn/prefer-module
         serveHandler(request, res, { public: resolve(__dirname, "assets") });
       },
       { port: 0 },
