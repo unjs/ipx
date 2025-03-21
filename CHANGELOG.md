@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v3.0.2
+
+[compare changes](https://github.com/unjs/ipx/compare/v3.0.1...v3.0.2)
+
+### 🩹 Fixes
+
+- Correctly handle `format_auto,animated` ([#235](https://github.com/unjs/ipx/pull/235))
+
+### 📖 Documentation
+
+- Added jsdocs to exported functions and types ([#222](https://github.com/unjs/ipx/pull/222))
+
+### 🏡 Chore
+
+- Lint ([0edc15c](https://github.com/unjs/ipx/commit/0edc15c))
+- Update eslint config ([3a5b8c2](https://github.com/unjs/ipx/commit/3a5b8c2))
+- Update deps ([593deec](https://github.com/unjs/ipx/commit/593deec))
+- Update deps ([af12427](https://github.com/unjs/ipx/commit/af12427))
+- Update ci ([e307855](https://github.com/unjs/ipx/commit/e307855))
+- Update release script ([9414e40](https://github.com/unjs/ipx/commit/9414e40))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+- Max ([@onmax](https://github.com/onmax))
+- James Wragg <james.wragg@madgex.com>
+
 ## v3.0.1
 
 [compare changes](https://github.com/unjs/ipx/compare/v3.0.1-0...v3.0.1)
