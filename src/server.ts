@@ -64,9 +64,12 @@ export function createIPXH3Handler(ipx: IPX) {
     const mFormat = modifiers.f || modifiers.format;
     if (mFormat === "auto") {
       const acceptHeader = getRequestHeader(event, "accept") || "";
+      const animated = modifiers.animated ?? modifiers.a;
       const autoFormat = autoDetectFormat(
         acceptHeader,
-        !!(modifiers.a || modifiers.animated),
+        // #234 "animated" param adds {animated: ''} to the modifiers
+        // TODO: fix modifiers to normalized to boolean
+        !!animated || animated === "",
       );
       delete modifiers.f;
       delete modifiers.format;
