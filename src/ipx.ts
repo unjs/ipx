@@ -8,8 +8,37 @@ import type { IPXStorage } from "./types";
 import { HandlerName, applyHandler, getHandler } from "./handlers";
 import { cachedPromise, getEnv } from "./utils";
 
-type IPXSourceMeta = { mtime?: Date; maxAge?: number };
+type IPXSourceMeta = {
+  /**
+   * The modification time of the source. Used for cache validation.
+   * @optional
+   */
+  mtime?: Date;
 
+  /**
+   * The maximum age (in seconds) that the source should be considered fresh.
+   * @optional
+   */
+  maxAge?: number;
+};
+
+/**
+ * A function type that defines an IPX image processing instance.
+ *
+ * This function takes an image identifier and optional modifiers and request options, then provides methods to retrieve
+ * image metadata and process the image according to the specified modifiers.
+ *
+ * @param {string} id - The identifier for the image. This can be a URL or a path, depending on the storage implementation.
+ * @param {partial<Record<HandlerName | "f" | "format" | "a" | "animated", string>>} [modifiers] - Modifiers to be applied to the image,
+ * such as resizing, cropping or format conversion. This record contains predefined keys such as 'f' or 'format' to specify the output to
+ * specify the output image format, and 'a' or 'animated' to specify whether the image should be processed as an animation. See
+ * {@link HandlerName}.
+ * @param {any} [requestOptions] - Additional options that may be needed for request handling, specific to the storage backend.
+ * Returns an object with methods:
+ * - `getSourceMeta`: A method that returns a promise resolving to the source image metadata (`IPXSourceMeta`).
+ * - `process`: A method that returns a promise resolving to an object containing the processed image data, metadata,
+ * and format. The image data can be in the form of a `buffer` or a string, depending on the format and processing.
+ */
 export type IPX = (
   id: string,
   modifiers?: Partial<
@@ -26,13 +55,39 @@ export type IPX = (
 };
 
 export type IPXOptions = {
+  /**
+   * Default cache duration in seconds. If not specified, a default of 1 minute is used.
+   * @optional
+   */
   maxAge?: number;
+
+  /**
+   * A mapping of URL aliases to their corresponding URLs, used to simplify resource identifiers.
+   * @optional
+   */
   alias?: Record<string, string>;
+
+  /**
+   * Configuration options for the Sharp image processing library.
+   * @optional
+   */
   sharpOptions?: SharpOptions;
 
+  /**
+   * Primary storage backend for handling image assets.
+   */
   storage: IPXStorage;
+
+  /**
+   * An optional secondary storage backend used when images are fetched via HTTP.
+   * @optional
+   */
   httpStorage?: IPXStorage;
 
+  /**
+   * Configuration for the SVGO library used when processing SVG images.
+   * @optional
+   */
   svgo?: false | SVGOConfig;
 };
 
@@ -49,6 +104,12 @@ const SUPPORTED_FORMATS = new Set([
   "heic",
 ]);
 
+/**
+ * Creates an IPX image processing instance with the specified options.
+ * @param {IPXOptions} userOptions - Configuration options for the IPX instance. See {@link IPXOptions}.
+ * @returns {IPX} An IPX processing function configured with the given options. See {@link IPX}.
+ * @throws {Error} If critical options such as storage are missing or incorrectly configured.
+ */
 export function createIPX(userOptions: IPXOptions): IPX {
   const options: IPXOptions = defu(userOptions, {
     alias: getEnv<Record<string, string>>("IPX_ALIAS") || {},

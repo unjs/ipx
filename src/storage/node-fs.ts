@@ -4,10 +4,27 @@ import { cachedPromise, getEnv } from "../utils";
 import type { IPXStorage } from "../types";
 
 export type NodeFSSOptions = {
+  /**
+   * The directory or list of directories from which to serve files. If not specified, the current directory is used by default.
+   * @optional
+   */
   dir?: string | string[];
+
+  /**
+   * The directory or list of directories from which to serve files. If not specified, the current directory is used by default.
+   * @optional
+   */
   maxAge?: number;
 };
 
+/**
+ * Creates a file system storage handler for IPX that allows images to be served from local directories specified in the options.
+ * This handler resolves directories and handles file access, ensuring that files are served safely.
+ *
+ * @param {NodeFSSOptions} [_options={}] - File system storage configuration options, with optional directory paths and caching configuration. See {@link NodeFSSOptions}.
+ * @returns {IPXStorage} An implementation of the IPXStorage interface for accessing images stored on the local file system. See {@link IPXStorage}.
+ * @throws {H3Error} If there is a problem accessing the file system module or resolving/reading files. See {@link H3Error}.
+ */
 export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
   const dirs = resolveDirs(_options.dir);
   const maxAge = _options.maxAge || getEnv("IPX_FS_MAX_AGE");
