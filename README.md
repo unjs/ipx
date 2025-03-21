@@ -58,7 +58,9 @@ const ipx = createIPX({
   httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
 });
 
-const app = createApp().use("/", createIPXH3Handler(ipx));
+const base = '/'
+
+const app = createApp().use(base, createIPXH3Handler(ipx, { base }));
 
 listen(toNodeListener(app));
 ```
