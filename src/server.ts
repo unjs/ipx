@@ -21,6 +21,7 @@ import { IPX } from "./ipx";
 
 const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/;
+const ID_FORMAT = /^(.+)@@(.+)\.([^.]+)$/;
 
 /**
  * Creates an H3 handler to handle images using IPX.
@@ -32,14 +33,10 @@ const MODIFIER_VAL_SEP = /[:=_]/;
 export function createIPXH3Handler(ipx: IPX) {
   const _handler = async (event: H3Event) => {
     // Parse URL
-    const [modifiersString = "", ...idSegments] = event.path
-      .slice(1 /* leading slash */)
-      .split("/");
-
-    const id = safeString(decode(idSegments.join("/")));
+    const { modifiers, id } = parseUrlPath(event.path);
 
     // Validate
-    if (!modifiersString) {
+    if (Object.keys(modifiers).length === 0) {
       throw createError({
         statusCode: 400,
         statusText: `IPX_MISSING_MODIFIERS`,
@@ -52,19 +49,6 @@ export function createIPXH3Handler(ipx: IPX) {
         statusText: `IPX_MISSING_ID`,
         message: `Resource id is missing: ${event.path}`,
       });
-    }
-
-    // Contruct modifiers
-    const modifiers: Record<string, string> = Object.create(null);
-
-    // Read modifiers from first segment
-    if (modifiersString !== "_") {
-      for (const p of modifiersString.split(MODIFIER_SEP)) {
-        const [key, ...values] = p.split(MODIFIER_VAL_SEP);
-        modifiers[safeString(key)] = values
-          .map((v) => safeString(decode(v)))
-          .join("_");
-      }
     }
 
     // Auto format
@@ -231,4 +215,52 @@ function safeString(input: string) {
     .replace(/^"|"$/g, "")
     .replace(/\\+/g, "\\")
     .replace(/\\"/g, '"');
+}
+
+function parseUrlPath(path: string): {
+  modifiers: Record<string, string>;
+  id: string;
+} {
+  const [modifiersString = "", ...idSegments] = path
+    .slice(1 /* leading slash */)
+    .split("/");
+
+  const id = safeString(decode(idSegments.join("/")));
+
+  if (modifiersString === "~") {
+    const matches = id.match(ID_FORMAT);
+
+    if (matches != null) {
+      const modifiers = parseModifiersString(matches[2]);
+      modifiers.format = matches[3];
+      delete modifiers.f;
+
+      return {
+        modifiers,
+        id: matches[1],
+      };
+    }
+  }
+
+  return {
+    modifiers: parseModifiersString(modifiersString),
+    id,
+  };
+}
+
+function parseModifiersString(input: string): Record<string, string> {
+  const modifiers: Record<string, string> = Object.create(null);
+
+  if (input === "_" || input === "~") {
+    return modifiers;
+  }
+
+  for (const p of input.split(MODIFIER_SEP)) {
+    const [key, ...values] = p.split(MODIFIER_VAL_SEP);
+    modifiers[safeString(key)] = values
+      .map((v) => safeString(decode(v)))
+      .join("_");
+  }
+
+  return modifiers;
 }
