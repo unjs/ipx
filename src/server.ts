@@ -36,18 +36,11 @@ export function createIPXH3Handler(ipx: IPX) {
     const { modifiers, id } = parseUrlPath(event.path);
 
     // Validate
-    if (Object.keys(modifiers).length === 0) {
-      throw createError({
-        statusCode: 400,
-        statusText: `IPX_MISSING_MODIFIERS`,
-        message: `Modifiers are missing: ${id}`,
-      });
-    }
     if (!id || id === "/") {
       throw createError({
         statusCode: 400,
         statusText: `IPX_MISSING_ID`,
-        message: `Resource id is missing: ${event.path}`,
+        message: `Resource id is missing or malformed: ${event.path}`,
       });
     }
 
@@ -251,7 +244,7 @@ function parseUrlPath(path: string): {
 function parseModifiersString(input: string): Record<string, string> {
   const modifiers: Record<string, string> = Object.create(null);
 
-  if (input === "_" || input === "~") {
+  if (input === "" || input === "_" || input === "~") {
     return modifiers;
   }
 
