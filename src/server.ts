@@ -1,5 +1,6 @@
 import { negotiate } from "@fastify/accept-negotiator";
 import { decode } from "ufo";
+import { defu } from "defu";
 import getEtag from "etag";
 import {
   defineEventHandler,
@@ -21,19 +22,42 @@ import { IPX } from "./ipx";
 
 const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/;
-const ID_FORMAT = /^(.+)@@(.+)\.([^.]+)$/;
+
+/**
+ * Object which identifies a requested resource, consisting of an id string (the source file path) and a mapping of
+ * image modifiers with their requested values.
+ */
+export interface IPXResource {
+  id: string;
+  modifiers: Record<string, string>;
+}
+
+export type IPXH3HandlerOptions = {
+  /**
+   * Optional function which determines how image URL paths are parsed into IPX resource identifiers. When undefined,
+   * the default URL parsing logic is used, which accepts URLs in the form `/<modifiers>/<id>`. This function must
+   * return a {@link IPXResource} object. The first argument is the {@link H3Event} for the request, from which the
+   * `path` can be obtained. (Note: the request path does not include the base URL, only the part after `.../_ipx`.).
+   */
+  parseUrl?: (event: H3Event) => IPXResource;
+};
 
 /**
  * Creates an H3 handler to handle images using IPX.
  * @param {IPX} ipx - An IPX instance to handle image requests.
+ * @param {IPXH3HandlerOptions} options - Configuration options for the H3 handler instance.
  * @returns {H3Event} An H3 event handler that processes image requests, applies modifiers, handles caching,
  * and returns the processed image data. See {@link H3Event}.
  * @throws {H3Error} If there are problems with the request parameters or processing the image. See {@link H3Error}.
  */
-export function createIPXH3Handler(ipx: IPX) {
+export function createIPXH3Handler(ipx: IPX, options?: IPXH3HandlerOptions) {
+  const { parseUrl } = defu(options, {
+    parseUrl: defaultUrlParser,
+  });
+
   const _handler = async (event: H3Event) => {
     // Parse URL
-    const { modifiers, id } = parseUrlPath(event.path);
+    const { id, modifiers } = parseUrl(event);
 
     // Validate
     if (!id || id === "/") {
@@ -143,39 +167,81 @@ export function createIPXH3Handler(ipx: IPX) {
 /**
  * Creates an H3 application configured to handle image processing using a supplied IPX instance.
  * @param {IPX} ipx - An IPX instance to handle image handling requests.
+ * @param {IPXH3HandlerOptions} options - Configuration options for the H3 handler instance.
  * @returns {any} An H3 application configured to use the IPX image handler.
  */
-export function createIPXH3App(ipx: IPX) {
+export function createIPXH3App(ipx: IPX, options?: IPXH3HandlerOptions) {
   const app = createApp({ debug: true });
-  app.use(createIPXH3Handler(ipx));
+  app.use(createIPXH3Handler(ipx, options));
   return app;
 }
 
 /**
  * Creates a web server that can handle IPX image processing requests using an H3 application.
  * @param {IPX} ipx - An IPX instance configured for the server. See {@link IPX}.
+ * @param {IPXH3HandlerOptions} options - Configuration options for the H3 handler instance.
  * @returns {any} A web handler suitable for use with web server environments that support the H3 library.
  */
-export function createIPXWebServer(ipx: IPX) {
-  return toWebHandler(createIPXH3App(ipx));
+export function createIPXWebServer(ipx: IPX, options?: IPXH3HandlerOptions) {
+  return toWebHandler(createIPXH3App(ipx, options));
 }
 
 /**
  * Creates a web server that can handle IPX image processing requests using an H3 application.
  * @param {IPX} ipx - An IPX instance configured for the server. See {@link IPX}.
+ * @param {IPXH3HandlerOptions} options - Configuration options for the H3 handler instance.
  * @returns {any} A web handler suitable for use with web server environments that support the H3 library.
  */
-export function createIPXNodeServer(ipx: IPX) {
-  return toNodeListener(createIPXH3App(ipx));
+export function createIPXNodeServer(ipx: IPX, options?: IPXH3HandlerOptions) {
+  return toNodeListener(createIPXH3App(ipx, options));
 }
 
 /**
  * Creates a simple server that can handle IPX image processing requests using an H3 application.
  * @param {IPX} ipx - An IPX instance configured for the server.
+ * @param {IPXH3HandlerOptions} options - Configuration options for the H3 handler instance.
  * @returns {any} A handler suitable for plain HTTP server environments that support the H3 library.
  */
-export function createIPXPlainServer(ipx: IPX) {
-  return toPlainHandler(createIPXH3App(ipx));
+export function createIPXPlainServer(ipx: IPX, options?: IPXH3HandlerOptions) {
+  return toPlainHandler(createIPXH3App(ipx, options));
+}
+
+/**
+ * The default IPX resource URL parsing function, which accepts URLs in the form `/<modifiers>/<id>`.
+ * @param {H3Event} event - An H3 event object carrying the incoming request and context.
+ * @returns {IPXResource} Object containing the source file `id` and `modifiers` parsed from the URL.
+ */
+export function defaultUrlParser(event: H3Event): IPXResource {
+  const [modifiersString = "", ...idSegments] = event.path
+    .slice(1 /* leading slash */)
+    .split("/");
+
+  return {
+    id: decode(idSegments.join("/")),
+    modifiers: parseModifiersString(modifiersString),
+  };
+}
+
+/**
+ * Parses an encoded modifiers string from a URL into a mapping of modifier keys and values.
+ * @param input - Encoded string of modifiers, e.g. `w_300&h_600&f_webp`.
+ * @returns {Record<string, string>} Mapping of each requested modifier key to its value. (Can be an empty object.)
+ */
+export function parseModifiersString(input: string): Record<string, string> {
+  const modifiers: Record<string, string> = Object.create(null);
+
+  if (input === "" || input === "_") {
+    return modifiers;
+  }
+
+  for (const p of input.split(MODIFIER_SEP)) {
+    const [key, ...values] = p.split(MODIFIER_VAL_SEP);
+    modifiers[safeString(key)] = values
+      .map((v) => safeString(decode(v)))
+      .join("_");
+  }
+
+  return modifiers;
 }
 
 // --- Utils ---
@@ -208,52 +274,4 @@ function safeString(input: string) {
     .replace(/^"|"$/g, "")
     .replace(/\\+/g, "\\")
     .replace(/\\"/g, '"');
-}
-
-function parseUrlPath(path: string): {
-  modifiers: Record<string, string>;
-  id: string;
-} {
-  const [modifiersString = "", ...idSegments] = path
-    .slice(1 /* leading slash */)
-    .split("/");
-
-  const id = safeString(decode(idSegments.join("/")));
-
-  if (modifiersString === "~") {
-    const matches = id.match(ID_FORMAT);
-
-    if (matches != null) {
-      const modifiers = parseModifiersString(matches[2]);
-      modifiers.format = matches[3];
-      delete modifiers.f;
-
-      return {
-        modifiers,
-        id: matches[1],
-      };
-    }
-  }
-
-  return {
-    modifiers: parseModifiersString(modifiersString),
-    id,
-  };
-}
-
-function parseModifiersString(input: string): Record<string, string> {
-  const modifiers: Record<string, string> = Object.create(null);
-
-  if (input === "" || input === "_" || input === "~") {
-    return modifiers;
-  }
-
-  for (const p of input.split(MODIFIER_SEP)) {
-    const [key, ...values] = p.split(MODIFIER_VAL_SEP);
-    modifiers[safeString(key)] = values
-      .map((v) => safeString(decode(v)))
-      .join("_");
-  }
-
-  return modifiers;
 }
