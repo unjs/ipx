@@ -88,7 +88,7 @@ export function createIPXH3Handler(ipx: IPX, options?: IPXH3HandlerOptions) {
     }
 
     // Create request
-    const img = ipx(id, modifiers);
+    const img = ipx(safeString(id), modifiers);
 
     // Get image meta from source
     const sourceMeta = await img.getSourceMeta();
