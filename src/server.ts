@@ -12,6 +12,7 @@ import {
   toPlainHandler,
   toWebHandler,
   createError,
+  EventHandler,
   H3Event,
   H3Error,
   send,
@@ -46,11 +47,14 @@ export type IPXH3HandlerOptions = {
  * Creates an H3 handler to handle images using IPX.
  * @param {IPX} ipx - An IPX instance to handle image requests.
  * @param {IPXH3HandlerOptions} options - Configuration options for the H3 handler instance.
- * @returns {H3Event} An H3 event handler that processes image requests, applies modifiers, handles caching,
+ * @returns {EventHandler} An H3 event handler that processes image requests, applies modifiers, handles caching,
  * and returns the processed image data. See {@link H3Event}.
  * @throws {H3Error} If there are problems with the request parameters or processing the image. See {@link H3Error}.
  */
-export function createIPXH3Handler(ipx: IPX, options?: IPXH3HandlerOptions) {
+export function createIPXH3Handler(
+  ipx: IPX,
+  options?: IPXH3HandlerOptions,
+): EventHandler {
   const { parseUrl } = defu(options, {
     parseUrl: defaultUrlParser,
   });
