@@ -4,7 +4,7 @@
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 
 > [!NOTE]
-> This is the active branch for IPX v2. Check out [ipx/v1](https://github.com/unjs/ipx/tree/v1) for v1 docs.
+> This is the active development branch. Check out [v2](https://github.com/unjs/ipx/tree/v2) and [v3](https://github.com/unjs/ipx/tree/v3) for older docs.
 
 High performance, secure and easy-to-use image optimizer powered by [sharp](https://github.com/lovell/sharp) and [svgo](https://github.com/svg/svgo).
 
