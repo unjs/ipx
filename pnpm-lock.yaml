@@ -45,8 +45,8 @@ importers:
         specifier: ^0.33.5
         version: 0.33.5
       svgo:
-        specifier: ^3.3.2
-        version: 3.3.2
+        specifier: ^4.0.0
+        version: 4.0.0
       ufo:
         specifier: ^1.5.4
         version: 1.5.4
@@ -1152,6 +1152,10 @@ packages:
   colord@2.9.3:
     resolution: {integrity: sha512-jeC1axXpnb0/2nn/Y1LPuLdgXBLH7aDcHu4KEKfqw3CUhX7ZpfBSlPKyqXE6btIgEzfWtrX3/tyBCaCvXvMkOw==}
 
+  commander@11.1.0:
+    resolution: {integrity: sha512-yPVavfyCcRhmorC7rWlkHn15b4wDVgVmBA7kV4QVBsF7kv/9TKJAbAXVTxvTnwP8HHKjRCJDClKbciiYS7p0DQ==}
+    engines: {node: '>=16'}
+
   commander@2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
 
@@ -1210,6 +1214,10 @@ packages:
 
   css-tree@2.3.1:
     resolution: {integrity: sha512-6Fv1DV/TYw//QF5IzQdqsNDjx/wc8TrMBZsqjL9eW01tWb7R7k/mq+/VXfJCl7SoD5emsJop9cOByJZfs8hYIw==}
+    engines: {node: ^10 || ^12.20.0 || ^14.13.0 || >=15.0.0}
+
+  css-tree@3.1.0:
+    resolution: {integrity: sha512-0eW44TGN5SQXU1mWSkKwFstI/22X2bG1nYzZTYMAWjylYURhse752YgbE4Cx46AC+bAvI+/dYTPRk1LqSUnu6w==}
     engines: {node: ^10 || ^12.20.0 || ^14.13.0 || >=15.0.0}
 
   css-what@6.1.0:
@@ -1778,6 +1786,9 @@ packages:
   mdn-data@2.0.30:
     resolution: {integrity: sha512-GaqWWShW4kv/G9IEucWScBx9G1/vsFZZJUO+tD26M8J8z3Kw5RDQjaoZe03YAClgeS/SWPOcb4nkFBTEi5DUEA==}
 
+  mdn-data@2.12.2:
+    resolution: {integrity: sha512-IEn+pegP1aManZuckezWCO+XZQDplx1366JoVhTpMpBB1sPey/SbveZQUosKiKiGYjg1wH4pMlNgXbCiYgihQA==}
+
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
 
@@ -2270,6 +2281,9 @@ packages:
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
 
+  sax@1.4.1:
+    resolution: {integrity: sha512-+aWOz7yVScEGoKNd4PA10LZ8sk0A/z5+nXQG5giUO5rprX9jgYsTdov9qCchZiPIZezbZH+jRut8nPodFAX4Jg==}
+
   scule@1.3.0:
     resolution: {integrity: sha512-6FtHJEvt+pVMIB9IBY+IcCJ6Z5f1iQnytgyfKMhDKgmzYG+TeH/wx1y3l27rshSbLiSanrR9ffZDrEsmjlQF2g==}
 
@@ -2374,6 +2388,11 @@ packages:
   svgo@3.3.2:
     resolution: {integrity: sha512-OoohrmuUlBs8B8o6MB2Aevn+pRIH9zDALSR+6hhqVfa6fRwG/Qw9VUMSMW9VNg2CFc/MTIfabtdOVl9ODIJjpw==}
     engines: {node: '>=14.0.0'}
+    hasBin: true
+
+  svgo@4.0.0:
+    resolution: {integrity: sha512-VvrHQ+9uniE+Mvx3+C9IEe/lWasXCU0nXMY2kZeLrHNICuRiC8uMPyM14UEaMOFA5mhyQqEkB02VoQ16n3DLaw==}
+    engines: {node: '>=16'}
     hasBin: true
 
   system-architecture@0.1.0:
@@ -3529,6 +3548,8 @@ snapshots:
 
   colord@2.9.3: {}
 
+  commander@11.1.0: {}
+
   commander@2.20.3: {}
 
   commander@7.2.0: {}
@@ -3583,6 +3604,11 @@ snapshots:
   css-tree@2.3.1:
     dependencies:
       mdn-data: 2.0.30
+      source-map-js: 1.2.1
+
+  css-tree@3.1.0:
+    dependencies:
+      mdn-data: 2.12.2
       source-map-js: 1.2.1
 
   css-what@6.1.0: {}
@@ -4230,6 +4256,8 @@ snapshots:
 
   mdn-data@2.0.30: {}
 
+  mdn-data@2.12.2: {}
+
   merge-stream@2.0.0: {}
 
   merge2@1.4.1: {}
@@ -4710,6 +4738,8 @@ snapshots:
     dependencies:
       queue-microtask: 1.2.3
 
+  sax@1.4.1: {}
+
   scule@1.3.0: {}
 
   semver@5.7.2: {}
@@ -4835,6 +4865,16 @@ snapshots:
       css-what: 6.1.0
       csso: 5.0.5
       picocolors: 1.1.1
+
+  svgo@4.0.0:
+    dependencies:
+      commander: 11.1.0
+      css-select: 5.1.0
+      css-tree: 3.1.0
+      css-what: 6.1.0
+      csso: 5.0.5
+      picocolors: 1.1.1
+      sax: 1.4.1
 
   system-architecture@0.1.0: {}
 
