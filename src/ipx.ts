@@ -241,7 +241,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
           const { optimize } = await getSVGO();
           const svg = optimize(sourceData.toString("utf8"), {
             ...options.svgo,
-            plugins: ["removeScriptElement", ...(options.svgo?.plugins || [])],
+            plugins: ["removeScripts", ...(options.svgo?.plugins || [])],
           }).data;
           return {
             data: svg,
