@@ -10,4 +10,4 @@ const ipx = createIPX({
   }),
 });
 
-export default createIPXH3App(ipx);
+export const app = createIPXH3App(ipx);
