@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v3.1.0
+
+[compare changes](https://github.com/unjs/ipx/compare/v3.0.3...v3.1.0)
+
+### 🏡 Chore
+
+- Remove old release script ([af698d0](https://github.com/unjs/ipx/commit/af698d0))
+- Update readme ([#264](https://github.com/unjs/ipx/pull/264))
+- Fix typos ([8225271](https://github.com/unjs/ipx/commit/8225271))
+- Update deps ([5428f66](https://github.com/unjs/ipx/commit/5428f66))
+- Add codeowners file ([2dfec2d](https://github.com/unjs/ipx/commit/2dfec2d))
+- Update playground ([335710e](https://github.com/unjs/ipx/commit/335710e))
+- Update tests ([aa94ce2](https://github.com/unjs/ipx/commit/aa94ce2))
+
+### ✅ Tests
+
+- Only include src for coverage report ([#258](https://github.com/unjs/ipx/pull/258))
+- Increase coverage ([#260](https://github.com/unjs/ipx/pull/260))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+- Kanon ([@ysknsid25](https://github.com/ysknsid25))
+- Maxime Pauvert ([@maximepvrt](https://github.com/maximepvrt))
+
 ## v3.0.3
 
 [compare changes](https://github.com/unjs/ipx/compare/v3.0.2...v3.0.3)
