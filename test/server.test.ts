@@ -38,7 +38,7 @@ describe("server", () => {
   };
 
   describe("createIPXH3Handler", () => {
-    it("IPX_MISSING_MODIFIERS", () => {
+    it("IPX_MISSING_MODIFIERS", async () => {
       const handler = createIPXH3Handler(ipx);
       const event = {
         path: "",
@@ -49,14 +49,14 @@ describe("server", () => {
         context: {},
       } as unknown as H3Event;
 
-      expect(handler(event)).resolves.toEqual({
+      await expect(handler(event)).resolves.toEqual({
         error: {
           message: "[400] [IPX_MISSING_MODIFIERS] Modifiers are missing: ",
         },
       });
     });
 
-    it("IPX_MISSING_ID", () => {
+    it("IPX_MISSING_ID", async () => {
       const handler = createIPXH3Handler(ipx);
       const event = {
         path: "/path",
@@ -67,14 +67,14 @@ describe("server", () => {
         context: {},
       } as unknown as H3Event;
 
-      expect(handler(event)).resolves.toEqual({
+      await expect(handler(event)).resolves.toEqual({
         error: {
           message: "[400] [IPX_MISSING_ID] Resource id is missing: /path",
         },
       });
     });
 
-    it("[IPX_ERROR] ipx is not a function", () => {
+    it("[IPX_ERROR] ipx is not a function", async () => {
       const handler = createIPXH3Handler(ipx);
       const event = {
         path: "/foo/bar/baz",
@@ -85,7 +85,7 @@ describe("server", () => {
         context: {},
       } as unknown as H3Event;
 
-      expect(handler(event)).resolves.toEqual({
+      await expect(handler(event)).resolves.toEqual({
         error: {
           message:
             "[500] [IPX_ERROR] event.node.res.getHeader is not a function",
@@ -93,7 +93,7 @@ describe("server", () => {
       });
     });
 
-    it("createIPXH3Handler returns expected value", () => {
+    it("createIPXH3Handler returns expected value", async () => {
       const handler = createIPXH3Handler(ipx);
       const event = {
         path: "/foo/bar/baz",
@@ -108,7 +108,7 @@ describe("server", () => {
         context: {},
       } as unknown as H3Event;
 
-      expect(handler(event)).resolves.toEqual("data");
+      await expect(handler(event)).resolves.toEqual("data");
     });
   });
 
