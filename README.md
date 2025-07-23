@@ -20,7 +20,7 @@ Using `npx`:
 npx ipx serve --dir ./
 ```
 
-Usin `bun`
+Using `bun`
 
 ```bash
 bun x npx ipx serve --dir ./
@@ -28,7 +28,7 @@ bun x npx ipx serve --dir ./
 
 The default serve directory is the current working directory.
 
-## Programatic API
+## Programmatic API
 
 You can use IPX as a middleware or directly use IPX interface.
 
