@@ -54,7 +54,7 @@ export function createIPXH3Handler(ipx: IPX) {
       });
     }
 
-    // Contruct modifiers
+    // Construct modifiers
     const modifiers: Record<string, string> = Object.create(null);
 
     // Read modifiers from first segment

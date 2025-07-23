@@ -4,7 +4,7 @@ import {
   VArg as VArgument,
 } from "./utils";
 
-// --------- Context Modifers ---------
+// --------- Context Modifiers ---------
 
 export const quality: Handler = {
   args: [VArgument],
