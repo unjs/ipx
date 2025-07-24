@@ -43,7 +43,7 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
     const fs = await _getFS();
     for (const dir of dirs) {
       const filePath = join(dir, id);
-      if (!isValidPath(filePath) || !filePath.startsWith(dir)) {
+      if (!isValidPath(filePath) || !filePath.startsWith(dir + "/")) {
         throw createError({
           statusCode: 403,
           statusText: `IPX_FORBIDDEN_PATH`,
