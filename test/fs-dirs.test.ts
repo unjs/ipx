@@ -51,3 +51,15 @@ describe("ipx: fs with multiple dirs", () => {
     );
   });
 });
+
+describe("isolation", () => {
+  it.only("should not be able to access files outside the specified directories", async () => {
+    const ipx = createIPX({
+      storage: ipxFSStorage({
+        dir: fileURLToPath(new URL("assets", import.meta.url)),
+      }),
+    });
+    const source = await ipx("../assets2/bliss.jpg"); // access file outside ./public dir because of same prefix folder
+    await expect(source.process()).rejects.toThrowError("Forbidden path");
+  });
+});
