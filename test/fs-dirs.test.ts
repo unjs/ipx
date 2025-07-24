@@ -53,7 +53,7 @@ describe("ipx: fs with multiple dirs", () => {
 });
 
 describe("isolation", () => {
-  it.only("should not be able to access files outside the specified directories", async () => {
+  it("should not be able to access files outside the specified directories", async () => {
     const ipx = createIPX({
       storage: ipxFSStorage({
         dir: fileURLToPath(new URL("assets", import.meta.url)),
