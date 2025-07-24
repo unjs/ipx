@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v2.1.1
+
+[compare changes](https://github.com/unjs/ipx/compare/v2.1.0...v2.1.1)
+
+### 🩹 Fixes
+
+- **fs:** Ensure path stays within the exact directory ([#271](https://github.com/unjs/ipx/pull/271))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](http://github.com/pi0))
+
 ## v2.1.0
 
 [compare changes](https://github.com/unjs/ipx/compare/v2.0.2...v2.1.0)
