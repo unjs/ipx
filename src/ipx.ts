@@ -348,7 +348,9 @@ export function createIPX(userOptions: IPXOptions): IPX {
       // Apply handlers
       const handlerContext: any = { meta: imageMeta };
       for (const h of handlers) {
-        sharp = applyHandler(handlerContext, sharp, h.handler, h.args.toString()) || sharp;
+        sharp =
+          applyHandler(handlerContext, sharp, h.handler, h.args.toString()) ||
+          sharp;
       }
 
       // Apply format
