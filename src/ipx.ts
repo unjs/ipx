@@ -22,6 +22,74 @@ type IPXSourceMeta = {
   maxAge?: number;
 };
 
+type FormatModifier =
+  | "jpeg"
+  | "jpg"
+  | "png"
+  | "webp"
+  | "avif"
+  | "gif"
+  | "heif"
+  | "tiff"
+  | "auto"
+  | (string & {});
+
+export interface IPXModifiers {
+  format: FormatModifier;
+  // alias for format
+  f: FormatModifier;
+  fit: "contain" | "cover" | "fill" | "inside" | "outside" | (string & {});
+  resize: string;
+  // alias for resize
+  s: string;
+  quality: number | string;
+  // alias for quality
+  q: number | string;
+  background: string;
+  b: string;
+  position: string;
+  pos: string;
+  enlarge: true | "true";
+  kernel:
+    | "nearest"
+    | "cubic"
+    | "mitchell"
+    | "lanczos2"
+    | "lanczos3"
+    | (string & {});
+  trim: number | string;
+  extend: string;
+  extract: string;
+  crop: string;
+  rotate: number | string;
+  flip: true | "true";
+  flop: true | "true";
+  sharpen: number | string;
+  median: number | string;
+  blur: number | string;
+  flatten: true | "true";
+  gamma: string;
+  negate: true | "true";
+  normalize: true | "true";
+  threshold: number | string;
+  modulate: string;
+  tint: number | string;
+  grayscale: true | "true";
+  animated: true | "true";
+  // alias for animated
+  a: true | "true";
+  width: string | number;
+  w: string | number;
+  height: string | number;
+  h: string | number;
+}
+
+// ensure we have types for all modifiers
+({}) as IPXModifiers satisfies Record<
+  HandlerName,
+  string | number | boolean | undefined
+>;
+
 /**
  * A function type that defines an IPX image processing instance.
  *
@@ -41,9 +109,7 @@ type IPXSourceMeta = {
  */
 export type IPX = (
   id: string,
-  modifiers?: Partial<
-    Record<HandlerName | "f" | "format" | "a" | "animated", string>
-  >,
+  modifiers?: Partial<IPXModifiers>,
   requestOptions?: any,
 ) => {
   getSourceMeta: () => Promise<IPXSourceMeta>;
@@ -282,7 +348,9 @@ export function createIPX(userOptions: IPXOptions): IPX {
       // Apply handlers
       const handlerContext: any = { meta: imageMeta };
       for (const h of handlers) {
-        sharp = applyHandler(handlerContext, sharp, h.handler, h.args) || sharp;
+        sharp =
+          applyHandler(handlerContext, sharp, h.handler, h.args.toString()) ||
+          sharp;
       }
 
       // Apply format
