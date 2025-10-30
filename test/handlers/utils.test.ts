@@ -22,12 +22,46 @@ describe("utils", () => {
   });
 
   it("clampDimensionsPreservingAspectRatio", () => {
-    const sourceDimensions = { width: 200, height: 100 };
-    const desiredDimensions = { width: 300, height: 150 };
-    const result = clampDimensionsPreservingAspectRatio(
-      sourceDimensions,
-      desiredDimensions,
-    );
-    expect(result).toEqual({ width: 200, height: 100 });
+    const dimensions = [
+      {
+        source: [200, 100],
+        desired: [300, 150],
+        expected: [200, 100],
+      },
+      {
+        source: [200, 150],
+        desired: [150, 200],
+        expected: [113, 150],
+      },
+      {
+        source: [150, 200],
+        desired: [200, 150],
+        expected: [150, 113],
+      },
+      {
+        source: [211, 40],
+        desired: [170, 170, "contain"],
+        expected: [170, 170],
+      },
+      {
+        source: [211, 40],
+        desired: [220, 110, "contain"],
+        expected: [211, 106],
+      },
+      {
+        source: [40, 211],
+        desired: [110, 220, "contain"],
+        expected: [106, 211],
+      },
+    ];
+
+    for (const d of dimensions) {
+      const result = clampDimensionsPreservingAspectRatio(
+        d.desired[2] ?? null,
+        { width: d.source[0], height: d.source[1] },
+        { width: d.desired[0], height: d.desired[1] },
+      );
+      expect(result).toEqual({ width: d.expected[0], height: d.expected[1] });
+    }
   });
 });
