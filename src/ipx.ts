@@ -287,6 +287,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
       if (mFormat === "jpg") {
         mFormat = "jpeg";
       }
+
       const format =
         mFormat && SUPPORTED_FORMATS.has(mFormat)
           ? mFormat
@@ -295,7 +296,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
             : "jpeg";
 
       // Use original SVG if format is not specified
-      if (imageMeta.type === "svg" && !mFormat) {
+      if (imageMeta.type === "svg" && (!mFormat || mFormat === "svg")) {
         if (options.svgo === false) {
           return {
             data: sourceData,

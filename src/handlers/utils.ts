@@ -35,18 +35,34 @@ export function applyHandler(
 }
 
 export function clampDimensionsPreservingAspectRatio(
+  fit: HandlerContext["fit"],
   sourceDimensions: ImageMeta,
   desiredDimensions: { width: number; height: number },
 ) {
   const desiredAspectRatio = desiredDimensions.width / desiredDimensions.height;
+  const sourceAspectRatio = sourceDimensions.width / sourceDimensions.height;
   let { width, height } = desiredDimensions;
   if (sourceDimensions.width && width > sourceDimensions.width) {
-    width = sourceDimensions.width;
-    height = Math.round(sourceDimensions.width / desiredAspectRatio);
+    if (
+      ["contain", "fill", "inside"].includes(fit) &&
+      sourceAspectRatio < desiredAspectRatio
+    ) {
+      width = Math.round(height * desiredAspectRatio);
+    } else {
+      width = sourceDimensions.width;
+      height = Math.round(sourceDimensions.width / desiredAspectRatio);
+    }
   }
   if (sourceDimensions.height && height > sourceDimensions.height) {
-    height = sourceDimensions.height;
-    width = Math.round(sourceDimensions.height * desiredAspectRatio);
+    if (
+      ["contain", "fill", "inside"].includes(fit) &&
+      sourceAspectRatio > desiredAspectRatio
+    ) {
+      height = Math.round(width / desiredAspectRatio);
+    } else {
+      height = sourceDimensions.height;
+      width = Math.round(sourceDimensions.height * desiredAspectRatio);
+    }
   }
 
   return { width, height };

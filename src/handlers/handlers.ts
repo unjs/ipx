@@ -94,11 +94,18 @@ export const resize: Handler = {
       height = width;
     }
     // sharp's `withoutEnlargement` doesn't respect the requested aspect ratio, so we need to do it ourselves
-    if (!context.enlarge) {
-      const clamped = clampDimensionsPreservingAspectRatio(context.meta, {
-        width,
-        height,
-      });
+    // By default don't clamp svgs unless explicitly desired with enlarge=false
+    if (
+      context.meta?.type === "svg" ? context.enlarge === false : !context.enlarge
+    ) {
+      const clamped = clampDimensionsPreservingAspectRatio(
+        context.fit,
+        context.meta,
+        {
+          width,
+          height,
+        },
+      );
       width = clamped.width;
       height = clamped.height;
     }
