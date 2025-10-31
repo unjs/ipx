@@ -290,12 +290,14 @@ export function createIPX(userOptions: IPXOptions): IPX {
       const format =
         mFormat && SUPPORTED_FORMATS.has(mFormat)
           ? mFormat
-          : SUPPORTED_FORMATS.has(imageMeta.type || "") // eslint-disable-line unicorn/no-nested-ternary
-            ? imageMeta.type
-            : "jpeg";
+          : imageMeta.type === "svg" && (mFormat === "svg" || !mFormat)
+            ? "svg"
+            : SUPPORTED_FORMATS.has(imageMeta.type || "") // eslint-disable-line unicorn/no-nested-ternary
+              ? imageMeta.type
+              : "jpeg";
 
-      // Use original SVG if format is not specified
-      if (imageMeta.type === "svg" && !mFormat) {
+      // For SVG format, use the original file or svgo if it is enabled
+      if (format === "svg") {
         if (options.svgo === false) {
           return {
             data: sourceData,
