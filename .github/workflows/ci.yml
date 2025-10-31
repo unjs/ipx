@@ -1,30 +1,21 @@
 name: ci
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
-permissions:
-  id-token: write
+  push: {}
+  pull_request: {}
 
 jobs:
-  ci:
+  tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          fetch-depth: 0
-      - run: npm i -fg corepack && corepack enable
+      - uses: actions/checkout@v5
+      - run: npm i -g --force corepack && corepack enable
       - uses: actions/setup-node@v5
-        with:
-          node-version: 20
-          cache: "pnpm"
+        with: { node-version: lts/*, cache: pnpm }
       - run: pnpm install
       - run: pnpm lint
+      - run: pnpm test:types
       - run: pnpm build
-      - run: pnpm vitest run --coverage
-      - uses: codecov/codecov-action@v6
+      - run: pnpm vitest --coverage
+      - uses: codecov/codecov-action@v3
+        with: { token: "${{ secrets.CODECOV_TOKEN }}" }

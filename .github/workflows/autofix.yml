@@ -1,26 +1,15 @@
 name: autofix.ci
-
-on:
-  pull_request:
-  push:
-    branches: ["main"]
-
-permissions:
-  contents: read
-
+on: { push: {}, pull_request: {} }
+permissions: { contents: read }
 jobs:
   autofix:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: npm i -fg corepack && corepack enable
       - uses: actions/setup-node@v5
-        with:
-          node-version: 20
-          cache: "pnpm"
+        with: { node-version: lts/*, cache: pnpm }
       - run: pnpm install
-      - name: Fix lint issues
-        run: pnpm run lint:fix
+      - run: pnpm lint:fix
       - uses: autofix-ci/action@635ffb0c9798bd160680f18fd73371e355b85f27
-        with:
-          commit-message: "chore: apply automated updates"
+        with: { commit-message: "chore: apply automated updates" }
