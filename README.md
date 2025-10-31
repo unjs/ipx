@@ -1,7 +1,11 @@
 # 🖼️ IPX
 
-[![npm version][npm-version-src]][npm-version-href]
-[![npm downloads][npm-downloads-src]][npm-downloads-href]
+<!-- automd:badges -->
+
+[![npm version](https://img.shields.io/npm/v/ipx)](https://npmjs.com/package/ipx)
+[![npm downloads](https://img.shields.io/npm/dm/ipx)](https://npm.chart.dev/ipx)
+
+<!-- /automd -->
 
 > [!NOTE]
 > This is the active development branch. Check out [v2](https://github.com/unjs/ipx/tree/v2) and [v3](https://github.com/unjs/ipx/tree/v3) for older docs.
@@ -112,7 +116,6 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 You can universally customize IPX configuration using `IPX_*` environment variables.
 
 - `IPX_ALIAS`
-
   - Default: `{}`
 
 ### Filesystem Source Options
@@ -161,7 +164,7 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 | extend         | [Docs](https://sharp.pixelplumbing.com/api-resize#extend)       | `/extend_{top}_{right}_{bottom}_{left}/buffalo.png`  | Extend / pad / extrude one or more edges of the image with either the provided background colour or pixels derived from the image.                                |
 | background / b | \_                                                              | `/r_45,b_00ff00/buffalo.png`                         |
 | extract        | [Docs](https://sharp.pixelplumbing.com/api-resize#extract)      | `/extract_{left}_{top}_{width}_{height}/buffalo.png` | Extract/crop a region of the image.                                                                                                                               |
-| crop           | [Docs](https://sharp.pixelplumbing.com/api-resize#extract)      | `/crop_{left}_{top}_{width}_{height}/buffalo.png`    | Alias for extract. Extract/crop a region of the image.                                                                                                           |
+| crop           | [Docs](https://sharp.pixelplumbing.com/api-resize#extract)      | `/crop_{left}_{top}_{width}_{height}/buffalo.png`    | Alias for extract. Extract/crop a region of the image.                                                                                                            |
 | format / f     | [Docs](https://sharp.pixelplumbing.com/api-output#toformat)     | `/format_webp/buffalo.png` or `/f_webp/buffalo.png`  | Supported format: `jpg`, `jpeg`, `png`, `webp`, `avif`, `gif`, `heif`, `tiff` and `auto` (experimental only with middleware)                                      |
 | quality / q    | \_                                                              | `/quality_50/buffalo.png` or `/q_50/buffalo.png`     | Accepted values: 0 to 100                                                                                                                                         |
 | rotate         | [Docs](https://sharp.pixelplumbing.com/api-operation#rotate)    | `/rotate_45/buffalo.png`                             |
@@ -179,24 +182,9 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 | grayscale      | [Docs](https://sharp.pixelplumbing.com/api-colour#grayscale)    | `/grayscale/buffalo.png`                             |
 | flatten        | [Docs](https://sharp.pixelplumbing.com/api-operation#flatten)   | `/flatten/buffalo.png`                               | Remove alpha channel, if any, and replace with background colour.                                                                                                 |
 | modulate       | [Docs](https://sharp.pixelplumbing.com/api-operation#modulate)  | `/modulate_brightness_saturation_hue/buffalo.png`    | Transforms the image using brightness, saturation and hue rotation.                                                                                               |
-| crop           | [Docs](https://sharp.pixelplumbing.com/api-resize#extract)      | `/crop_{left}_{top}_{width}_{height}/buffalo.png`    | Alias for extract. Extract/crop a region of the image.                                                                                                           |
+| crop           | [Docs](https://sharp.pixelplumbing.com/api-resize#extract)      | `/crop_{left}_{top}_{width}_{height}/buffalo.png`    | Alias for extract. Extract/crop a region of the image.                                                                                                            |
 | animated / a   | -                                                               | `/animated/buffalo.gif` or `/a/buffalo.gif`          | Experimental                                                                                                                                                      |
 
 ## License
 
 [MIT](./LICENSE)
-
-<!-- Badges -->
-
-[npm-version-src]: https://img.shields.io/npm/v/ipx?style=flat&colorA=18181B&colorB=F0DB4F
-[npm-version-href]: https://npmjs.com/package/ipx
-[npm-downloads-src]: https://img.shields.io/npm/dm/ipx?style=flat&colorA=18181B&colorB=F0DB4F
-[npm-downloads-href]: https://npmjs.com/package/ipx
-[github-actions-src]: https://img.shields.io/github/workflow/status/unjs/ipx/ci/main?style=flat&colorA=18181B&colorB=F0DB4F
-[github-actions-href]: https://github.com/unjs/ipx/actions?query=workflow%3Aci
-[codecov-src]: https://img.shields.io/codecov/c/gh/unjs/ipx/main?style=flat&colorA=18181B&colorB=F0DB4F
-[codecov-href]: https://codecov.io/gh/unjs/ipx
-[bundle-src]: https://img.shields.io/bundlephobia/minzip/ipx?style=flat&colorA=18181B&colorB=F0DB4F
-[bundle-href]: https://bundlephobia.com/result?p=ipx
-[license-src]: https://img.shields.io/github/license/unjs/ipx.svg?style=flat&colorA=18181B&colorB=F0DB4F
-[license-href]: https://github.com/unjs/ipx/blob/main/LICENSE

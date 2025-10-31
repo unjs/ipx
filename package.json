@@ -57,6 +57,7 @@
     "@types/etag": "^1.8.4",
     "@types/is-valid-path": "^0.1.2",
     "@vitest/coverage-v8": "^4.0.5",
+    "automd": "^0.4.2",
     "changelogen": "^0.6.2",
     "eslint": "^9.38.0",
     "eslint-config-unjs": "^0.5.0",
