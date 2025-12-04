@@ -8,24 +8,12 @@ importers:
 
   .:
     dependencies:
-      '@fastify/accept-negotiator':
-        specifier: ^2.0.1
-        version: 2.0.1
-      citty:
-        specifier: ^0.1.6
-        version: 0.1.6
-      consola:
-        specifier: ^3.4.2
-        version: 3.4.2
       defu:
         specifier: ^6.1.4
         version: 6.1.4
       destr:
         specifier: ^2.0.5
         version: 2.0.5
-      etag:
-        specifier: ^1.8.1
-        version: 1.8.1
       h3:
         specifier: ^2.0.1-rc.5
         version: 2.0.1-rc.5
@@ -44,19 +32,16 @@ importers:
       srvx:
         specifier: ^0.9.7
         version: 0.9.7
-      svgo:
-        specifier: ^4.0.0
-        version: 4.0.0
       ufo:
         specifier: ^1.6.1
         version: 1.6.1
       unstorage:
         specifier: ^1.17.3
         version: 1.17.3
-      xss:
-        specifier: ^1.0.15
-        version: 1.0.15
     devDependencies:
+      '@fastify/accept-negotiator':
+        specifier: ^2.0.1
+        version: 2.0.1
       '@types/etag':
         specifier: ^1.8.4
         version: 1.8.4
@@ -72,21 +57,33 @@ importers:
       changelogen:
         specifier: ^0.6.2
         version: 0.6.2(magicast@0.5.1)
+      citty:
+        specifier: ^0.1.6
+        version: 0.1.6
       eslint:
         specifier: ^9.39.1
         version: 9.39.1(jiti@2.6.1)
       eslint-config-unjs:
         specifier: ^0.5.0
         version: 0.5.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
+      etag:
+        specifier: ^1.8.1
+        version: 1.8.1
       obuild:
-        specifier: ^0.4.4
-        version: 0.4.4(magicast@0.5.1)(typescript@5.9.3)
+        specifier: ^0.4.6
+        version: 0.4.6(magicast@0.5.1)(typescript@5.9.3)
+      oxc-minify:
+        specifier: ^0.101.0
+        version: 0.101.0
       prettier:
         specifier: ^3.7.4
         version: 3.7.4
       serve-handler:
         specifier: ^6.1.6
         version: 6.1.6
+      svgo:
+        specifier: ^4.0.0
+        version: 4.0.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -1383,9 +1380,6 @@ packages:
     resolution: {integrity: sha512-yPVavfyCcRhmorC7rWlkHn15b4wDVgVmBA7kV4QVBsF7kv/9TKJAbAXVTxvTnwP8HHKjRCJDClKbciiYS7p0DQ==}
     engines: {node: '>=16'}
 
-  commander@2.20.3:
-    resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
-
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
@@ -1449,9 +1443,6 @@ packages:
   css-what@6.2.2:
     resolution: {integrity: sha512-u/O3vwbptzhMs3L1fQE82ZSLHQQfto5gyZzwteVIEyeaY5Fc7R4dapF/BvRoSYFeqfBk4m0V1Vafq5Pjv25wvA==}
     engines: {node: '>= 6'}
-
-  cssfilter@0.0.10:
-    resolution: {integrity: sha512-FAaLDaplstoRsDR8XGYH51znUN0UY7nMc6Z9/fvE8EXGwvJE9hu7W2vHwx1+bd6gCYnln9nLbzxFTrcO9YQDZw==}
 
   csso@5.0.5:
     resolution: {integrity: sha512-0LrrStPOdJj+SPCCrGhzryycLjwcgUSHBtxNA8aIDxf0GLsRh1cKYhB00Gd1lDOS4yGH69+SNn13+TWbVHETFQ==}
@@ -2069,8 +2060,8 @@ packages:
   obug@2.1.1:
     resolution: {integrity: sha512-uTqF9MuPraAQ+IsnPf366RG4cP9RtUi7MLO1N3KEc+wb0a6yKpeL0lmk2IB1jY5KHPAlTc6T/JRdC/YqxHNwkQ==}
 
-  obuild@0.4.4:
-    resolution: {integrity: sha512-4ycNjrQTirJUdoa1seYxvxLU+nDTz87MMT3pM2377k9Vw1NKlX3p5ojg4S3i/qNWZmOv2ZvRSzrD1U8TB0HGDw==}
+  obuild@0.4.6:
+    resolution: {integrity: sha512-IceaVqr158OWuj0VbyvRugej/5N5nB0WBK+W+4TFDYe/iZejeYzoxt0wLqFje4PnJlupSCp2FghDQ4+Hp+ZpBQ==}
     hasBin: true
 
   ofetch@1.5.1:
@@ -2611,11 +2602,6 @@ packages:
   wsl-utils@0.1.0:
     resolution: {integrity: sha512-h3Fbisa2nKGPxCpm89Hk33lBLsnaGBvctQopaBSOW/uIs6FTe1ATyAnKFJrzVs9vpGdsTe73WF3V4lIsk4Gacw==}
     engines: {node: '>=18'}
-
-  xss@1.0.15:
-    resolution: {integrity: sha512-FVdlVVC67WOIPvfOwhoMETV72f6GbW7aOabBC3WxN/oUdoEMDyLz4OgRv5/gck2ZeNqEQu+Tb0kloovXOfpYVg==}
-    engines: {node: '>= 0.10.0'}
-    hasBin: true
 
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
@@ -3659,8 +3645,6 @@ snapshots:
 
   commander@11.1.0: {}
 
-  commander@2.20.3: {}
-
   concat-map@0.0.1: {}
 
   confbox@0.1.8: {}
@@ -3716,8 +3700,6 @@ snapshots:
       source-map-js: 1.2.1
 
   css-what@6.2.2: {}
-
-  cssfilter@0.0.10: {}
 
   csso@5.0.5:
     dependencies:
@@ -4359,7 +4341,7 @@ snapshots:
 
   obug@2.1.1: {}
 
-  obuild@0.4.4(magicast@0.5.1)(typescript@5.9.3):
+  obuild@0.4.6(magicast@0.5.1)(typescript@5.9.3):
     dependencies:
       c12: 3.3.2(magicast@0.5.1)
       consola: 3.4.2
@@ -4954,10 +4936,5 @@ snapshots:
   wsl-utils@0.1.0:
     dependencies:
       is-wsl: 3.1.0
-
-  xss@1.0.15:
-    dependencies:
-      commander: 2.20.3
-      cssfilter: 0.0.10
 
   yocto-queue@0.1.0: {}
