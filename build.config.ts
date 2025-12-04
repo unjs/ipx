@@ -18,7 +18,7 @@ export default defineBuildConfig({
           {
             name: "dist-minify",
             renderChunk(code, chunk) {
-              if (chunk.fileName.startsWith("_libs")) {
+              if (chunk.fileName.includes("libs/")) {
                 return minifySync(chunk.fileName, code).code;
               }
             },

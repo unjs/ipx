@@ -1,4 +1,3 @@
-import { defu } from "defu";
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import { HTTPError } from "h3";
 import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
@@ -179,13 +178,17 @@ const SUPPORTED_FORMATS = new Set([
  * @throws {Error} If critical options such as storage are missing or incorrectly configured.
  */
 export function createIPX(userOptions: IPXOptions): IPX {
-  const options: IPXOptions = defu(userOptions, {
-    alias: getEnv<Record<string, string>>("IPX_ALIAS") || {},
-    maxAge: getEnv<number>("IPX_MAX_AGE") ?? 60 /* 1 minute */,
+  const options = {
+    ...userOptions,
+    alias:
+      userOptions.alias || getEnv<Record<string, string>>("IPX_ALIAS") || {},
+    maxAge:
+      userOptions.maxAge ?? getEnv<number>("IPX_MAX_AGE") ?? 60 /* 1 minute */,
     sharpOptions: {
       jpegProgressive: true,
+      ...userOptions.sharpOptions,
     } as SharpOptions,
-  } satisfies Omit<IPXOptions, "storage">);
+  } satisfies Omit<IPXOptions, "storage">;
 
   // Normalize alias to start with leading slash
   options.alias = Object.fromEntries(

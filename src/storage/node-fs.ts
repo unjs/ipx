@@ -1,6 +1,6 @@
 import { HTTPError } from "h3";
 import { resolve, parse, join } from "pathe";
-import { cachedPromise, getEnv } from "../utils.ts";
+import { getEnv } from "../utils.ts";
 
 import type { IPXStorage } from "../types.ts";
 
@@ -30,18 +30,9 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
   const dirs = resolveDirs(_options.dir);
   const maxAge = _options.maxAge || getEnv("IPX_FS_MAX_AGE");
 
-  const _getFS = cachedPromise(() =>
-    import("node:fs/promises").catch(() => {
-      throw new HTTPError({
-        statusCode: 500,
-        statusText: `IPX_FILESYSTEM_ERROR`,
-        message: `Failed to resolve filesystem module`,
-      });
-    }),
-  );
+  const fs = globalThis.process.getBuiltinModule("node:fs/promises");
 
   const resolveFile = async (id: string) => {
-    const fs = await _getFS();
     for (const dir of dirs) {
       const filePath = join(dir, id);
       if (!isValidPath(filePath) || !filePath.startsWith(dir + "/")) {

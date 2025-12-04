@@ -1,13 +1,10 @@
 import type { Handler } from "../types.ts";
-import {
-  clampDimensionsPreservingAspectRatio,
-  VArg as VArgument,
-} from "./utils.ts";
+import { VArg, clampDimensionsPreservingAspectRatio } from "./utils.ts";
 
 // --------- Context Modifiers ---------
 
 export const quality: Handler = {
-  args: [VArgument],
+  args: [VArg],
   order: -1,
   apply: (context, _pipe, quality) => {
     context.quality = quality;
@@ -16,7 +13,7 @@ export const quality: Handler = {
 
 // https://sharp.pixelplumbing.com/api-resize#resize
 export const fit: Handler = {
-  args: [VArgument],
+  args: [VArg],
   order: -1,
   apply: (context, _pipe, fit) => {
     context.fit = fit;
@@ -25,7 +22,7 @@ export const fit: Handler = {
 
 // https://sharp.pixelplumbing.com/api-resize#resize
 export const position: Handler = {
-  args: [VArgument],
+  args: [VArg],
   order: -1,
   apply: (context, _pipe, position) => {
     context.position = position;
@@ -35,7 +32,7 @@ export const position: Handler = {
 const HEX_RE = /^([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i;
 const SHORTHEX_RE = /^([\da-f])([\da-f])([\da-f])$/i;
 export const background: Handler = {
-  args: [VArgument],
+  args: [VArg],
   order: -1,
   apply: (context, _pipe, background) => {
     background = String(background);
@@ -59,14 +56,14 @@ export const enlarge: Handler = {
 };
 
 export const kernel: Handler = {
-  args: [VArgument],
+  args: [VArg],
   apply: (context, _pipe, kernel) => {
     context.kernel = kernel;
   },
 };
 
 export const width: Handler = {
-  args: [VArgument],
+  args: [VArg],
   apply: (context, pipe, width) => {
     return pipe.resize(width, undefined, {
       withoutEnlargement: !context.enlarge,
@@ -75,7 +72,7 @@ export const width: Handler = {
 };
 
 export const height: Handler = {
-  args: [VArgument],
+  args: [VArg],
   apply: (context, pipe, height) => {
     return pipe.resize(undefined, height, {
       withoutEnlargement: !context.enlarge,
@@ -84,7 +81,7 @@ export const height: Handler = {
 };
 
 export const resize: Handler = {
-  args: [VArgument, VArgument, VArgument],
+  args: [VArg, VArg, VArg],
   apply: (context, pipe, size) => {
     let [width, height] = String(size).split("x").map(Number);
     if (!width) {
@@ -113,7 +110,7 @@ export const resize: Handler = {
 
 // https://sharp.pixelplumbing.com/api-resize#trim
 export const trim: Handler = {
-  args: [VArgument],
+  args: [VArg],
   apply: (_context, pipe, threshold) => {
     return pipe.trim(threshold);
   },
@@ -121,7 +118,7 @@ export const trim: Handler = {
 
 // https://sharp.pixelplumbing.com/api-resize#extend
 export const extend: Handler = {
-  args: [VArgument, VArgument, VArgument, VArgument],
+  args: [VArg, VArg, VArg, VArg],
   apply: (context, pipe, top, right, bottom, left) => {
     return pipe.extend({
       top,
@@ -135,7 +132,7 @@ export const extend: Handler = {
 
 // https://sharp.pixelplumbing.com/api-resize#extract
 export const extract: Handler = {
-  args: [VArgument, VArgument, VArgument, VArgument],
+  args: [VArg, VArg, VArg, VArg],
   apply: (_context, pipe, left, top, width, height) => {
     return pipe.extract({
       left,
@@ -150,7 +147,7 @@ export const extract: Handler = {
 
 // https://sharp.pixelplumbing.com/api-operation#rotate
 export const rotate: Handler = {
-  args: [VArgument],
+  args: [VArg],
   apply: (context, pipe, angel) => {
     return pipe.rotate(angel, {
       background: context.background,
@@ -176,7 +173,7 @@ export const flop: Handler = {
 
 // https://sharp.pixelplumbing.com/api-operation#sharpen
 export const sharpen: Handler = {
-  args: [VArgument, VArgument, VArgument],
+  args: [VArg, VArg, VArg],
   apply: (_context, pipe, sigma, flat, jagged) => {
     return pipe.sharpen(sigma, flat, jagged);
   },
@@ -184,7 +181,7 @@ export const sharpen: Handler = {
 
 // https://sharp.pixelplumbing.com/api-operation#median
 export const median: Handler = {
-  args: [VArgument, VArgument, VArgument],
+  args: [VArg, VArg, VArg],
   apply: (_context, pipe, size) => {
     return pipe.median(size);
   },
@@ -192,7 +189,7 @@ export const median: Handler = {
 
 // https://sharp.pixelplumbing.com/api-operation#blur
 export const blur: Handler = {
-  args: [VArgument, VArgument, VArgument],
+  args: [VArg, VArg, VArg],
   apply: (_context, pipe, sigma) => {
     return pipe.blur(sigma);
   },
@@ -201,7 +198,7 @@ export const blur: Handler = {
 // https://sharp.pixelplumbing.com/api-operation#flatten
 // TODO: Support background
 export const flatten: Handler = {
-  args: [VArgument, VArgument, VArgument],
+  args: [VArg, VArg, VArg],
   apply: (context, pipe) => {
     return pipe.flatten({
       background: context.background,
@@ -211,7 +208,7 @@ export const flatten: Handler = {
 
 // https://sharp.pixelplumbing.com/api-operation#gamma
 export const gamma: Handler = {
-  args: [VArgument, VArgument, VArgument],
+  args: [VArg, VArg, VArg],
   apply: (_context, pipe, gamma, gammaOut) => {
     return pipe.gamma(gamma, gammaOut);
   },
@@ -219,7 +216,7 @@ export const gamma: Handler = {
 
 // https://sharp.pixelplumbing.com/api-operation#negate
 export const negate: Handler = {
-  args: [VArgument, VArgument, VArgument],
+  args: [VArg, VArg, VArg],
   apply: (_context, pipe) => {
     return pipe.negate();
   },
@@ -227,7 +224,7 @@ export const negate: Handler = {
 
 // https://sharp.pixelplumbing.com/api-operation#normalize
 export const normalize: Handler = {
-  args: [VArgument, VArgument, VArgument],
+  args: [VArg, VArg, VArg],
   apply: (_context, pipe) => {
     return pipe.normalize();
   },
@@ -235,7 +232,7 @@ export const normalize: Handler = {
 
 // https://sharp.pixelplumbing.com/api-operation#threshold
 export const threshold: Handler = {
-  args: [VArgument],
+  args: [VArg],
   apply: (_context, pipe, threshold) => {
     return pipe.threshold(threshold);
   },
@@ -243,7 +240,7 @@ export const threshold: Handler = {
 
 // https://sharp.pixelplumbing.com/api-operation#modulate
 export const modulate: Handler = {
-  args: [VArgument],
+  args: [VArg],
   apply: (_context, pipe, brightness, saturation, hue) => {
     return pipe.modulate({
       brightness,
@@ -257,7 +254,7 @@ export const modulate: Handler = {
 
 // https://sharp.pixelplumbing.com/api-colour#tint
 export const tint: Handler = {
-  args: [VArgument],
+  args: [VArg],
   apply: (_context, pipe, rgb) => {
     return pipe.tint(rgb);
   },
@@ -265,7 +262,7 @@ export const tint: Handler = {
 
 // https://sharp.pixelplumbing.com/api-colour#grayscale
 export const grayscale: Handler = {
-  args: [VArgument],
+  args: [VArg],
   apply: (_context, pipe) => {
     return pipe.grayscale();
   },

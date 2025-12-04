@@ -8,21 +8,6 @@ importers:
 
   .:
     dependencies:
-      defu:
-        specifier: ^6.1.4
-        version: 6.1.4
-      destr:
-        specifier: ^2.0.5
-        version: 2.0.5
-      h3:
-        specifier: ^2.0.1-rc.5
-        version: 2.0.1-rc.5
-      image-meta:
-        specifier: ^0.2.2
-        version: 0.2.2
-      ofetch:
-        specifier: ^1.5.1
-        version: 1.5.1
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
@@ -32,12 +17,6 @@ importers:
       srvx:
         specifier: ^0.9.7
         version: 0.9.7
-      ufo:
-        specifier: ^1.6.1
-        version: 1.6.1
-      unstorage:
-        specifier: ^1.17.3
-        version: 1.17.3
     devDependencies:
       '@fastify/accept-negotiator':
         specifier: ^2.0.1
@@ -57,9 +36,6 @@ importers:
       changelogen:
         specifier: ^0.6.2
         version: 0.6.2(magicast@0.5.1)
-      citty:
-        specifier: ^0.1.6
-        version: 0.1.6
       eslint:
         specifier: ^9.39.1
         version: 9.39.1(jiti@2.6.1)
@@ -69,24 +45,33 @@ importers:
       etag:
         specifier: ^1.8.1
         version: 1.8.1
+      h3:
+        specifier: ^2.0.1-rc.5
+        version: 2.0.1-rc.5
+      image-meta:
+        specifier: ^0.2.2
+        version: 0.2.2
       obuild:
-        specifier: ^0.4.6
-        version: 0.4.6(magicast@0.5.1)(typescript@5.9.3)
+        specifier: ^0.4.7
+        version: 0.4.7(magicast@0.5.1)(typescript@5.9.3)
       oxc-minify:
         specifier: ^0.101.0
         version: 0.101.0
       prettier:
         specifier: ^3.7.4
         version: 3.7.4
-      serve-handler:
-        specifier: ^6.1.6
-        version: 6.1.6
       svgo:
         specifier: ^4.0.0
         version: 4.0.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      ufo:
+        specifier: ^1.6.1
+        version: 1.6.1
+      unstorage:
+        specifier: ^1.17.3
+        version: 1.17.3
       vitest:
         specifier: ^4.0.15
         version: 4.0.15(@types/node@24.10.1)(jiti@2.6.1)
@@ -1302,10 +1287,6 @@ packages:
     resolution: {integrity: sha512-tjwM5exMg6BGRI+kNmTntNsvdZS1X8BFYS6tnJ2hdH0kVxM6/eVZ2xy+FqStSWvYmtfFMDLIxurorHwDKfDz5Q==}
     engines: {node: '>=18'}
 
-  bytes@3.0.0:
-    resolution: {integrity: sha512-pMhOfFDPiv9t5jjIXkHosWmkSyQbvsgEVNkz0ERHbuLh2T/7j4Mqqpz523Fe8MVY89KC6Sh/QfS2sM+SjgFDcw==}
-    engines: {node: '>= 0.8'}
-
   bytes@3.1.2:
     resolution: {integrity: sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==}
     engines: {node: '>= 0.8'}
@@ -1392,10 +1373,6 @@ packages:
   consola@3.4.2:
     resolution: {integrity: sha512-5IKcdX0nnYavi6G7TtOhwkYzyjfJlatbjMjuLSfE2kYT5pMDOilZ4OvMhi637CcDICTmz3wARPoyhqyX1Y+XvA==}
     engines: {node: ^14.18.0 || >=16.10.0}
-
-  content-disposition@0.5.2:
-    resolution: {integrity: sha512-kRGRZw3bLlFISDBgwTSA1TMBFN6J6GWDeubmDE3AF+3+yXL8hTWv8r5rkLbqYXY4RjPk/EzHnClI3zQf1cFmHA==}
-    engines: {node: '>= 0.6'}
 
   content-disposition@1.0.1:
     resolution: {integrity: sha512-oIXISMynqSqm241k6kcQ5UwttDILMK4BiurCfGEREw6+X9jkkpEe5T9FZaApyLGGOnFuyMWZpdolTXMtvEJ08Q==}
@@ -1984,16 +1961,8 @@ packages:
     resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
     engines: {node: '>=8.6'}
 
-  mime-db@1.33.0:
-    resolution: {integrity: sha512-BHJ/EKruNIqJf/QahvxwQZXKygOQ256myeN/Ew+THcAa5q+PjyTTMMeNQC4DZw5AwfvelsUrA6B67NKMqXDbzQ==}
-    engines: {node: '>= 0.6'}
-
   mime-db@1.54.0:
     resolution: {integrity: sha512-aU5EJuIN2WDemCcAp2vFBfp/m4EAhWJnUNSSw0ixs7/kXbd6Pg64EmwJkNdFhB8aWt1sH2CTXrLxo/iAGV3oPQ==}
-    engines: {node: '>= 0.6'}
-
-  mime-types@2.1.18:
-    resolution: {integrity: sha512-lc/aahn+t4/SWV/qcmumYjymLsWfN3ELhpmVuUFjgsORruuZPVSwAQryq+HHGvO/SI2KVX26bx+En+zhM8g8hQ==}
     engines: {node: '>= 0.6'}
 
   mime-types@3.0.2:
@@ -2060,8 +2029,8 @@ packages:
   obug@2.1.1:
     resolution: {integrity: sha512-uTqF9MuPraAQ+IsnPf366RG4cP9RtUi7MLO1N3KEc+wb0a6yKpeL0lmk2IB1jY5KHPAlTc6T/JRdC/YqxHNwkQ==}
 
-  obuild@0.4.6:
-    resolution: {integrity: sha512-IceaVqr158OWuj0VbyvRugej/5N5nB0WBK+W+4TFDYe/iZejeYzoxt0wLqFje4PnJlupSCp2FghDQ4+Hp+ZpBQ==}
+  obuild@0.4.7:
+    resolution: {integrity: sha512-UQmpTF8uIakLSfsWnDHqdINRfnWAF11WWjG0MVr/LoQlsh9cxKjx5umi8a3FNDxtDPXR/wy8DOrsG+4iTGqqTA==}
     hasBin: true
 
   ofetch@1.5.1:
@@ -2120,15 +2089,9 @@ packages:
     resolution: {integrity: sha512-ak9Qy5Q7jYb2Wwcey5Fpvg2KoAc/ZIhLSLOSBmRmygPsGwkVVt0fZa0qrtMz+m6tJTAHfZQ8FnmB4MG4LWy7/w==}
     engines: {node: '>=8'}
 
-  path-is-inside@1.0.2:
-    resolution: {integrity: sha512-DUWJr3+ULp4zXmol/SZkFf3JGsS9/SIv+Y3Rt93/UjPpDpklB5f1er4O3POIbUuUJ3FXgqte2Q7SrU6zAqwk8w==}
-
   path-key@3.1.1:
     resolution: {integrity: sha512-ojmeN0qd+y0jszEtoY48r0Peq5dwMEkIlCOu6Q5f41lfkswXuKtYrhgoTpLnyIcHm24Uhqx+5Tqm2InSwLhE6Q==}
     engines: {node: '>=8'}
-
-  path-to-regexp@3.3.0:
-    resolution: {integrity: sha512-qyCH421YQPS2WFDxDjftfc1ZR5WKQzVzqsp4n9M2kQhVOo/ByahFoUNJfl58kOcEGfQ//7weFTDhm+ss8Ecxgw==}
 
   path-to-regexp@8.3.0:
     resolution: {integrity: sha512-7jdwVIRtsP8MYpdXSwOS0YdD0Du+qOoF/AEPIt88PcCFrZCzx41oxku1jD88hZBwbNUIEfpqvuhjFaMAqMTWnA==}
@@ -2191,10 +2154,6 @@ packages:
 
   radix3@1.1.2:
     resolution: {integrity: sha512-b484I/7b8rDEdSDKckSSBA8knMpcdsXudlE/LNL639wFoHKwLbEkQFZHWEYwDC0wa0FKUcCY+GAF73Z7wxNVFA==}
-
-  range-parser@1.2.0:
-    resolution: {integrity: sha512-kA5WQoNVo4t9lNx2kQNFCxKeBl5IbbSNBl1M/tLkw9WCn+hxNBAW5Qh8gdhs63CJnhjJ2zQWFoqPJP2sK1AV5A==}
-    engines: {node: '>= 0.6'}
 
   range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
@@ -2283,9 +2242,6 @@ packages:
   send@1.2.0:
     resolution: {integrity: sha512-uaW0WwXKpL9blXE2o0bRhoL2EGXIrZxQ2ZQ4mgcfoBxdFmQold+qWsD2jLrfZ0trjKL6vOw0j//eAwcALFjKSw==}
     engines: {node: '>= 18'}
-
-  serve-handler@6.1.6:
-    resolution: {integrity: sha512-x5RL9Y2p5+Sh3D38Fh9i/iQ5ZK+e4xuXRd/pGbM4D13tgo/MGwbttUk8emytcr1YYzBYs+apnUngBDFYfpjPuQ==}
 
   serve-static@2.2.0:
     resolution: {integrity: sha512-61g9pCh0Vnh7IutZjtLGGpTA355+OPn2TyDv/6ivP2h/AdAVX9azsoxmg2/M6nZeQZNYBEwIcsne1mJd9oQItQ==}
@@ -3557,8 +3513,6 @@ snapshots:
     dependencies:
       run-applescript: 7.1.0
 
-  bytes@3.0.0: {}
-
   bytes@3.1.2: {}
 
   c12@3.3.2(magicast@0.5.1):
@@ -3652,8 +3606,6 @@ snapshots:
   confbox@0.2.2: {}
 
   consola@3.4.2: {}
-
-  content-disposition@0.5.2: {}
 
   content-disposition@1.0.1: {}
 
@@ -4278,13 +4230,7 @@ snapshots:
       braces: 3.0.3
       picomatch: 2.3.1
 
-  mime-db@1.33.0: {}
-
   mime-db@1.54.0: {}
-
-  mime-types@2.1.18:
-    dependencies:
-      mime-db: 1.33.0
 
   mime-types@3.0.2:
     dependencies:
@@ -4341,7 +4287,7 @@ snapshots:
 
   obug@2.1.1: {}
 
-  obuild@0.4.6(magicast@0.5.1)(typescript@5.9.3):
+  obuild@0.4.7(magicast@0.5.1)(typescript@5.9.3):
     dependencies:
       c12: 3.3.2(magicast@0.5.1)
       consola: 3.4.2
@@ -4477,11 +4423,7 @@ snapshots:
 
   path-exists@4.0.0: {}
 
-  path-is-inside@1.0.2: {}
-
   path-key@3.1.1: {}
-
-  path-to-regexp@3.3.0: {}
 
   path-to-regexp@8.3.0: {}
 
@@ -4533,8 +4475,6 @@ snapshots:
       side-channel: 1.1.0
 
   radix3@1.1.2: {}
-
-  range-parser@1.2.0: {}
 
   range-parser@1.2.1: {}
 
@@ -4663,16 +4603,6 @@ snapshots:
       statuses: 2.0.2
     transitivePeerDependencies:
       - supports-color
-
-  serve-handler@6.1.6:
-    dependencies:
-      bytes: 3.0.0
-      content-disposition: 0.5.2
-      mime-types: 2.1.18
-      minimatch: 3.1.2
-      path-is-inside: 1.0.2
-      path-to-regexp: 3.3.0
-      range-parser: 1.2.0
 
   serve-static@2.2.0:
     dependencies:

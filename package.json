@@ -7,6 +7,7 @@
   "sideEffects": false,
   "type": "module",
   "exports": {
+    "./package.json": "./package.json",
     ".": "./dist/index.mjs"
   },
   "types": "./dist/index.d.mts",
@@ -28,15 +29,9 @@
     "test:types": "tsc --noEmit"
   },
   "dependencies": {
-    "defu": "^6.1.4",
-    "destr": "^2.0.5",
-    "h3": "^2.0.1-rc.5",
-    "image-meta": "^0.2.2",
-    "ofetch": "^1.5.1",
     "pathe": "^2.0.3",
     "sharp": "^0.34.5",
-    "srvx": "^0.9.7",
-    "ufo": "^1.6.1"
+    "srvx": "^0.9.7"
   },
   "devDependencies": {
     "@fastify/accept-negotiator": "^2.0.1",
@@ -45,16 +40,17 @@
     "@vitest/coverage-v8": "^4.0.15",
     "automd": "^0.4.2",
     "changelogen": "^0.6.2",
-    "citty": "^0.1.6",
     "eslint": "^9.39.1",
     "eslint-config-unjs": "^0.5.0",
     "etag": "^1.8.1",
-    "obuild": "^0.4.6",
+    "h3": "^2.0.1-rc.5",
+    "image-meta": "^0.2.2",
+    "obuild": "^0.4.7",
     "oxc-minify": "^0.101.0",
     "prettier": "^3.7.4",
-    "serve-handler": "^6.1.6",
     "svgo": "^4.0.0",
     "typescript": "^5.9.3",
+    "ufo": "^1.6.1",
     "unstorage": "^1.17.3",
     "vitest": "^4.0.15"
   },

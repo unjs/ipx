@@ -1,4 +1,3 @@
-import { ofetch } from "ofetch";
 import { HTTPError } from "h3";
 import { getEnv } from "../utils.ts";
 import type { IPXStorage } from "../types.ts";
@@ -115,10 +114,10 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     async getMeta(id) {
       const url = validateId(id);
       try {
-        const response = await ofetch.raw(url, {
-          ...fetchOptions,
-          method: "HEAD",
-        });
+        const response = await fetch(url, { ...fetchOptions, method: "HEAD" });
+        if (!response.ok) {
+          return {};
+        }
         const { maxAge, mtime } = parseResponse(response);
         return { mtime, maxAge };
       } catch {
@@ -127,12 +126,15 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     },
     async getData(id) {
       const url = validateId(id);
-      const response = await ofetch(url, {
-        ...fetchOptions,
-        method: "GET",
-        responseType: "arrayBuffer",
-      });
-      return response;
+      const response = await fetch(url, fetchOptions);
+      if (!response.ok) {
+        throw new HTTPError({
+          statusCode: response.status,
+          statusText: response.statusText,
+          message: `Failed to fetch ${id}: ${response.status} ${response.statusText}`,
+        });
+      }
+      return await response.arrayBuffer();
     },
   };
 }

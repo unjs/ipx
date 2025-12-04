@@ -2,7 +2,7 @@ import getEtag from "etag";
 import { negotiate } from "@fastify/accept-negotiator";
 import { decode } from "ufo";
 import { defineEventHandler, HTTPError } from "h3";
-import { toNodeHandler } from "srvx/node";
+import { requireModule } from "./utils.ts";
 
 import type { IPX } from "./ipx.ts";
 import type { H3Event, EventHandlerWithFetch } from "h3";
@@ -17,6 +17,8 @@ export function createIPXFetchHandler(ipx: IPX): FetchHandler {
 }
 
 export function createIPXNodeHandler(ipx: IPX): NodeHttpHandler {
+  const { toNodeHandler } =
+    requireModule<typeof import("srvx/node")>("srvx/node");
   const fetch = createIPXFetchHandler(ipx);
   return toNodeHandler(fetch);
 }

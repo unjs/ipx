@@ -1,11 +1,21 @@
-import destr from "destr";
 import type { Sharp } from "sharp";
 import type { ImageMeta } from "image-meta";
 import type { Handler, HandlerContext } from "../types.ts";
 import * as Handlers from "./handlers.ts";
 
 export function VArg(argument: string) {
-  return destr(argument);
+  if (argument === "Infinity") {
+    return Infinity;
+  }
+  try {
+    const val = JSON.parse(argument);
+    const t = typeof val;
+    if (t === "boolean" || t === "number" || t === "string" || val === null) {
+      return val;
+    }
+  } catch {
+    // ignore parsing errors
+  }
 }
 
 export function parseArgs(

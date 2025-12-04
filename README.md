@@ -18,7 +18,6 @@ Used by [Nuxt Image](https://image.nuxt.com/) and [Netlify](https://www.npmjs.co
 
 - Server creation is now possible using `createIPXFetchHandler` and `createIPXNodeHandler` utils. See examples for more info.
 - JSON errors format changed from `{ error: string }` to `{ status, statusText, message }`.
-- Unstorage adapter requires `unstorage` to be installed as a peer dependency.
 
 ## Using CLI
 
