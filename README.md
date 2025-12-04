@@ -11,8 +11,13 @@ High performance, secure and easy-to-use image optimizer powered by [sharp](http
 
 Used by [Nuxt Image](https://image.nuxt.com/) and [Netlify](https://www.npmjs.com/package/@netlify/ipx) and open to everyone!
 
+## Migration from v3 to v4
+
 > [!NOTE]
 > This is the active development branch for IPX v4. Check out [v3](https://github.com/unjs/ipx/tree/v3) for v3 docs.
+
+- Server creation is now possible using `createIPXFetchHandler` and `createIPXNodeHandler` utils. See examples for more info.
+- JSON errors format changed from `{ error: string }` to `{ status, statusText, message }`
 
 ## Using CLI
 
@@ -27,7 +32,7 @@ npx ipx serve --dir ./
 Using `bun`
 
 ```bash
-bun x npx ipx serve --dir ./
+bunx ipx serve --dir ./
 ```
 
 The default serve directory is the current working directory.
@@ -51,7 +56,7 @@ const ipx = createIPX({
 });
 ```
 
-**Example**: Using with [h3](https://h3.dev)
+**Example**: Using with [h3](https://h3.dev):
 
 <!-- automd:file code src="./examples/h3.ts" -->
 
