@@ -1,114 +1,59 @@
-import { type IPX, createIPXWebHandler } from "../src/index.ts";
 import { describe, expect, it } from "vitest";
-import { H3Event } from "h3";
+import { type IPX, createIPXFetchHandler } from "../src/index.ts";
 
 describe("server", () => {
-  const ipx: IPX = (
-    id,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    modifiers = undefined,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    requestOptions = undefined,
-  ) => {
+  const ipx: IPX = (_id, _modifiers?, _requestOptions?) => {
     return {
       getSourceMeta: async () => {
-        return {
-          maxAge: 3600,
-          mtime: new Date(),
-        };
+        return { maxAge: 3600, mtime: new Date() };
       },
       process: async () => {
         return {
-          data: "data",
-          meta: {
-            width: 100,
-            height: 100,
-          },
+          // data: new TextEncoder().encode("data"),
+          data: Buffer.from("data"),
           format: "jpg",
+          meta: { width: 100, height: 100 },
         };
       },
     };
   };
 
-  describe("createIPXH3Handler", () => {
-    it("IPX_MISSING_MODIFIERS", async () => {
-      const handler = createIPXH3Handler(ipx);
-      const event = {
-        path: "",
-        node: {
-          req: new Request("http://example.com/test"),
-          res: new Response(),
-        },
-        context: {},
-      } as unknown as H3Event;
+  it("createIPXFetchHandler returns expected value", async () => {
+    const handler = createIPXFetchHandler(ipx);
+    const res = await handler("http://example.com/w_200/test.jpg");
+    await expect(res.text()).resolves.toEqual("data");
+  });
 
-      await expect(handler(event)).resolves.toEqual({
-        error: {
-          message: "[400] [IPX_MISSING_MODIFIERS] Modifiers are missing: ",
-        },
+  describe("error handling", () => {
+    it("IPX_MISSING_MODIFIERS", async () => {
+      const handler = createIPXFetchHandler(ipx);
+      const res = await handler("http://example.com/");
+      expect(await res.json()).toEqual({
+        status: 400,
+        statusText: "IPX_MISSING_MODIFIERS",
+        message: "Modifiers are missing: ",
       });
     });
 
     it("IPX_MISSING_ID", async () => {
-      const handler = createIPXH3Handler(ipx);
-      const event = {
-        path: "/path",
-        node: {
-          req: new Request("http://example.com/test"),
-          res: new Response(),
-        },
-        context: {},
-      } as unknown as H3Event;
-
-      await expect(handler(event)).resolves.toEqual({
-        error: {
-          message: "[400] [IPX_MISSING_ID] Resource id is missing: /path",
-        },
+      const handler = createIPXFetchHandler(ipx);
+      const res = await handler("http://example.com/test");
+      expect(await res.json()).toEqual({
+        status: 400,
+        statusText: "IPX_MISSING_ID",
+        message: "Resource id is missing: /test",
       });
     });
 
-    it("[IPX_ERROR] ipx is not a function", async () => {
-      const handler = createIPXH3Handler(ipx);
-      const event = {
-        path: "/foo/bar/baz",
-        node: {
-          req: new Request("http://example.com/test"),
-          res: new Response(),
-        },
-        context: {},
-      } as unknown as H3Event;
-
-      await expect(handler(event)).resolves.toEqual({
-        error: {
-          message:
-            "[500] [IPX_ERROR] event.node.res.getHeader is not a function",
-        },
+    // https://github.com/h3js/h3/issues/1254
+    it.skip("IPX_ERROR", async () => {
+      const handler = createIPXFetchHandler(ipx);
+      const res = await handler({} as any);
+      expect(await res.json()).toEqual({
+        status: 500,
+        statusText: "IPX_ERROR",
+        message: "Unexpected error",
       });
-    });
-
-    it("createIPXH3Handler returns expected value", async () => {
-      const handler = createIPXH3Handler(ipx);
-      const event = {
-        path: "/foo/bar/baz",
-        node: {
-          req: new Request("http://example.com/test"),
-          res: {
-            getHeader: (_: string) => {
-              return "value";
-            },
-          },
-        },
-        context: {},
-      } as unknown as H3Event;
-
-      await expect(handler(event)).resolves.toEqual("data");
-    });
-  });
-
-  describe("createIPXH3App", () => {
-    it("createIPXH3App returns expected value", () => {
-      const actual = createIPXH3App(ipx);
-      expect(actual.options.debug).toBe(true);
     });
   });
 });

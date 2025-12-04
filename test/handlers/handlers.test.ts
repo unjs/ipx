@@ -1,3 +1,5 @@
+import { describe, it, vi, expect } from "vitest";
+
 import {
   quality,
   fit,
@@ -24,8 +26,7 @@ import {
   modulate,
   tint,
   grayscale,
-} from "../../src/handlers/handlers";
-import { describe, it, vi, expect } from "vitest";
+} from "../../src/handlers/handlers.ts";
 
 describe("handlers", () => {
   it("quality.apply() returns expected values", () => {

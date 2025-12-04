@@ -1,9 +1,10 @@
+import { describe, expect, it } from "vitest";
+
 import {
   VArg,
   parseArgs,
   clampDimensionsPreservingAspectRatio,
-} from "../../src/handlers/utils";
-import { describe, expect, it } from "vitest";
+} from "../../src/handlers/utils.ts";
 
 describe("utils", () => {
   it("VArg", () => {

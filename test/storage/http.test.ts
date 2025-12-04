@@ -1,5 +1,6 @@
-import { ipxHttpStorage } from "../../src/storage/http";
 import { describe, expect, it } from "vitest";
+
+import { ipxHttpStorage } from "../../src/storage/http.ts";
 
 describe("http", () => {
   describe("getMeta", () => {

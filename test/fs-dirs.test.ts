@@ -1,6 +1,7 @@
-import { fileURLToPath } from "node:url";
 import { describe, it, expect, beforeAll } from "vitest";
-import { IPX, createIPX, ipxFSStorage } from "../src";
+import { fileURLToPath } from "node:url";
+
+import { type IPX, createIPX, ipxFSStorage } from "../src/index.ts";
 
 describe("ipx: fs with multiple dirs", () => {
   let ipx: IPX;

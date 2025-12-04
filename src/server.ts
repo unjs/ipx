@@ -6,7 +6,7 @@ import { defineEventHandler, HTTPError } from "h3";
 import type { IPX } from "./ipx.ts";
 import type { H3Event, EventHandlerWithFetch } from "h3";
 
-type FetchHandler = (req: Request) => Promise<Response>;
+type FetchHandler = (req: Request | URL | string) => Promise<Response>;
 
 export function createIPXFetchHandler(ipx: IPX): FetchHandler {
   return createIPXHandler(ipx).fetch as FetchHandler;
