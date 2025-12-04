@@ -6,7 +6,7 @@ import { requireModule } from "./utils.ts";
 
 import type { IPX } from "./ipx.ts";
 import type { H3Event, EventHandlerWithFetch } from "h3";
-import type { NodeHttpHandler } from "srvx";
+import type { NodeHttpHandler, Server, ServerOptions } from "srvx";
 
 export type FetchHandler = (
   request: Request | string | URL,
@@ -21,6 +21,15 @@ export function createIPXNodeHandler(ipx: IPX): NodeHttpHandler {
     requireModule<typeof import("srvx/node")>("srvx/node");
   const fetch = createIPXFetchHandler(ipx);
   return toNodeHandler(fetch);
+}
+
+export function serveIPX(
+  ipx: IPX,
+  opts?: Omit<ServerOptions, "fetch">,
+): Server {
+  const { serve } = requireModule<typeof import("srvx")>("srvx");
+  const fetch = createIPXFetchHandler(ipx);
+  return serve({ ...opts, fetch });
 }
 
 // --- Handler ---

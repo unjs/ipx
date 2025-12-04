@@ -16,8 +16,8 @@ Used by [Nuxt Image](https://image.nuxt.com/) and [Netlify](https://www.npmjs.co
 > [!NOTE]
 > This is the active development branch for IPX v4. Check out [v3](https://github.com/unjs/ipx/tree/v3) for v3 docs.
 
-- Server creation is now possible using `createIPXFetchHandler` and `createIPXNodeHandler` utils. See examples for more info.
-- JSON errors format changed from `{ error: string }` to `{ status, statusText, message }`.
+- The server creation APIs have changed. See the Programmatic API section for examples.
+- The JSON error format has changed from `{ error: string }` to `{ status, statusText, message }`.
 
 ## Using CLI
 
@@ -41,22 +41,26 @@ The default serve directory is the current working directory.
 
 You can use IPX as a middleware or directly use IPX interface.
 
-```ts
-import {
-  createIPX,
-  ipxFSStorage,
-  ipxHttpStorage,
-  createIPXFetchHandler,
-} from "ipx";
+**Example:** Using built-in server
+
+<!-- automd:file code src="./examples/serve.ts" -->
+
+```ts [serve.ts]
+import { serveIPX, createIPX, ipxFSStorage, ipxHttpStorage } from "ipx";
 
 const ipx = createIPX({
   storage: ipxFSStorage({ dir: "./public" }),
   httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
   alias: { "/picsum": "https://picsum.photos" },
 });
+
+// http://localhost:3000/w_512/picsum/1000
+serveIPX(ipx);
 ```
 
-**Example**: Using with [h3](https://h3.dev):
+<!-- /automd -->
+
+**Example**: Using with [h3](https://h3.dev)
 
 <!-- automd:file code src="./examples/h3.ts" -->
 
@@ -86,7 +90,7 @@ serve(app);
 
 <!-- /automd -->
 
-**Example:** Using with [express](https://expressjs.com):
+**Example:** Using with [express](https://expressjs.com)
 
 <!-- automd:file code src="./examples/express.ts" -->
 

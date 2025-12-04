@@ -2,9 +2,8 @@
 import { parseArgs } from "node:util";
 import pkg from "ipx/package.json" with { type: "json" };
 
-import { serve as srvx } from "srvx";
 import { createIPX } from "./ipx.ts";
-import { createIPXFetchHandler } from "./server.ts";
+import { serveIPX } from "./server.ts";
 import { ipxFSStorage } from "./storage/node-fs.ts";
 import { ipxHttpStorage } from "./storage/http.ts";
 
@@ -58,8 +57,7 @@ async function runServe(args) {
     }),
   });
 
-  const server = srvx({
-    fetch: createIPXFetchHandler(ipx),
+  const server = serveIPX(ipx, {
     port: Number(args.port ?? process.env.PORT ?? 3000),
     hostname: args.host ?? process.env.HOST ?? "0.0.0.0",
   });

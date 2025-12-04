@@ -5,7 +5,11 @@ export {
   createIPX,
 } from "./ipx.ts";
 
-export { createIPXFetchHandler, createIPXNodeHandler } from "./server.ts";
+export {
+  serveIPX,
+  createIPXFetchHandler,
+  createIPXNodeHandler,
+} from "./server.ts";
 
 export { type HTTPStorageOptions, ipxHttpStorage } from "./storage/http.ts";
 
