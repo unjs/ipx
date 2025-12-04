@@ -1,6 +1,6 @@
 {
   "name": "ipx",
-  "version": "3.1.1",
+  "version": "4.0.0-alpha.0",
   "repository": "unjs/ipx",
   "description": "High performance, secure and easy-to-use image optimizer.",
   "license": "MIT",
@@ -21,7 +21,7 @@
     "lint": "eslint . && prettier -c src test",
     "lint:fix": "eslint . --fix && prettier -w src test",
     "prepack": "pnpm build",
-    "release": "pnpm test && changelogen --release --push && npm publish",
+    "release": "pnpm test && pnpm build && changelogen --release --prerelease --publish --publishTag alpha --push",
     "start": "node bin/ipx.js",
     "test": "pnpm lint && vitest run --coverage"
   },
