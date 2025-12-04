@@ -8,7 +8,7 @@
 <!-- /automd -->
 
 > [!NOTE]
-> This is the active development branch. Check out [v2](https://github.com/unjs/ipx/tree/v2) and [v3](https://github.com/unjs/ipx/tree/v3) for older docs.
+> This is the active development branch for IPX v3. Check out [v3](https://github.com/unjs/ipx/tree/v3) for older docs.
 
 High performance, secure and easy-to-use image optimizer powered by [sharp](https://github.com/lovell/sharp) and [svgo](https://github.com/svg/svgo).
 
@@ -37,57 +37,81 @@ The default serve directory is the current working directory.
 You can use IPX as a middleware or directly use IPX interface.
 
 ```ts
-import { createIPX, ipxFSStorage, ipxHttpStorage } from "ipx";
-
-const ipx = createIPX({
-  storage: ipxFSStorage({ dir: "./public" }),
-  httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
-});
-```
-
-**Example**: Using with [unjs/h3](https://github.com/unjs/h3):
-
-```js
-import { listen } from "listhen";
-import { createApp, toNodeListener } from "h3";
 import {
   createIPX,
   ipxFSStorage,
   ipxHttpStorage,
-  createIPXH3Handler,
+  createIPXFetchHandler,
 } from "ipx";
 
 const ipx = createIPX({
   storage: ipxFSStorage({ dir: "./public" }),
   httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
+  alias: { "/picsum": "https://picsum.photos" },
 });
-
-const app = createApp().use("/", createIPXH3Handler(ipx));
-
-listen(toNodeListener(app));
 ```
 
-**Example:** Using [express](https://expressjs.com):
+**Example**: Using with [h3](https://h3.dev)
 
-```js
-import { listen } from "listhen";
-import express from "express";
+<!-- automd:file code src="./examples/h3.ts" -->
+
+```ts [h3.ts]
+import { H3, serve } from "h3";
+
 import {
   createIPX,
   ipxFSStorage,
   ipxHttpStorage,
-  createIPXNodeServer,
+  createIPXFetchHandler,
 } from "ipx";
 
 const ipx = createIPX({
   storage: ipxFSStorage({ dir: "./public" }),
   httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
+  alias: { "/picsum": "https://picsum.photos" },
 });
 
-const app = express().use("/", createIPXNodeServer(ipx));
+const app = new H3();
 
-listen(app);
+app.mount("/ipx", createIPXFetchHandler(ipx));
+
+// http://localhost:3000/ipx/w_512/picsum/1000
+serve(app);
 ```
+
+<!-- /automd -->
+
+**Example:** Using with [express](https://expressjs.com):
+
+<!-- automd:file code src="./examples/express.ts" -->
+
+```ts [express.ts]
+import Express from "express";
+
+import {
+  createIPX,
+  ipxFSStorage,
+  ipxHttpStorage,
+  createIPXNodeHandler,
+} from "ipx";
+
+const ipx = createIPX({
+  storage: ipxFSStorage({ dir: "./public" }),
+  httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
+  alias: { "/picsum": "https://picsum.photos" },
+});
+
+const app = Express();
+
+app.use("/ipx", createIPXNodeHandler(ipx));
+
+// http://localhost:3000/ipx/w_512/picsum/1000
+app.listen(3000, () => {
+  console.log("Server is running on http://localhost:3000");
+});
+```
+
+<!-- /automd -->
 
 ## URL Examples
 

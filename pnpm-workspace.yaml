@@ -1,0 +1,3 @@
+ignoreWorkspaceRootCheck: true
+packages:
+  - examples

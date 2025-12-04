@@ -1,0 +1,9 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "ipx": "workspace:^",
+    "@types/express": "^5.0.6",
+    "express": "^5.2.1",
+    "h3": "2.0.1-rc.5"
+  }
+}

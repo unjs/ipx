@@ -1,8 +1,8 @@
 {
   "name": "ipx",
   "version": "4.0.0-alpha.0",
-  "repository": "unjs/ipx",
   "description": "High performance, secure and easy-to-use image optimizer.",
+  "repository": "unjs/ipx",
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -17,10 +17,9 @@
   ],
   "scripts": {
     "build": "obuild",
-    "dev": "node --watch ./playground.ts",
     "ipx": "node ./src/cli.ts",
     "lint": "eslint . && prettier -c src test",
-    "lint:fix": "eslint . --fix && prettier -w src test",
+    "lint:fix": "automd && eslint . --fix && prettier -w src test",
     "prepack": "pnpm build",
     "release": "pnpm test && pnpm build && changelogen --release --prerelease --publish --publishTag alpha --push",
     "start": "node bin/ipx.js",
