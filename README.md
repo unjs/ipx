@@ -1,18 +1,18 @@
 # 🖼️ IPX
 
-<!-- automd:badges -->
+<!-- automd:badges color=yellow -->
 
-[![npm version](https://img.shields.io/npm/v/ipx)](https://npmjs.com/package/ipx)
-[![npm downloads](https://img.shields.io/npm/dm/ipx)](https://npm.chart.dev/ipx)
+[![npm version](https://img.shields.io/npm/v/ipx?color=yellow)](https://npmjs.com/package/ipx)
+[![npm downloads](https://img.shields.io/npm/dm/ipx?color=yellow)](https://npm.chart.dev/ipx)
 
 <!-- /automd -->
-
-> [!NOTE]
-> This is the active development branch for IPX v3. Check out [v3](https://github.com/unjs/ipx/tree/v3) for older docs.
 
 High performance, secure and easy-to-use image optimizer powered by [sharp](https://github.com/lovell/sharp) and [svgo](https://github.com/svg/svgo).
 
 Used by [Nuxt Image](https://image.nuxt.com/) and [Netlify](https://www.npmjs.com/package/@netlify/ipx) and open to everyone!
+
+> [!NOTE]
+> This is the active development branch for IPX v4. Check out [v3](https://github.com/unjs/ipx/tree/v3) for v3 docs.
 
 ## Using CLI
 
