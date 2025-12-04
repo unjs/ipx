@@ -1,18 +1,13 @@
-import { listen } from "listhen";
+#!/usr/bin/env node
 import { defineCommand, runMain } from "citty";
-import {
-  getArgs as listhenArgs,
-  parseArgs as parseListhenArgs,
-} from "listhen/cli";
-import {
-  name,
-  version,
-  description,
-} from "../package.json" with { type: "json" };
+import { serve as srvx } from "srvx";
+
 import { createIPX } from "./ipx.ts";
-import { createIPXNodeServer } from "./server.ts";
+import { createIPXFetchHandler } from "./server.ts";
 import { ipxFSStorage } from "./storage/node-fs.ts";
 import { ipxHttpStorage } from "./storage/http.ts";
+
+import pkg from "../package.json" with { type: "json" };
 
 const serve = defineCommand({
   meta: {
@@ -30,7 +25,16 @@ const serve = defineCommand({
       required: false,
       description: "Allowed domains (comma separated) ENV: IPX_HTTP_DOMAINS",
     },
-    ...listhenArgs(),
+    port: {
+      type: "string",
+      required: false,
+      description: "Server port (default: 3000) ENV: PORT",
+    },
+    host: {
+      type: "string",
+      required: false,
+      description: "Server host (default: 0.0.0.0) ENV: HOST",
+    },
   },
   async run({ args }) {
     const ipx = createIPX({
@@ -41,18 +45,20 @@ const serve = defineCommand({
         domains: args.domains,
       }),
     });
-    await listen(createIPXNodeServer(ipx), {
-      name: "IPX",
-      ...parseListhenArgs(args),
+    const server = srvx({
+      fetch: createIPXFetchHandler(ipx),
+      port: args.port,
+      hostname: args.host,
     });
+    await server.ready();
   },
 });
 
 const main = defineCommand({
   meta: {
-    name,
-    version,
-    description,
+    name: pkg.name,
+    version: pkg.version,
+    description: pkg.description,
   },
   subCommands: {
     serve,

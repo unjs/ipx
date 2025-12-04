@@ -1,5 +1,6 @@
+import { HTTPError } from "h3";
+
 import type { Storage, Driver } from "unstorage";
-import { createError } from "h3";
 import type { IPXStorage, IPXStorageMeta } from "../types.ts";
 
 export type UnstorageIPXStorageOptions = {
@@ -61,7 +62,7 @@ export function unstorageToIPXStorage(
         // IPX requires a Buffer, attempt parse and normalize error
         return Buffer.from(data as ArrayBuffer);
       } catch (error: any) {
-        throw createError({
+        throw new HTTPError({
           statusCode: 500,
           statusText: `IPX_STORAGE_ERROR`,
           message: `Failed to parse storage data to Buffer:\n${error.message}`,

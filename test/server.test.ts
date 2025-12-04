@@ -1,12 +1,5 @@
-import {
-  createIPXH3Handler,
-  createIPXH3App,
-  createIPXWebServer,
-  createIPXNodeServer,
-  createIPXPlainServer,
-} from "../src/server";
-import { IPX } from "../src/ipx";
-import { describe, expect, it, expectTypeOf } from "vitest";
+import { type IPX, createIPXWebHandler } from "../src/index.ts";
+import { describe, expect, it } from "vitest";
 import { H3Event } from "h3";
 
 describe("server", () => {
@@ -116,27 +109,6 @@ describe("server", () => {
     it("createIPXH3App returns expected value", () => {
       const actual = createIPXH3App(ipx);
       expect(actual.options.debug).toBe(true);
-    });
-  });
-
-  describe("createIPXWebServer", () => {
-    it("createIPXWebServer returns expected value", () => {
-      const actual = createIPXWebServer(ipx);
-      expectTypeOf(actual).toBeFunction();
-    });
-  });
-
-  describe("createIPXNodeServer", () => {
-    it("createIPXNodeServer returns expected value", () => {
-      const actual = createIPXNodeServer(ipx);
-      expectTypeOf(actual).toBeFunction();
-    });
-  });
-
-  describe("createIPXPlainServer", () => {
-    it("createIPXPlainServer returns expected value", () => {
-      const actual = createIPXPlainServer(ipx);
-      expectTypeOf(actual).toBeFunction();
     });
   });
 });

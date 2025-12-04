@@ -1,5 +1,5 @@
 import { ofetch } from "ofetch";
-import { createError } from "h3";
+import { HTTPError } from "h3";
 import { getEnv } from "../utils.ts";
 import type { IPXStorage } from "../types.ts";
 
@@ -73,14 +73,14 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
   function validateId(id: string) {
     const url = new URL(decodeURIComponent(id));
     if (!url.hostname) {
-      throw createError({
+      throw new HTTPError({
         statusCode: 403,
         statusText: `IPX_MISSING_HOSTNAME`,
         message: `Hostname is missing: ${id}`,
       });
     }
     if (!allowAllDomains && !domains.has(url.hostname)) {
-      throw createError({
+      throw new HTTPError({
         statusCode: 403,
         statusText: `IPX_FORBIDDEN_HOST`,
         message: `Forbidden host: ${url.hostname}`,

@@ -9,15 +9,16 @@
     ".": "./dist/index.mjs"
   },
   "types": "./dist/index.d.mts",
-  "bin": "./bin/ipx.mjs",
+  "bin": {
+    "ipx": "./dist/cli.mjs"
+  },
   "files": [
-    "dist",
-    "bin"
+    "dist"
   ],
   "scripts": {
     "build": "obuild",
-    "dev": "listhen -w playground",
-    "ipx": "jiti ./src/cli.ts",
+    "dev": "node --watch ./playground.ts",
+    "ipx": "node ./src/cli.ts",
     "lint": "eslint . && prettier -c src test",
     "lint:fix": "eslint . --fix && prettier -w src test",
     "prepack": "pnpm build",
@@ -32,12 +33,12 @@
     "defu": "^6.1.4",
     "destr": "^2.0.5",
     "etag": "^1.8.1",
-    "h3": "^1.15.4",
+    "h3": "^2.0.1-rc.5",
     "image-meta": "^0.2.2",
-    "listhen": "^1.9.0",
     "ofetch": "^1.5.1",
     "pathe": "^2.0.3",
     "sharp": "^0.34.5",
+    "srvx": "^0.9.7",
     "svgo": "^4.0.0",
     "ufo": "^1.6.1",
     "unstorage": "^1.17.3",
@@ -51,7 +52,6 @@
     "changelogen": "^0.6.2",
     "eslint": "^9.39.1",
     "eslint-config-unjs": "^0.5.0",
-    "jiti": "^2.6.1",
     "obuild": "^0.4.4",
     "prettier": "^3.7.4",
     "serve-handler": "^6.1.6",

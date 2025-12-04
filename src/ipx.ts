@@ -1,16 +1,14 @@
 import { defu } from "defu";
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
-import type { SharpOptions } from "sharp";
-import { createError } from "h3";
+import { HTTPError } from "h3";
 import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
+import { applyHandler, getHandler } from "./handlers/index.ts";
+import { cachedPromise, getEnv } from "./utils.ts";
+
+import type { HandlerName } from "./handlers/index.ts";
+import type { SharpOptions } from "sharp";
 import type { Config as SVGOConfig } from "svgo";
 import type { IPXStorage } from "./types.ts";
-import {
-  type HandlerName,
-  applyHandler,
-  getHandler,
-} from "./handlers/index.ts";
-import { cachedPromise, getEnv } from "./utils.ts";
 
 type IPXSourceMeta = {
   /**
@@ -200,7 +198,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
   // Sharp loader
   const getSharp = cachedPromise(async () => {
     return (await import("sharp").then(
-      (r) => r.default || r,
+      (r) => (r as any).default || r,
     )) as typeof import("sharp");
   });
 
@@ -212,7 +210,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
   return function ipx(id, modifiers = {}, opts = {}) {
     // Validate id
     if (!id) {
-      throw createError({
+      throw new HTTPError({
         statusCode: 400,
         statusText: `IPX_MISSING_ID`,
         message: `Resource id is missing`,
@@ -225,7 +223,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
     // Resolve alias
     for (const base in options.alias) {
       if (id.startsWith(base)) {
-        id = joinURL(options.alias[base], id.slice(base.length));
+        id = joinURL(options.alias[base] as string, id.slice(base.length));
       }
     }
 
@@ -234,7 +232,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
       ? options.httpStorage || options.storage
       : options.storage || options.httpStorage;
     if (!storage) {
-      throw createError({
+      throw new HTTPError({
         statusCode: 500,
         statusText: `IPX_NO_STORAGE`,
         message: "No storage configured!",
@@ -245,7 +243,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
     const getSourceMeta = cachedPromise(async () => {
       const sourceMeta = await storage.getMeta(id, opts);
       if (!sourceMeta) {
-        throw createError({
+        throw new HTTPError({
           statusCode: 404,
           statusText: `IPX_RESOURCE_NOT_FOUND`,
           message: `Resource not found: ${id}`,
@@ -261,7 +259,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
     const getSourceData = cachedPromise(async () => {
       const sourceData = await storage.getData(id, opts);
       if (!sourceData) {
-        throw createError({
+        throw new HTTPError({
           statusCode: 404,
           statusText: `IPX_RESOURCE_NOT_FOUND`,
           message: `Resource not found: ${id}`,
@@ -279,7 +277,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
       try {
         imageMeta = getImageMeta(sourceData) as ImageMeta;
       } catch {
-        throw createError({
+        throw new HTTPError({
           statusCode: 400,
           statusText: `IPX_INVALID_IMAGE`,
           message: `Cannot parse image metadata: ${id}`,

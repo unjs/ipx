@@ -1,4 +1,10 @@
-import { createIPX, createIPXH3App, ipxFSStorage, ipxHttpStorage } from "./src";
+import { serve } from "srvx";
+import {
+  createIPX,
+  createIPXFetchHandler,
+  ipxFSStorage,
+  ipxHttpStorage,
+} from "ipx";
 
 const ipx = createIPX({
   storage: ipxFSStorage(),
@@ -10,4 +16,6 @@ const ipx = createIPX({
   }),
 });
 
-export const app = createIPXH3App(ipx);
+serve({
+  fetch: createIPXFetchHandler(ipx),
+});
