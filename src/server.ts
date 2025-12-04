@@ -8,16 +8,14 @@ import {
   setResponseStatus,
   createApp,
   toNodeListener,
-  toPlainHandler,
   toWebHandler,
   createError,
   H3Event,
   H3Error,
-  send,
   appendResponseHeader,
   getResponseHeader,
 } from "h3";
-import { IPX } from "./ipx";
+import type { IPX } from "./ipx.ts";
 
 const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/;
@@ -112,7 +110,7 @@ export function createIPXH3Handler(ipx: IPX) {
       const _ifModifiedSince = getRequestHeader(event, "if-modified-since");
       if (_ifModifiedSince && new Date(_ifModifiedSince) >= sourceMeta.mtime) {
         setResponseStatus(event, 304);
-        return send(event);
+        return;
       }
     }
 
@@ -135,7 +133,7 @@ export function createIPXH3Handler(ipx: IPX) {
     // Check for if-none-match request header
     if (etag && getRequestHeader(event, "if-none-match") === etag) {
       setResponseStatus(event, 304);
-      return send(event);
+      return;
     }
 
     // Content-Type header
@@ -181,24 +179,6 @@ export function createIPXH3App(ipx: IPX) {
  */
 export function createIPXWebServer(ipx: IPX) {
   return toWebHandler(createIPXH3App(ipx));
-}
-
-/**
- * Creates a web server that can handle IPX image processing requests using an H3 application.
- * @param {IPX} ipx - An IPX instance configured for the server. See {@link IPX}.
- * @returns {any} A web handler suitable for use with web server environments that support the H3 library.
- */
-export function createIPXNodeServer(ipx: IPX) {
-  return toNodeListener(createIPXH3App(ipx));
-}
-
-/**
- * Creates a simple server that can handle IPX image processing requests using an H3 application.
- * @param {IPX} ipx - An IPX instance configured for the server.
- * @returns {any} A handler suitable for plain HTTP server environments that support the H3 library.
- */
-export function createIPXPlainServer(ipx: IPX) {
-  return toPlainHandler(createIPXH3App(ipx));
 }
 
 // --- Utils ---

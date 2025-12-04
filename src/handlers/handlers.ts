@@ -1,8 +1,8 @@
-import type { Handler } from "../types";
+import type { Handler } from "../types.ts";
 import {
   clampDimensionsPreservingAspectRatio,
   VArg as VArgument,
-} from "./utils";
+} from "./utils.ts";
 
 // --------- Context Modifiers ---------
 

@@ -1,6 +1,6 @@
 import type { Storage, Driver } from "unstorage";
 import { createError } from "h3";
-import type { IPXStorage, IPXStorageMeta } from "../types";
+import type { IPXStorage, IPXStorageMeta } from "../types.ts";
 
 export type UnstorageIPXStorageOptions = {
   /**

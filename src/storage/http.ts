@@ -1,7 +1,7 @@
 import { ofetch } from "ofetch";
 import { createError } from "h3";
-import { getEnv } from "../utils";
-import type { IPXStorage } from "../types";
+import { getEnv } from "../utils.ts";
+import type { IPXStorage } from "../types.ts";
 
 export type HTTPStorageOptions = {
   /**

@@ -1,8 +1,8 @@
 import destr from "destr";
 import type { Sharp } from "sharp";
 import type { ImageMeta } from "image-meta";
-import type { Handler, HandlerContext } from "../types";
-import * as Handlers from "./handlers";
+import type { Handler, HandlerContext } from "../types.ts";
+import * as Handlers from "./handlers.ts";
 
 export function VArg(argument: string) {
   return destr(argument);

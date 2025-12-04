@@ -4,9 +4,13 @@ import type { SharpOptions } from "sharp";
 import { createError } from "h3";
 import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
 import type { Config as SVGOConfig } from "svgo";
-import type { IPXStorage } from "./types";
-import { HandlerName, applyHandler, getHandler } from "./handlers";
-import { cachedPromise, getEnv } from "./utils";
+import type { IPXStorage } from "./types.ts";
+import {
+  type HandlerName,
+  applyHandler,
+  getHandler,
+} from "./handlers/index.ts";
+import { cachedPromise, getEnv } from "./utils.ts";
 
 type IPXSourceMeta = {
   /**
@@ -180,9 +184,9 @@ export function createIPX(userOptions: IPXOptions): IPX {
   const options: IPXOptions = defu(userOptions, {
     alias: getEnv<Record<string, string>>("IPX_ALIAS") || {},
     maxAge: getEnv<number>("IPX_MAX_AGE") ?? 60 /* 1 minute */,
-    sharpOptions: <SharpOptions>{
+    sharpOptions: {
       jpegProgressive: true,
-    },
+    } as SharpOptions,
   } satisfies Omit<IPXOptions, "storage">);
 
   // Normalize alias to start with leading slash

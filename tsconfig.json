@@ -1,11 +1,25 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "moduleDetection": "force",
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "strict": true
+    "strict": true,
+    "isolatedModules": false, // TODO
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "noUncheckedIndexedAccess": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false, // TODO
+    "noImplicitOverride": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "composite": true,
+    // "isolatedDeclarations": true,
+    "allowImportingTsExtensions": true
   },
-  "include": ["src"]
+  "include": ["src", "test"]
 }

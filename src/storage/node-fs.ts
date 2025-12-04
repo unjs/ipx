@@ -1,7 +1,7 @@
 import { resolve, parse, join } from "pathe";
 import { createError } from "h3";
-import { cachedPromise, getEnv } from "../utils";
-import type { IPXStorage } from "../types";
+import { cachedPromise, getEnv } from "../utils.ts";
+import type { IPXStorage } from "../types.ts";
 
 export type NodeFSSOptions = {
   /**

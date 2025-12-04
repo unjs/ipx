@@ -4,11 +4,15 @@ import {
   getArgs as listhenArgs,
   parseArgs as parseListhenArgs,
 } from "listhen/cli";
-import { name, version, description } from "../package.json";
-import { createIPX } from "./ipx";
-import { createIPXNodeServer } from "./server";
-import { ipxFSStorage } from "./storage/node-fs";
-import { ipxHttpStorage } from "./storage/http";
+import {
+  name,
+  version,
+  description,
+} from "../package.json" with { type: "json" };
+import { createIPX } from "./ipx.ts";
+import { createIPXNodeServer } from "./server.ts";
+import { ipxFSStorage } from "./storage/node-fs.ts";
+import { ipxHttpStorage } from "./storage/http.ts";
 
 const serve = defineCommand({
   meta: {
