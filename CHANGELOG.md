@@ -2,6 +2,60 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v4.0.0-alpha.1
+
+[compare changes](https://github.com/unjs/ipx/compare/v3.1.1...v4.0.0-alpha.1)
+
+### 🚀 Enhancements
+
+- Export `IPXModifiers` ([#272](https://github.com/unjs/ipx/pull/272))
+- `serveIPX` util ([2b2252d](https://github.com/unjs/ipx/commit/2b2252d))
+
+### 💅 Refactors
+
+- Modernize ts usage ([23f2564](https://github.com/unjs/ipx/commit/23f2564))
+- Upgrade to h3 v2 ([d64cd73](https://github.com/unjs/ipx/commit/d64cd73))
+
+### 📖 Documentation
+
+- Update readme with flatten, modulate, crop + animated modifiers ([#273](https://github.com/unjs/ipx/pull/273))
+
+### 📦 Build
+
+- ⚠️  Esm-only ([48b60f2](https://github.com/unjs/ipx/commit/48b60f2))
+- Reduce install size ([69762d7](https://github.com/unjs/ipx/commit/69762d7))
+- Optimize dist ([1db481c](https://github.com/unjs/ipx/commit/1db481c))
+
+### 🏡 Chore
+
+- Update dependencies ([c897029](https://github.com/unjs/ipx/commit/c897029))
+- Update ci ([f7091d4](https://github.com/unjs/ipx/commit/f7091d4))
+- Add automd ([69c00e4](https://github.com/unjs/ipx/commit/69c00e4))
+- Update deps ([f799aa1](https://github.com/unjs/ipx/commit/f799aa1))
+- Prepare for 4 alpha ([791dac0](https://github.com/unjs/ipx/commit/791dac0))
+- Update examples ([42de920](https://github.com/unjs/ipx/commit/42de920))
+- Update readme ([5725964](https://github.com/unjs/ipx/commit/5725964))
+- Fix type issues ([9f61fd0](https://github.com/unjs/ipx/commit/9f61fd0))
+- Add basic migration nodes ([21afdb0](https://github.com/unjs/ipx/commit/21afdb0))
+
+### ✅ Tests
+
+- Update tests ([c9cd3af](https://github.com/unjs/ipx/commit/c9cd3af))
+
+### 🤖 CI
+
+- Run automd via lint:fix ([7fb1298](https://github.com/unjs/ipx/commit/7fb1298))
+- Build before typehecking ([c88b6db](https://github.com/unjs/ipx/commit/c88b6db))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️  Esm-only ([48b60f2](https://github.com/unjs/ipx/commit/48b60f2))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+- Daniel Roe ([@danielroe](https://github.com/danielroe))
+
 ## v3.1.1
 
 [compare changes](https://github.com/unjs/ipx/compare/v3.1.0...v3.1.1)
