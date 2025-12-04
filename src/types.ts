@@ -111,10 +111,10 @@ export interface IPXStorage {
    * Get the actual data for an image identified by 'id'.
    * @param {string} id - The identifier for the image.
    * @param {IPXStorageOptions} [opts] - Optional options for the data retrieval. See {@link IPXStorageOptions}.
-   * @returns {MaybePromise<ArrayBuffer | undefined>} A promise or direct return of the image data as an ArrayBuffer, or undefined if not found. See {@link ArrayBuffer}.
+   * @returns {MaybePromise<Buffer | ArrayBuffer | undefined>} A promise or direct return of the image data as an ArrayBuffer, or undefined if not found. See {@link ArrayBuffer}.
    */
   getData: (
     id: string,
     opts?: IPXStorageOptions,
-  ) => MaybePromise<ArrayBuffer | undefined>;
+  ) => MaybePromise<Buffer | ArrayBuffer | undefined>;
 }

@@ -23,7 +23,8 @@
     "prepack": "pnpm build",
     "release": "pnpm test && pnpm build && changelogen --release --prerelease --publish --publishTag alpha --push",
     "start": "node bin/ipx.js",
-    "test": "pnpm lint && vitest run --coverage"
+    "test": "pnpm lint && pnpm test:types && vitest run --coverage",
+    "test:types": "tsc --noEmit"
   },
   "dependencies": {
     "@fastify/accept-negotiator": "^2.0.1",

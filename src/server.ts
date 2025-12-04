@@ -6,15 +6,18 @@ import { toNodeHandler } from "srvx/node";
 
 import type { IPX } from "./ipx.ts";
 import type { H3Event, EventHandlerWithFetch } from "h3";
+import type { NodeHttpHandler } from "srvx";
 
-type FetchHandler = (req: Request | URL | string) => Promise<Response>;
+export type FetchHandler = (
+  request: Request | string | URL,
+) => Response | Promise<Response>;
 
 export function createIPXFetchHandler(ipx: IPX): FetchHandler {
   return createIPXHandler(ipx).fetch as FetchHandler;
 }
 
-export function createIPXNodeHandler(ipx: IPX): FetchHandler {
-  const fetch = createIPXHandler(ipx).fetch;
+export function createIPXNodeHandler(ipx: IPX): NodeHttpHandler {
+  const fetch = createIPXFetchHandler(ipx);
   return toNodeHandler(fetch);
 }
 

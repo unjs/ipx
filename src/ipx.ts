@@ -265,7 +265,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
           message: `Resource not found: ${id}`,
         });
       }
-      return Buffer.from(sourceData);
+      return Buffer.from(sourceData as Uint8Array);
     });
 
     const process = cachedPromise(async () => {
