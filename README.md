@@ -206,7 +206,8 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 | flop           | [Docs](https://sharp.pixelplumbing.com/api-operation#flop)      | `/flop/buffalo.png`                                  |
 | sharpen        | [Docs](https://sharp.pixelplumbing.com/api-operation#sharpen)   | `/sharpen_30/buffalo.png`                            |
 | median         | [Docs](https://sharp.pixelplumbing.com/api-operation#median)    | `/median_10/buffalo.png`                             |
-| blur           | [Docs](https://sharp.pixelplumbing.com/api-operation#blur)      | `/blur_5/buffalo.png`                                |
+| blur           | [Docs](https://sharp.pixelplumbing.com/api-operation#blur)      | `/blur_5/buffalo.png`
+| unflatten      | [Docs](https://sharp.pixelplumbing.com/api-operation#unflatten) | `/unflatten/buffalo.png`                             |                                |
 | gamma          | [Docs](https://sharp.pixelplumbing.com/api-operation#gamma)     | `/gamma_3/buffalo.png`                               |
 | negate         | [Docs](https://sharp.pixelplumbing.com/api-operation#negate)    | `/negate/buffalo.png`                                |
 | normalize      | [Docs](https://sharp.pixelplumbing.com/api-operation#normalize) | `/normalize/buffalo.png`                             |
