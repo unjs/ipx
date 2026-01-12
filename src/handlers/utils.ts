@@ -7,6 +7,9 @@ export function VArg(argument: string) {
   if (argument === "Infinity") {
     return Infinity;
   }
+  if (argument === "undefined") {
+    return undefined;
+  }
   try {
     const val = JSON.parse(argument);
     const t = typeof val;
@@ -16,6 +19,7 @@ export function VArg(argument: string) {
   } catch {
     // ignore parsing errors
   }
+  return argument;
 }
 
 export function parseArgs(
