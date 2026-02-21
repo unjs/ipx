@@ -31,7 +31,8 @@
   "dependencies": {
     "pathe": "^2.0.3",
     "sharp": "^0.34.5",
-    "srvx": "^0.9.7"
+    "srvx": "^0.9.7",
+    "svgo": "^4.0.0"
   },
   "devDependencies": {
     "@fastify/accept-negotiator": "^2.0.1",
@@ -48,7 +49,6 @@
     "obuild": "^0.4.7",
     "oxc-minify": "^0.101.0",
     "prettier": "^3.7.4",
-    "svgo": "^4.0.0",
     "typescript": "^5.9.3",
     "ufo": "^1.6.1",
     "unstorage": "^1.17.3",
