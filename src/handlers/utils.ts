@@ -16,6 +16,7 @@ export function VArg(argument: string) {
   } catch {
     // ignore parsing errors
   }
+  return argument;
 }
 
 export function parseArgs(
