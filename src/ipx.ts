@@ -345,9 +345,12 @@ export function createIPX(userOptions: IPXOptions): IPX {
         }))
         .filter((h) => h.handler)
         .sort((a, b) => {
-          const aKey = (a.handler.order || a.name || "").toString();
-          const bKey = (b.handler.order || b.name || "").toString();
-          return aKey.localeCompare(bKey);
+          const aOrder =
+            typeof a.handler.order === "number" ? a.handler.order : Infinity;
+          const bOrder =
+            typeof b.handler.order === "number" ? b.handler.order : Infinity;
+          if (aOrder !== bOrder) return aOrder - bOrder;
+          return (a.name || "").localeCompare(b.name || "");
         });
 
       // Apply handlers

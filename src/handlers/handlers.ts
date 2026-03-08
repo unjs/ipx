@@ -149,9 +149,7 @@ export const extract: Handler = {
 export const rotate: Handler = {
   args: [VArg],
   apply: (context, pipe, angel) => {
-    return pipe.rotate(angel, {
-      background: context.background,
-    });
+    return pipe.rotate(angel, { background: context.background });
   },
 };
 
@@ -196,13 +194,10 @@ export const blur: Handler = {
 };
 
 // https://sharp.pixelplumbing.com/api-operation#flatten
-// TODO: Support background
 export const flatten: Handler = {
   args: [VArg, VArg, VArg],
   apply: (context, pipe) => {
-    return pipe.flatten({
-      background: context.background,
-    });
+    return pipe.flatten({ background: context.background });
   },
 };
 
