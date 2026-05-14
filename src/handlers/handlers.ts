@@ -240,7 +240,7 @@ export const threshold: Handler = {
 
 // https://sharp.pixelplumbing.com/api-operation#modulate
 export const modulate: Handler = {
-  args: [VArg],
+  args: [VArg, VArg, VArg],
   apply: (_context, pipe, brightness, saturation, hue) => {
     return pipe.modulate({
       brightness,
