@@ -31,7 +31,7 @@
   "dependencies": {
     "pathe": "^2.0.3",
     "sharp": "^0.34.5",
-    "srvx": "^0.9.7"
+    "srvx": "^0.11.0"
   },
   "devDependencies": {
     "@fastify/accept-negotiator": "^2.0.1",

@@ -15,8 +15,8 @@ importers:
         specifier: ^0.34.5
         version: 0.34.5
       srvx:
-        specifier: ^0.9.7
-        version: 0.9.7
+        specifier: ^0.11.0
+        version: 0.11.16
     devDependencies:
       '@fastify/accept-negotiator':
         specifier: ^2.0.1
@@ -2284,6 +2284,11 @@ packages:
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
+
+  srvx@0.11.16:
+    resolution: {integrity: sha512-bp07zRuycfTY43IjAvvTFnmnJi8ikW0VFiHwOhhYcVW/L4xQ1XY4PAd4Nuum1rsA17C39zL7x+CDhrn5AL32Rw==}
+    engines: {node: '>=20.16.0'}
+    hasBin: true
 
   srvx@0.9.7:
     resolution: {integrity: sha512-N2a2nx8YTq13+A8qucg4lHZREfWOVnlMHAvrA9C2jbY9/QnVEAPzjdmpFHrY6/9BxSwIbvywCj7zahuGrVzCiQ==}
@@ -4683,6 +4688,8 @@ snapshots:
   siginfo@2.0.0: {}
 
   source-map-js@1.2.1: {}
+
+  srvx@0.11.16: {}
 
   srvx@0.9.7: {}
 
