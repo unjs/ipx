@@ -19,58 +19,58 @@ importers:
         version: 0.9.7
     devDependencies:
       '@fastify/accept-negotiator':
-        specifier: ^2.0.1
+        specifier: 2.0.1
         version: 2.0.1
       '@types/etag':
-        specifier: ^1.8.4
+        specifier: 1.8.4
         version: 1.8.4
       '@types/is-valid-path':
-        specifier: ^0.1.2
+        specifier: 0.1.2
         version: 0.1.2
       '@vitest/coverage-v8':
-        specifier: ^4.0.15
+        specifier: 4.0.15
         version: 4.0.15(vitest@4.0.15(@types/node@24.10.1)(jiti@2.6.1))
       automd:
-        specifier: ^0.4.2
+        specifier: 0.4.2
         version: 0.4.2(magicast@0.5.1)
       changelogen:
-        specifier: ^0.6.2
+        specifier: 0.6.2
         version: 0.6.2(magicast@0.5.1)
       eslint:
-        specifier: ^9.39.1
+        specifier: 9.39.1
         version: 9.39.1(jiti@2.6.1)
       eslint-config-unjs:
-        specifier: ^0.5.0
+        specifier: 0.5.0
         version: 0.5.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
       etag:
-        specifier: ^1.8.1
+        specifier: 1.8.1
         version: 1.8.1
       h3:
         specifier: ^2.0.1-rc.5
         version: 2.0.1-rc.5
       image-meta:
-        specifier: ^0.2.2
+        specifier: 0.2.2
         version: 0.2.2
       obuild:
-        specifier: ^0.4.7
+        specifier: 0.4.7
         version: 0.4.7(magicast@0.5.1)(typescript@5.9.3)
       oxc-minify:
-        specifier: ^0.101.0
+        specifier: 0.101.0
         version: 0.101.0
       prettier:
-        specifier: ^3.7.4
+        specifier: 3.7.4
         version: 3.7.4
       svgo:
         specifier: ^4.0.0
         version: 4.0.0
       typescript:
-        specifier: ^5.9.3
+        specifier: 5.9.3
         version: 5.9.3
       ufo:
-        specifier: ^1.6.1
+        specifier: 1.6.1
         version: 1.6.1
       unstorage:
-        specifier: ^1.17.3
+        specifier: 1.17.3
         version: 1.17.3
       vitest:
         specifier: ^4.0.15
