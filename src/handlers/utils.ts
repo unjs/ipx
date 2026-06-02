@@ -7,6 +7,9 @@ export function VArg(argument: string) {
   if (argument === "Infinity") {
     return Infinity;
   }
+  if (argument === "undefined" || argument === undefined) {
+    return undefined;
+  }
   try {
     const val = JSON.parse(argument);
     const t = typeof val;
@@ -16,6 +19,8 @@ export function VArg(argument: string) {
   } catch {
     // ignore parsing errors
   }
+  // Fallback to the raw string (e.g. "40x40", "cover", "top", hex colors)
+  return argument;
 }
 
 export function parseArgs(
