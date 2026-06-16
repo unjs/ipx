@@ -40,7 +40,7 @@
     "@vitest/coverage-v8": "^4.0.15",
     "automd": "^0.4.2",
     "changelogen": "^0.6.2",
-    "eslint": "^9.39.1",
+    "eslint": "^10.5.0",
     "eslint-config-unjs": "^0.5.0",
     "etag": "^1.8.1",
     "h3": "^2.0.1-rc.5",
