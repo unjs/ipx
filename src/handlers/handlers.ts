@@ -175,7 +175,7 @@ export const flop: Handler = {
 export const sharpen: Handler = {
   args: [VArg, VArg, VArg],
   apply: (_context, pipe, sigma, flat, jagged) => {
-    return pipe.sharpen(sigma, flat, jagged);
+    return pipe.sharpen({ sigma, m1: flat, m2: jagged });
   },
 };
 

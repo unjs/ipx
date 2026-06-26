@@ -230,7 +230,11 @@ describe("handlers", () => {
 
     sharpen.apply({} as any, sharpMock as any, 100, 200, 300);
 
-    expect(sharpMock.sharpen).toHaveBeenCalledWith(100, 200, 300);
+    expect(sharpMock.sharpen).toHaveBeenCalledWith({
+      sigma: 100,
+      m1: 200,
+      m2: 300,
+    });
   });
 
   it("median.apply() returns expected values", () => {

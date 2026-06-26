@@ -7,6 +7,8 @@ import {
   createIPXNodeHandler,
 } from "ipx";
 
+import type { RequestHandler } from "express";
+
 const ipx = createIPX({
   storage: ipxFSStorage({ dir: "./public" }),
   httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
@@ -15,7 +17,7 @@ const ipx = createIPX({
 
 const app = Express();
 
-app.use("/ipx", createIPXNodeHandler(ipx));
+app.use("/ipx", createIPXNodeHandler(ipx) as RequestHandler);
 
 // http://localhost:3000/ipx/w_512/picsum/1000
 app.listen(3000, () => {
