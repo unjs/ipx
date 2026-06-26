@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v4.0.0-alpha.2
+
+[compare changes](https://github.com/unjs/ipx/compare/v4.0.0-alpha.1...v4.0.0-alpha.2)
+
+### 🩹 Fixes
+
+- **handlers:** Preserve non-JSON string modifier values in VArg ([#290](https://github.com/unjs/ipx/pull/290))
+
+### 🏡 Chore
+
+- Update sharp and other deps ([ef6973d](https://github.com/unjs/ipx/commit/ef6973d))
+- Apply automated updates ([0e4c88b](https://github.com/unjs/ipx/commit/0e4c88b))
+
+### ❤️ Contributors
+
+- Alexander Synaptic ([@xsynaptic](https://github.com/xsynaptic))
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+
 ## v4.0.0-alpha.1
 
 [compare changes](https://github.com/unjs/ipx/compare/v3.1.1...v4.0.0-alpha.1)
