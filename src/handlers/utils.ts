@@ -7,6 +7,9 @@ export function VArg(argument: string) {
   if (argument === "Infinity") {
     return Infinity;
   }
+  if (argument === "undefined") {
+    return undefined;
+  }
   try {
     const val = JSON.parse(argument);
     const t = typeof val;
@@ -16,6 +19,13 @@ export function VArg(argument: string) {
   } catch {
     // ignore parsing errors
   }
+  // Fallback to the raw string (e.g. "40x40", "cover", "top", hex colors).
+  // TODO: Add explicit, per-modifier validation/coercion instead of passing raw
+  // strings straight to sharp. Numeric modifiers (blur, rotate, extend, extract,
+  // sharpen, gamma, threshold, quality, ...) currently rely on sharp throwing on
+  // a bad type; we should validate (e.g. number, enum for fit/position/kernel,
+  // hex for background) up front and return a clear error for invalid input.
+  return argument;
 }
 
 export function parseArgs(
