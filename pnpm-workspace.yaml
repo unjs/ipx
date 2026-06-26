@@ -1,3 +1,5 @@
 ignoreWorkspaceRootCheck: true
 packages:
   - examples
+allowBuilds:
+  "@parcel/watcher": false
