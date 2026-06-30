@@ -317,12 +317,13 @@ describe("handlers", () => {
       modulate: vi.fn(),
     };
 
-    modulate.apply({} as any, sharpMock as any, 100, 200, 300);
+    modulate.apply({} as any, sharpMock as any, 100, 200, 300, 400);
 
     expect(sharpMock.modulate).toHaveBeenCalledWith({
       brightness: 100,
       saturation: 200,
       hue: 300,
+      lightness: 400,
     });
   });
 
