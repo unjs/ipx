@@ -27,6 +27,7 @@ import {
   tint,
   grayscale,
 } from "../../src/handlers/handlers.ts";
+import { applyHandler } from "../../src/handlers/utils.ts";
 
 describe("handlers", () => {
   it("quality.apply() returns expected values", () => {
@@ -323,6 +324,20 @@ describe("handlers", () => {
       brightness: 100,
       saturation: 200,
       hue: 300,
+    });
+  });
+
+  it("modulate parses all three args (brightness, saturation, hue) (#301)", () => {
+    const sharpMock = {
+      modulate: vi.fn(),
+    };
+
+    applyHandler({} as any, sharpMock as any, modulate, "2_1_1");
+
+    expect(sharpMock.modulate).toHaveBeenCalledWith({
+      brightness: 2,
+      saturation: 1,
+      hue: 1,
     });
   });
 
