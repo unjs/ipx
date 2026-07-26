@@ -221,6 +221,24 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 | crop           | [Docs](https://sharp.pixelplumbing.com/api-resize#extract)      | `/crop_{left}_{top}_{width}_{height}/buffalo.png`    | Alias for extract. Extract/crop a region of the image.                                                                                                            |
 | animated / a   | -                                                               | `/animated/buffalo.gif` or `/a/buffalo.gif`          | Experimental                                                                                                                                                      |
 
+## SVG Security
+
+SVG documents can carry active content, so IPX **always** sanitizes them before serving. Sanitization is independent of optimization: setting `svgo: false` only disables SVGO's optimization plugins.
+
+Removed from every SVG:
+
+- `<script>` elements (including namespaced ones such as `<svg:script>`)
+- Event handler attributes (any `on*` attribute)
+- Embedded foreign documents: `<foreignObject>`, `<iframe>`, `<embed>`, `<object>`, `<base>`, `<link>` and `<meta>`
+- Event handler elements: `<handler>` and `<listener>`
+- SMIL animations (`<animate>`, `<animateMotion>`, `<animateTransform>` and `<set>`) that assign an `on*` attribute or an unsafe URI, which could otherwise re-introduce a handler after load
+- URIs (`href`, `xlink:href` and `src`) with a scheme other than `http:`, `https:`, `mailto:`, `tel:`, `ftp:` or a non-SVG `data:image/*` — in particular `javascript:`, including obfuscated variants using entities or control characters
+- The internal DTD subset (`<!DOCTYPE ... [ ... ]>`) and `<?xml-stylesheet?>` processing instructions
+
+**External references are kept.** Attributes such as `<image href="https://…">`, `<use href="…">`, external fonts and `@import` inside `<style>` are preserved, since stripping them would break legitimate images. They are not a script execution vector, but they do allow the SVG to make requests to third-party origins (and thereby leak the viewer's IP address) when rendered as a document. If this matters for your threat model, host such images from a separate origin or block the requests with a Content-Security-Policy.
+
+The bundled server sends `content-security-policy: default-src 'none'` with every response, which blocks both script execution and external references in browsers that honor it. Custom servers built on the programmatic API should send the same header, since sanitization cannot cover every future browser behavior on its own.
+
 ## License
 
 [MIT](./LICENSE)

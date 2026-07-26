@@ -2,6 +2,7 @@ import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import { HTTPError } from "h3";
 import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
 import { applyHandler, getHandler } from "./handlers/index.ts";
+import { sanitizeSVGPlugin } from "./svg.ts";
 import { cachedPromise, getEnv } from "./utils.ts";
 
 import type { HandlerName } from "./handlers/index.ts";
@@ -149,6 +150,9 @@ export type IPXOptions = {
 
   /**
    * Configuration for the SVGO library used when processing SVG images.
+   *
+   * Set to `false` to disable optimization. SVG sanitization (removal of
+   * scripts, event handlers and unsafe URIs) is always applied.
    * @optional
    */
   svgo?: false | SVGOConfig;
@@ -288,29 +292,27 @@ export function createIPX(userOptions: IPXOptions): IPX {
       if (mFormat === "jpg") {
         mFormat = "jpeg";
       }
-      // Use original SVG (optimized with svgo if enabled) when svg is
-      // requested or no format is specified. SVG is not a supported output
-      // format for sharp, so it cannot be handled by the ternary below.
+      // Use original SVG (sanitized and optimized with svgo if enabled) when
+      // svg is requested or no format is specified. SVG is not a supported
+      // output format for sharp, so it cannot be handled by the ternary below.
       if (imageMeta.type === "svg" && (!mFormat || mFormat === "svg")) {
-        if (options.svgo === false) {
-          return {
-            data: sourceData,
-            format: "svg+xml",
-            meta: imageMeta,
-          };
-        } else {
-          // https://github.com/svg/svgo
-          const { optimize } = await getSVGO();
-          const svg = optimize(sourceData.toString("utf8"), {
-            ...options.svgo,
-            plugins: ["removeScripts", ...(options.svgo?.plugins || [])],
-          }).data;
-          return {
-            data: svg,
-            format: "svg+xml",
-            meta: imageMeta,
-          };
-        }
+        // https://github.com/svg/svgo
+        const { optimize } = await getSVGO();
+        // Sanitization is always applied, `svgo: false` only opts out of optimization
+        const svgoConfig = options.svgo === false ? undefined : options.svgo;
+        const svg = optimize(sourceData.toString("utf8"), {
+          ...svgoConfig,
+          plugins: [
+            "removeScripts",
+            sanitizeSVGPlugin,
+            ...(svgoConfig?.plugins || []),
+          ],
+        }).data;
+        return {
+          data: svg,
+          format: "svg+xml",
+          meta: imageMeta,
+        };
       }
 
       const format =
