@@ -64,6 +64,7 @@ export interface IPXModifiers {
   median: number | string;
   blur: number | string;
   flatten: true | "true";
+  unflatten: true | "true";
   gamma: string;
   negate: true | "true";
   normalize: true | "true";
