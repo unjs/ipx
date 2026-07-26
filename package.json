@@ -49,7 +49,7 @@
     "oxc-minify": ">=0.141.0",
     "prettier": "^3.9.6",
     "svgo": "^4.0.2",
-    "typescript": "^6",
+    "typescript": "^7.0.2",
     "ufo": "^1.6.4",
     "unstorage": "^1.17.5",
     "vitest": "^4.1.10"
