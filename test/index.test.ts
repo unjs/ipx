@@ -66,24 +66,50 @@ describe("ipx", () => {
       rotate: { rotate: "90" },
       "rotate (arbitrary angle)": { rotate: "45", background: "ff0000" },
       "rotate (auto-orient)": { rotate: "" },
+      autoOrient: { autoOrient: "" },
+      "autoOrient (lowercase alias)": { autoorient: "" },
       flip: { flip: "" },
       flop: { flop: "" },
       sharpen: { sharpen: "2_1_2" },
+      "sharpen (all args)": { sharpen: "2_1_2_2_10_20" },
       "sharpen (no args)": { sharpen: "" },
       median: { median: "5" },
       blur: { blur: "5" },
+      "blur (all args)": { blur: "5_approximate_0.5" },
       "blur (no args)": { blur: "" },
+      dilate: { dilate: "3" },
+      "dilate (no args)": { dilate: "" },
+      erode: { erode: "3" },
+      "erode (no args)": { erode: "" },
+      clahe: { clahe: "10" },
+      "clahe (all args)": { clahe: "10_20_5" },
       flatten: { flatten: "", background: "ff0000" },
       unflatten: { unflatten: "" },
       gamma: { gamma: "2.2_1.8" },
       "gamma (no args)": { gamma: "" },
       negate: { negate: "" },
+      "negate (alpha)": { negate: "false" },
       normalize: { normalize: "" },
+      "normalize (range)": { normalize: "5_95" },
+      normalise: { normalise: "" },
       threshold: { threshold: "128" },
+      "threshold (greyscale)": { threshold: "128_false" },
       "threshold (no args)": { threshold: "" },
+      linear: { linear: "1.2_-10" },
+      "linear (no args)": { linear: "" },
+      brightness: { brightness: "1.5" },
+      saturation: { saturation: "0.5" },
+      hue: { hue: "90" },
+      lightness: { lightness: "10" },
       tint: { tint: "00ff00" },
       "tint (named)": { tint: "red" },
       grayscale: { grayscale: "" },
+      greyscale: { greyscale: "" },
+      opacity: { opacity: "0.5", format: "png" },
+      "opacity (background)": { opacity: "0.5", background: "ffffff" },
+      round: { round: "", format: "png" },
+      "round (radius)": { round: "20", format: "png" },
+      "round (background)": { round: "20", background: "ff0000" },
     };
 
     it.each(Object.entries(valid))("%s", async (_name, modifiers) => {
@@ -128,6 +154,85 @@ describe("ipx", () => {
       expect(height).toBe(2160 + 10 + 30);
     });
 
+    // `opacity` and `round` are composited rather than mapped to a sharp
+    // operation, so the outcome is asserted on the pixels themselves.
+    describe("opacity and round", () => {
+      const pixels = async (modifiers: Record<string, string>) => {
+        const { data } = await (await ipx("bliss.jpg", modifiers)).process();
+        const sharp = await import("sharp").then((r) => r.default);
+        const { data: raw, info } = await sharp(data as Buffer)
+          .ensureAlpha()
+          .raw()
+          .toBuffer({ resolveWithObject: true });
+        return (x: number, y: number) => {
+          const index = (y * info.width + x) * info.channels;
+          return [...raw.subarray(index, index + info.channels)];
+        };
+      };
+
+      it("opacity scales the alpha channel", async () => {
+        const at = await pixels({
+          opacity: "0.5",
+          resize: "100",
+          format: "png",
+        });
+        expect(at(50, 50)[3]).toBe(128);
+      });
+
+      it("opacity blends into the background when one is set", async () => {
+        const at = await pixels({
+          opacity: "0",
+          resize: "100",
+          background: "00ff00",
+          format: "png",
+        });
+        // Fully transparent over green leaves green, and stays opaque.
+        expect(at(50, 50)).toEqual([0, 255, 0, 255]);
+      });
+
+      it("round cuts out the corners", async () => {
+        const at = await pixels({ round: "", resize: "100", format: "png" });
+        expect(at(1, 1)[3]).toBe(0);
+        // The middle of an edge and the centre are inside the circle.
+        expect(at(50, 1)[3]).toBe(255);
+        expect(at(50, 50)[3]).toBe(255);
+      });
+
+      it("round fills the corners with the background when one is set", async () => {
+        const at = await pixels({
+          round: "20",
+          resize: "100",
+          background: "00ff00",
+          format: "png",
+        });
+        expect(at(0, 0)).toEqual([0, 255, 0, 255]);
+        expect(at(50, 50)[3]).toBe(255);
+      });
+
+      it("round without a radius keeps the requested size", async () => {
+        const { data } = await (
+          await ipx("bliss.jpg", { round: "", resize: "120x60", format: "png" })
+        ).process();
+        const { width, height } = imageMeta(data as Uint8Array);
+        expect(`${width}x${height}`).toBe("120x60");
+      });
+
+      it("round keeps the frames of an animated image", async () => {
+        const { data } = await (
+          await ipx("giphy.gif", { round: "20", animated: "" })
+        ).process();
+        const sharp = await import("sharp").then((r) => r.default);
+        const source = await sharp(resolve(__dirname, "assets/giphy.gif"), {
+          animated: true,
+        }).metadata();
+        const output = await sharp(data as Buffer, {
+          animated: true,
+        }).metadata();
+        expect(output.pages).toBe(source.pages);
+        expect(output.pageHeight).toBe(source.pageHeight);
+      });
+    });
+
     const invalid: Record<string, Record<string, string>> = {
       quality: { quality: "abc" },
       fit: { fit: "foo" },
@@ -152,8 +257,26 @@ describe("ipx", () => {
       blur: { blur: "abc" },
       gamma: { gamma: "5" },
       threshold: { threshold: "256" },
+      "threshold (greyscale)": { threshold: "128_yes" },
       modulate: { modulate: "abc" },
       tint: { tint: "not-a-colour" },
+      dilate: { dilate: "0" },
+      erode: { erode: "1.5" },
+      clahe: { clahe: "" },
+      "clahe (maxSlope)": { clahe: "10_10_101" },
+      linear: { linear: "abc" },
+      negate: { negate: "yes" },
+      // Sharp rejects a `lower` that is not below `upper`
+      normalize: { normalize: "90_10" },
+      "normalize (out of range)": { normalize: "100" },
+      brightness: { brightness: "" },
+      "brightness (negative)": { brightness: "-1" },
+      saturation: { saturation: "abc" },
+      hue: { hue: "1.5" },
+      lightness: { lightness: "" },
+      opacity: { opacity: "2" },
+      "opacity (missing)": { opacity: "" },
+      round: { round: "-1" },
     };
 
     it.each(Object.entries(invalid))(

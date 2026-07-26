@@ -1,7 +1,11 @@
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import { HTTPError } from "h3";
 import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
-import { applyHandler, getHandler } from "./handlers/index.ts";
+import {
+  applyHandler,
+  applyRoundedCorners,
+  getHandler,
+} from "./handlers/index.ts";
 import { sanitizeSVGPlugin } from "./svg.ts";
 import { cachedPromise, getEnv } from "./utils.ts";
 
@@ -62,20 +66,37 @@ export interface IPXModifiers {
   extract: string;
   crop: string;
   rotate: number | string;
+  autoOrient: true | "true";
+  // alias for autoOrient
+  autoorient: true | "true";
   flip: true | "true";
   flop: true | "true";
   sharpen: number | string;
   median: number | string;
   blur: number | string;
+  dilate: number | string;
+  erode: number | string;
+  clahe: number | string;
   flatten: true | "true";
   unflatten: true | "true";
   gamma: string;
-  negate: true | "true";
-  normalize: true | "true";
+  negate: true | "true" | string;
+  normalize: true | "true" | string;
+  // alias for normalize
+  normalise: true | "true" | string;
   threshold: number | string;
+  linear: string;
   modulate: string;
+  brightness: number | string;
+  saturation: number | string;
+  hue: number | string;
+  lightness: number | string;
+  opacity: number | string;
+  round: number | string;
   tint: number | string;
   grayscale: true | "true";
+  // alias for grayscale
+  greyscale: true | "true";
   animated: true | "true";
   // alias for animated
   a: true | "true";
@@ -437,6 +458,17 @@ export function createIPX(userOptions: IPXOptions): IPX {
         sharp =
           applyHandler(handlerContext, sharp, h.handler, h.args.toString()) ||
           sharp;
+      }
+
+      // The rounded corners mask has to match the output dimensions, which are
+      // only known once every other handler has been applied.
+      if (handlerContext.round !== undefined) {
+        sharp = await applyRoundedCorners(
+          Sharp,
+          sharp,
+          handlerContext.round,
+          handlerContext.background,
+        );
       }
 
       // Apply format

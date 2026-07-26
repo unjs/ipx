@@ -125,6 +125,29 @@ export function VEnum<T extends string>(
   };
 }
 
+/**
+ * Creates an arg mapper accepting a boolean, or no value at all.
+ *
+ * `1` / `0` are accepted alongside `true` / `false` since they are shorter to
+ * write in a URL.
+ *
+ * @param name Argument name used in the error message (e.g. `negate.alpha`).
+ */
+export function VBoolean(name: string): ArgMapper<boolean> {
+  return (argument) => {
+    if (isOmitted(argument)) {
+      return undefined;
+    }
+    if (argument === "true" || argument === "1") {
+      return true;
+    }
+    if (argument === "false" || argument === "0") {
+      return false;
+    }
+    invalidArg(name, argument, "`true` or `false`");
+  };
+}
+
 // Hex colours (`fff`, `ffff`, `ffffff`, `ffffffff`) with an optional leading
 // `#` -- which cannot be used in a URL path, hence the shorthand.
 const HEX_COLOR_RE = /^#?(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/i;
@@ -250,6 +273,116 @@ export function applyHandler(
       cause: error,
     });
   }
+}
+
+// Colours are interpolated into SVG attributes below. `VColor` only lets a hex,
+// functional or named colour through, none of which can contain a quote or an
+// angle bracket, so they cannot break out of the attribute.
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+/**
+ * Rounds the corners of the image.
+ *
+ * sharp has no rounded corners operation, so the shape has to be a composited
+ * SVG sized to the image. The pipeline output dimensions are only known once it
+ * has run, hence the round-trip through a raw (uncompressed) buffer: it is the
+ * cheapest way to resolve them without re-encoding the image twice.
+ *
+ * Animated images are laid out as a vertically stacked "toilet roll", so the
+ * shape is repeated for every page and `pageHeight` is carried over to the new
+ * pipeline to keep the frames intact.
+ *
+ * @param Sharp The sharp constructor.
+ * @param pipe The pipeline to round.
+ * @param radius Corner radius in pixels. Clamped to half of the shortest side,
+ * so `Infinity` yields a circle (or a pill for non-square images).
+ * @param background Colour to fill the cut off corners with. When omitted they
+ * are made transparent instead, which needs an output format with an alpha
+ * channel.
+ * @returns A new pipeline, holding the rounded image.
+ */
+export async function applyRoundedCorners(
+  Sharp: typeof import("sharp").default,
+  pipe: Sharp,
+  radius: number,
+  background?: string,
+): Promise<Sharp> {
+  // `depth` is forced so that a 16-bit pipeline cannot be re-read as 8-bit.
+  const { data, info } = await pipe
+    .ensureAlpha()
+    .raw({ depth: "uchar" })
+    .toBuffer({ resolveWithObject: true });
+
+  const { width, height, channels } = info;
+  const pageHeight = info.pageHeight || height;
+  const pages = Math.max(1, Math.round(height / pageHeight));
+  const r = Math.min(radius, width / 2, pageHeight / 2);
+
+  const rects = Array.from(
+    { length: pages },
+    (_, page) =>
+      `<rect x="0" y="${page * pageHeight}" width="${width}" height="${pageHeight}" rx="${r}" ry="${r}"/>`,
+  ).join("");
+
+  // Without a background the rounded rectangle is used as an alpha mask
+  // (`dest-in` keeps the image only where the overlay is opaque). With one, the
+  // corners are painted over instead, so that the output stays opaque and
+  // formats without an alpha channel (jpeg, ...) work too.
+  const overlay = background
+    ? `<svg xmlns="${SVG_NS}" width="${width}" height="${height}">` +
+      `<mask id="corners"><rect width="${width}" height="${height}" fill="#fff"/><g fill="#000">${rects}</g></mask>` +
+      `<rect width="${width}" height="${height}" fill="${background}" mask="url(#corners)"/></svg>`
+    : `<svg xmlns="${SVG_NS}" width="${width}" height="${height}"><g fill="#fff">${rects}</g></svg>`;
+
+  return Sharp(data, {
+    // The data comes from a pipeline whose input already passed the limit.
+    limitInputPixels: false,
+    raw: {
+      width,
+      height,
+      channels,
+      ...(pages > 1 && { pageHeight }),
+    },
+  }).composite([
+    {
+      input: Buffer.from(overlay),
+      blend: background ? "over" : "dest-in",
+    },
+  ]);
+}
+
+/**
+ * Builds the single pixel overlay that the `opacity` modifier tiles over the
+ * image.
+ *
+ * @param opacity The requested opacity, between `0` and `1`.
+ * @param background Colour to blend the image into. When omitted the alpha
+ * channel is scaled instead, which needs an output format supporting it.
+ */
+export function opacityOverlay(opacity: number, background?: string) {
+  return background
+    ? // Blending the background over the image at `1 - opacity` leaves an
+      // opaque result, so formats without an alpha channel work too.
+      {
+        input: Buffer.from(
+          `<svg xmlns="${SVG_NS}" width="1" height="1"><rect width="1" height="1" fill="${background}" fill-opacity="${1 - opacity}"/></svg>`,
+        ),
+        tile: true,
+        blend: "over" as const,
+      }
+    : // `dest-in` multiplies the image alpha by the overlay alpha.
+      {
+        input: {
+          create: {
+            width: 1,
+            height: 1,
+            channels: 4 as const,
+            background: { r: 0, g: 0, b: 0, alpha: opacity },
+          },
+        },
+        tile: true,
+        blend: "dest-in" as const,
+      };
 }
 
 /**

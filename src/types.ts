@@ -41,6 +41,14 @@ export interface HandlerContext {
   kernel?: keyof KernelEnum;
 
   /**
+   * Corner radius (in pixels) the output image is masked with, or `Infinity`
+   * for the roundest shape it can take. Applied once every other handler has
+   * run, since the mask has to match the output dimensions.
+   * @optional
+   */
+  round?: number;
+
+  /**
    * The maximum width and height of the output image, or `false` when
    * unlimited. Set from the `maxOutputDimension` IPX option.
    * @optional
