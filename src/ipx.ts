@@ -52,12 +52,7 @@ export interface IPXModifiers {
   pos: string;
   enlarge: true | "true";
   kernel:
-    | "nearest"
-    | "cubic"
-    | "mitchell"
-    | "lanczos2"
-    | "lanczos3"
-    | (string & {});
+    "nearest" | "cubic" | "mitchell" | "lanczos2" | "lanczos3" | (string & {});
   trim: number | string;
   extend: string;
   extract: string;
