@@ -1,12 +1,13 @@
-import { defu } from "defu";
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
-import type { SharpOptions } from "sharp";
-import { createError } from "h3";
+import { HTTPError } from "h3";
 import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
+import { applyHandler, getHandler } from "./handlers/index.ts";
+import { cachedPromise, getEnv } from "./utils.ts";
+
+import type { HandlerName } from "./handlers/index.ts";
+import type { SharpOptions } from "sharp";
 import type { Config as SVGOConfig } from "svgo";
-import type { IPXStorage } from "./types";
-import { HandlerName, applyHandler, getHandler } from "./handlers";
-import { cachedPromise, getEnv } from "./utils";
+import type { IPXStorage } from "./types.ts";
 
 type IPXSourceMeta = {
   /**
@@ -21,6 +22,69 @@ type IPXSourceMeta = {
    */
   maxAge?: number;
 };
+
+type FormatModifier =
+  | "jpeg"
+  | "jpg"
+  | "png"
+  | "webp"
+  | "avif"
+  | "gif"
+  | "heif"
+  | "tiff"
+  | "auto"
+  | (string & {});
+
+export interface IPXModifiers {
+  format: FormatModifier;
+  // alias for format
+  f: FormatModifier;
+  fit: "contain" | "cover" | "fill" | "inside" | "outside" | (string & {});
+  resize: string;
+  // alias for resize
+  s: string;
+  quality: number | string;
+  // alias for quality
+  q: number | string;
+  background: string;
+  b: string;
+  position: string;
+  pos: string;
+  enlarge: true | "true";
+  kernel:
+    "nearest" | "cubic" | "mitchell" | "lanczos2" | "lanczos3" | (string & {});
+  trim: number | string;
+  extend: string;
+  extract: string;
+  crop: string;
+  rotate: number | string;
+  flip: true | "true";
+  flop: true | "true";
+  sharpen: number | string;
+  median: number | string;
+  blur: number | string;
+  flatten: true | "true";
+  gamma: string;
+  negate: true | "true";
+  normalize: true | "true";
+  threshold: number | string;
+  modulate: string;
+  tint: number | string;
+  grayscale: true | "true";
+  animated: true | "true";
+  // alias for animated
+  a: true | "true";
+  width: string | number;
+  w: string | number;
+  height: string | number;
+  h: string | number;
+}
+
+// ensure we have types for all modifiers
+({}) as IPXModifiers satisfies Record<
+  HandlerName,
+  string | number | boolean | undefined
+>;
 
 /**
  * A function type that defines an IPX image processing instance.
@@ -41,9 +105,7 @@ type IPXSourceMeta = {
  */
 export type IPX = (
   id: string,
-  modifiers?: Partial<
-    Record<HandlerName | "f" | "format" | "a" | "animated", string>
-  >,
+  modifiers?: Partial<IPXModifiers>,
   requestOptions?: any,
 ) => {
   getSourceMeta: () => Promise<IPXSourceMeta>;
@@ -111,13 +173,17 @@ const SUPPORTED_FORMATS = new Set([
  * @throws {Error} If critical options such as storage are missing or incorrectly configured.
  */
 export function createIPX(userOptions: IPXOptions): IPX {
-  const options: IPXOptions = defu(userOptions, {
-    alias: getEnv<Record<string, string>>("IPX_ALIAS") || {},
-    maxAge: getEnv<number>("IPX_MAX_AGE") ?? 60 /* 1 minute */,
-    sharpOptions: <SharpOptions>{
+  const options = {
+    ...userOptions,
+    alias:
+      userOptions.alias || getEnv<Record<string, string>>("IPX_ALIAS") || {},
+    maxAge:
+      userOptions.maxAge ?? getEnv<number>("IPX_MAX_AGE") ?? 60 /* 1 minute */,
+    sharpOptions: {
       jpegProgressive: true,
-    },
-  } satisfies Omit<IPXOptions, "storage">);
+      ...userOptions.sharpOptions,
+    } as SharpOptions,
+  } satisfies Omit<IPXOptions, "storage">;
 
   // Normalize alias to start with leading slash
   options.alias = Object.fromEntries(
@@ -130,8 +196,8 @@ export function createIPX(userOptions: IPXOptions): IPX {
   // Sharp loader
   const getSharp = cachedPromise(async () => {
     return (await import("sharp").then(
-      (r) => r.default || r,
-    )) as typeof import("sharp");
+      (r) => (r as any).default || r,
+    )) as typeof import("sharp").default;
   });
 
   const getSVGO = cachedPromise(async () => {
@@ -142,7 +208,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
   return function ipx(id, modifiers = {}, opts = {}) {
     // Validate id
     if (!id) {
-      throw createError({
+      throw new HTTPError({
         statusCode: 400,
         statusText: `IPX_MISSING_ID`,
         message: `Resource id is missing`,
@@ -155,7 +221,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
     // Resolve alias
     for (const base in options.alias) {
       if (id.startsWith(base)) {
-        id = joinURL(options.alias[base], id.slice(base.length));
+        id = joinURL(options.alias[base] as string, id.slice(base.length));
       }
     }
 
@@ -164,7 +230,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
       ? options.httpStorage || options.storage
       : options.storage || options.httpStorage;
     if (!storage) {
-      throw createError({
+      throw new HTTPError({
         statusCode: 500,
         statusText: `IPX_NO_STORAGE`,
         message: "No storage configured!",
@@ -175,7 +241,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
     const getSourceMeta = cachedPromise(async () => {
       const sourceMeta = await storage.getMeta(id, opts);
       if (!sourceMeta) {
-        throw createError({
+        throw new HTTPError({
           statusCode: 404,
           statusText: `IPX_RESOURCE_NOT_FOUND`,
           message: `Resource not found: ${id}`,
@@ -191,13 +257,13 @@ export function createIPX(userOptions: IPXOptions): IPX {
     const getSourceData = cachedPromise(async () => {
       const sourceData = await storage.getData(id, opts);
       if (!sourceData) {
-        throw createError({
+        throw new HTTPError({
           statusCode: 404,
           statusText: `IPX_RESOURCE_NOT_FOUND`,
           message: `Resource not found: ${id}`,
         });
       }
-      return Buffer.from(sourceData);
+      return Buffer.from(sourceData as Uint8Array);
     });
 
     const process = cachedPromise(async () => {
@@ -209,7 +275,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
       try {
         imageMeta = getImageMeta(sourceData) as ImageMeta;
       } catch {
-        throw createError({
+        throw new HTTPError({
           statusCode: 400,
           statusText: `IPX_INVALID_IMAGE`,
           message: `Cannot parse image metadata: ${id}`,
@@ -243,7 +309,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
           const { optimize } = await getSVGO();
           const svg = optimize(sourceData.toString("utf8"), {
             ...options.svgo,
-            plugins: ["removeScriptElement", ...(options.svgo?.plugins || [])],
+            plugins: ["removeScripts", ...(options.svgo?.plugins || [])],
           }).data;
           return {
             data: svg,
@@ -284,7 +350,9 @@ export function createIPX(userOptions: IPXOptions): IPX {
       // Apply handlers
       const handlerContext: any = { meta: imageMeta };
       for (const h of handlers) {
-        sharp = applyHandler(handlerContext, sharp, h.handler, h.args) || sharp;
+        sharp =
+          applyHandler(handlerContext, sharp, h.handler, h.args.toString()) ||
+          sharp;
       }
 
       // Apply format

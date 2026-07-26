@@ -1,7 +1,8 @@
+import { HTTPError } from "h3";
 import { resolve, parse, join } from "pathe";
-import { createError } from "h3";
-import { cachedPromise, getEnv } from "../utils";
-import type { IPXStorage } from "../types";
+import { getEnv } from "../utils.ts";
+
+import type { IPXStorage } from "../types.ts";
 
 export type NodeFSSOptions = {
   /**
@@ -29,22 +30,13 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
   const dirs = resolveDirs(_options.dir);
   const maxAge = _options.maxAge || getEnv("IPX_FS_MAX_AGE");
 
-  const _getFS = cachedPromise(() =>
-    import("node:fs/promises").catch(() => {
-      throw createError({
-        statusCode: 500,
-        statusText: `IPX_FILESYSTEM_ERROR`,
-        message: `Failed to resolve filesystem module`,
-      });
-    }),
-  );
+  const fs = globalThis.process.getBuiltinModule("node:fs/promises");
 
   const resolveFile = async (id: string) => {
-    const fs = await _getFS();
     for (const dir of dirs) {
       const filePath = join(dir, id);
-      if (!isValidPath(filePath) || !filePath.startsWith(dir)) {
-        throw createError({
+      if (!isValidPath(filePath) || !filePath.startsWith(dir + "/")) {
+        throw new HTTPError({
           statusCode: 403,
           statusText: `IPX_FORBIDDEN_PATH`,
           message: `Forbidden path: ${id}`,
@@ -65,14 +57,14 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
           // Keep looking in other dirs
           continue;
         }
-        throw createError({
+        throw new HTTPError({
           statusCode: 403,
           statusText: `IPX_FORBIDDEN_FILE`,
           message: `Cannot access file: ${id}`,
         });
       }
     }
-    throw createError({
+    throw new HTTPError({
       statusCode: 404,
       statusText: `IPX_FILE_NOT_FOUND`,
       message: `File not found: ${id}`,

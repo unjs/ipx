@@ -1,7 +1,14 @@
-import destr from "destr";
-
 export function getEnv<T>(name: string): T | undefined {
-  return name in process.env ? destr(process.env[name]) : undefined;
+  const value = globalThis.process?.env?.[name];
+  if (value !== undefined) {
+    return JSON.parse(value) as T;
+  }
+}
+
+export function requireModule<T = any>(id: string): T {
+  const { createRequire } = globalThis.process.getBuiltinModule("node:module");
+  const require = createRequire(import.meta.url);
+  return require(id) as T;
 }
 
 export function cachedPromise<T extends (...arguments_: any[]) => any>(

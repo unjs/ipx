@@ -1,6 +1,7 @@
-import { fileURLToPath } from "node:url";
 import { describe, it, expect, beforeAll } from "vitest";
-import { IPX, createIPX, ipxFSStorage } from "../src";
+import { fileURLToPath } from "node:url";
+
+import { type IPX, createIPX, ipxFSStorage } from "../src/index.ts";
 
 describe("ipx: fs with multiple dirs", () => {
   let ipx: IPX;
@@ -49,5 +50,17 @@ describe("ipx: fs with multiple dirs", () => {
     await expect(() => source.process()).rejects.toThrowError(
       "Forbidden path: /*.png",
     );
+  });
+});
+
+describe("isolation", () => {
+  it("should not be able to access files outside the specified directories", async () => {
+    const ipx = createIPX({
+      storage: ipxFSStorage({
+        dir: fileURLToPath(new URL("assets", import.meta.url)),
+      }),
+    });
+    const source = await ipx("../assets2/bliss.jpg"); // access file outside ./public dir because of same prefix folder
+    await expect(source.process()).rejects.toThrowError("Forbidden path");
   });
 });
