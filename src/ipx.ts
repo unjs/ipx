@@ -287,17 +287,10 @@ export function createIPX(userOptions: IPXOptions): IPX {
       if (mFormat === "jpg") {
         mFormat = "jpeg";
       }
-      const format =
-        mFormat && SUPPORTED_FORMATS.has(mFormat)
-          ? mFormat
-          : imageMeta.type === "svg" && (mFormat === "svg" || !mFormat)
-            ? "svg"
-            : SUPPORTED_FORMATS.has(imageMeta.type || "") // eslint-disable-line unicorn/no-nested-ternary
-              ? imageMeta.type
-              : "jpeg";
-
-      // For SVG format, use the original file or svgo if it is enabled
-      if (format === "svg") {
+      // Use original SVG (optimized with svgo if enabled) when svg is
+      // requested or no format is specified. SVG is not a supported output
+      // format for sharp, so it cannot be handled by the ternary below.
+      if (imageMeta.type === "svg" && (!mFormat || mFormat === "svg")) {
         if (options.svgo === false) {
           return {
             data: sourceData,
@@ -318,6 +311,13 @@ export function createIPX(userOptions: IPXOptions): IPX {
           };
         }
       }
+
+      const format =
+        mFormat && SUPPORTED_FORMATS.has(mFormat)
+          ? mFormat
+          : SUPPORTED_FORMATS.has(imageMeta.type || "") // eslint-disable-line unicorn/no-nested-ternary
+            ? imageMeta.type
+            : "jpeg";
 
       // Experimental animated support
       // https://github.com/lovell/sharp/issues/2275
