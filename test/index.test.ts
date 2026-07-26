@@ -52,4 +52,44 @@ describe("ipx", () => {
       expect(data).toBeInstanceOf(Buffer);
     },
   );
+
+  describe("svg", () => {
+    it("passes through when no format is specified", async () => {
+      const { data, format } = await (await ipx("nuxt.svg")).process();
+      expect(format).toBe("svg+xml");
+      expect(data.toString()).toContain("<svg");
+    });
+
+    // https://github.com/unjs/ipx/issues/261
+    it.each(["f", "format"])(
+      "passes through when svg is requested via `%s`",
+      async (key) => {
+        const { data, format } = await (
+          await ipx("nuxt.svg", { [key]: "svg" })
+        ).process();
+        expect(format).toBe("svg+xml");
+        expect(data.toString()).toContain("<svg");
+      },
+    );
+
+    it("rasterizes when another format is requested", async () => {
+      const { data, format } = await (
+        await ipx("nuxt.svg", { f: "webp" })
+      ).process();
+      expect(data).toBeInstanceOf(Buffer);
+      expect(format).toBe("webp");
+    });
+
+    it("ignores svg format for non-svg sources", async () => {
+      const { format } = await (await ipx("bliss.jpg", { f: "svg" })).process();
+      expect(format).toBe("jpeg");
+    });
+
+    it("removes scripts when svgo is enabled", async () => {
+      const { data } = await (await ipx("xss.svg", { f: "svg" })).process();
+      expect(data.toString()).not.toContain("<script");
+      expect(data.toString()).not.toContain("onclick");
+      expect(data.toString()).not.toContain("javascript:");
+    });
+  });
 });
