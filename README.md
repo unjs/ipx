@@ -148,7 +148,7 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 
 ## Custom URL Style
 
-The `parseURL` option accepts a function that extracts the resource id and modifiers from the request URL, allowing any URL style you like.
+The `parseURL` option accepts a function that extracts the resource id and modifiers from the request URL, allowing any URL style you like. It receives the raw (still percent-encoded) request URL, so it is free to decode it however the URL style requires.
 
 **Example:** modifiers in the filename (`/<id>@@<modifiers>.<format>`), which can be preferable when prerendering images for static hosting.
 
@@ -157,7 +157,7 @@ import { createIPXFetchHandler, parseIPXURL } from "ipx";
 
 const handler = createIPXFetchHandler(ipx, {
   parseURL(url) {
-    const path = decodeURIComponent(url.pathname.slice(1));
+    const path = decodeURIComponent(new URL(url).pathname.slice(1));
 
     const match = path.match(/^(.+)@@(.+)\.([^.]+)$/);
     if (!match) {

@@ -39,7 +39,7 @@ describe("server", () => {
   describe("parseIPXURL", () => {
     it("parses modifiers and id", () => {
       expect(
-        parseIPXURL(new URL("http://example.com/s_200x200,f_webp/test.jpg")),
+        parseIPXURL("http://example.com/s_200x200,f_webp/test.jpg"),
       ).toMatchObject({
         id: "test.jpg",
         modifiers: { s: "200x200", f: "webp" },
@@ -47,23 +47,42 @@ describe("server", () => {
     });
 
     it("supports `_` for no modifiers", () => {
-      const parsed = parseIPXURL(
-        new URL("http://example.com/_/nested/test.jpg"),
-      );
+      const parsed = parseIPXURL("http://example.com/_/nested/test.jpg");
       expect(parsed.id).toEqual("nested/test.jpg");
       expect({ ...parsed.modifiers }).toEqual({});
     });
 
     it("supports valueless modifiers", () => {
-      const parsed = parseIPXURL(new URL("http://example.com/grayscale/a.jpg"));
+      const parsed = parseIPXURL("http://example.com/grayscale/a.jpg");
       expect({ ...parsed.modifiers }).toEqual({ grayscale: "" });
     });
+
+    it("ignores the query string", () => {
+      const parsed = parseIPXURL("http://example.com/w_200/a.jpg?v=1#x");
+      expect(parsed.id).toEqual("a.jpg");
+      expect({ ...parsed.modifiers }).toEqual({ w: "200" });
+    });
+  });
+
+  // h3 normalizes `event.url`, which drops percent-encoded tab/newline/CR
+  it("parses the raw request URL", async () => {
+    const handler = createIPXFetchHandler(ipx);
+    const cases = [
+      ["%09", String.raw`a\tb.jpg`],
+      ["%0A", String.raw`a\nb.jpg`],
+      ["%0D", String.raw`a\rb.jpg`],
+      ["%2F", "a/b.jpg"],
+    ];
+    for (const [encoded, expected] of cases) {
+      await handler(`http://example.com/w_200/a${encoded}b.jpg`);
+      expect(lastRequest.id).toEqual(expected);
+    }
   });
 
   describe("parseURL option", () => {
     // `/<id>@@<modifiers>.<format>`
     const parseURL: IPXURLParser = (url) => {
-      const path = decodeURIComponent(url.pathname.slice(1));
+      const path = decodeURIComponent(new URL(url).pathname.slice(1));
       const match = path.match(/^(.+)@@(.+)\.([^.]+)$/);
       if (!match) {
         return { id: path, modifiers: {} };
@@ -134,7 +153,7 @@ describe("server", () => {
     it("can delegate to the default parser", async () => {
       const handler = createIPXFetchHandler(ipx, {
         parseURL: (url) =>
-          url.pathname.includes("@@") ? parseURL(url) : parseIPXURL(url),
+          url.includes("@@") ? parseURL(url) : parseIPXURL(url),
       });
       await handler("http://example.com/w_200/test.jpg");
       expect(lastRequest).toMatchObject({

@@ -1,6 +1,6 @@
 import getEtag from "etag";
 import { negotiate } from "@fastify/accept-negotiator";
-import { decode } from "ufo";
+import { decode, parseURL as parseURLParts } from "ufo";
 import { defineEventHandler, HTTPError } from "h3";
 import { requireModule } from "./utils.ts";
 
@@ -16,6 +16,9 @@ export interface IPXHandlerOptions {
   /**
    * Custom URL parser to extract the resource id and modifiers from the request URL.
    * Can be async.
+   *
+   * Receives the raw (still percent-encoded) request URL, so parsers can decode it
+   * themselves without going through h3's normalization.
    *
    * Defaults to {@link parseIPXURL} which handles URLs in the form `/<modifiers>/<id>`.
    *
@@ -73,7 +76,9 @@ export interface IPXParsedURL {
   modifiers: Record<string, string | number | boolean | undefined>;
 }
 
-export type IPXURLParser = (url: URL) => IPXParsedURL | Promise<IPXParsedURL>;
+export type IPXURLParser = (
+  url: string,
+) => IPXParsedURL | Promise<IPXParsedURL>;
 
 const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/;
@@ -83,13 +88,13 @@ const MODIFIER_VAL_SEP = /[:=_]/;
  *
  * Use `_` as the modifiers segment to apply none (`/_/image.png`).
  *
- * @param {URL} url - The request URL. See {@link URL}.
+ * @param {string} url - The raw request URL.
  * @returns {IPXParsedURL} The parsed resource id and modifiers. See {@link IPXParsedURL}.
  * @throws {HTTPError} If the modifiers segment is missing.
  */
-export function parseIPXURL(url: URL): IPXParsedURL {
-  const [modifiersString = "", ...idSegments] = url.pathname
-    .slice(1 /* leading slash */)
+export function parseIPXURL(url: string): IPXParsedURL {
+  const [modifiersString = "", ...idSegments] = parseURLParts(url)
+    .pathname.slice(1 /* leading slash */)
     .split("/");
 
   const id = decode(idSegments.join("/"));
@@ -124,7 +129,9 @@ function createIPXHandler(
 
   return defineEventHandler(async (event: H3Event) => {
     // Parse URL (never trust the parser output: it can be user provided)
-    const parsed: Partial<IPXParsedURL> = (await parseURL(event.url)) || {};
+    // `event.req.url` is used over `event.url` since the latter is normalized by
+    // h3, silently dropping percent-encoded tab/newline/carriage-return.
+    const parsed: Partial<IPXParsedURL> = (await parseURL(event.req.url)) || {};
 
     // Escape and validate id
     const id = safeString(parsed.id);
