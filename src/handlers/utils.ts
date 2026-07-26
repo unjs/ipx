@@ -240,7 +240,7 @@ export function applyHandler(
     // Arg mappers cover the common cases, but sharp does some validation of its
     // own (unknown colour names, ...). Modifiers are user input, so surface it
     // as a `400` rather than an unhandled `500`.
-    if (error instanceof HTTPError) {
+    if (HTTPError.isError(error)) {
       throw error;
     }
     throw new HTTPError({

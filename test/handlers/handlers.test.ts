@@ -432,6 +432,17 @@ describe("handler args", () => {
       args: "left bottom",
       context: { position: "left bottom" },
     },
+    // sharp also accepts the numeric gravity/strategy constants
+    "position (gravity)": {
+      handler: position,
+      args: "3",
+      context: { position: 3 },
+    },
+    "position (strategy)": {
+      handler: position,
+      args: "17",
+      context: { position: 17 },
+    },
     background: {
       handler: background,
       args: "ff0000",
@@ -604,7 +615,7 @@ describe("handler args", () => {
   const invalid: Record<string, [Handler, string[]]> = {
     quality: [quality, ["abc", "0", "101", "80.5", "true", "null"]],
     fit: [fit, ["foo", "COVER", "0"]],
-    position: [position, ["foo", "0", "right top top"]],
+    position: [position, ["foo", "9", "18", "-1", "right top top"]],
     background: [background, ["12345", "not a colour", "#", "0"]],
     kernel: [kernel, ["foo", "LANCZOS3"]],
     width: [width, ["abc", "0", "-1", "1.5", "Infinity"]],
@@ -616,7 +627,7 @@ describe("handler args", () => {
       ["-10", "1.5", "abc", "10_10_10_10_foo", "10001", "10_10_10_abc"],
     ],
     extract: [extract, ["abc_0_10_10", "0_0_0_10", "0_0_10", "", "0_-1_1_1"]],
-    rotate: [rotate, ["abc", "Infinity", "null"]],
+    rotate: [rotate, ["abc", "Infinity", "null", "1e10", "-3601"]],
     sharpen: [sharpen, ["abc", "0", "11", "2_-1", "2_1_abc"]],
     median: [median, ["abc", "0", "1001", "1.5"]],
     blur: [blur, ["abc", "0.2", "1001", "true"]],
@@ -630,8 +641,11 @@ describe("handler args", () => {
     it(`${name} rejects invalid args`, () => {
       for (const args of cases) {
         const sharpMock = new Proxy({}, { get: () => vi.fn() });
+        // A full context: an incomplete one would make `apply` throw on its own,
+        // so these cases would pass even if the arg mappers accepted everything.
+        const context = { meta: { width: 400, height: 300 } } as any;
         expect(
-          () => applyHandler({} as any, sharpMock as any, handler, args),
+          () => applyHandler(context, sharpMock as any, handler, args),
           `expected \`${name}\` to reject \`${args}\``,
         ).toThrowError(
           expect.objectContaining({

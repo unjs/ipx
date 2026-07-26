@@ -55,11 +55,19 @@ const POSITIONS = [
   "entropy",
   "attention",
 ] as const;
+// sharp also accepts the numeric gravity (`0`-`8`) and strategy (`16`-`17`)
+// constants a position name maps to.
+const GRAVITIES = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 16, 17]);
 // `_` separates modifier args, so multi-word positions (`right top`) are also
 // accepted with a `-` separator (`pos_right-top`).
-const VPosition = (name: string): ArgMapper<string> => {
+const VPosition = (name: string): ArgMapper<number | string> => {
   const vEnum = VEnum(name, POSITIONS);
-  return (argument) => vEnum(argument?.replace("-", " "));
+  return (argument) => {
+    if (/^\d+$/.test(argument) && GRAVITIES.has(Number(argument))) {
+      return Number(argument);
+    }
+    return vEnum(argument?.replace("-", " "));
+  };
 };
 export const position: Handler = {
   args: [VPosition("position")],
@@ -216,7 +224,9 @@ export const extract: Handler = {
 
 // https://sharp.pixelplumbing.com/api-operation#rotate
 export const rotate: Handler = {
-  args: [VNumber("rotate")],
+  // sharp accepts any angle, but libvips rejects ones it cannot fit in a
+  // `gdouble` property, which would surface as a 500.
+  args: [VNumber("rotate", { min: -3600, max: 3600 })],
   apply: (context, pipe, angle) => {
     return pipe.rotate(angle, {
       background: context.background,
