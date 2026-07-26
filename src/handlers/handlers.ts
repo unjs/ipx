@@ -240,12 +240,15 @@ export const threshold: Handler = {
 
 // https://sharp.pixelplumbing.com/api-operation#modulate
 export const modulate: Handler = {
-  args: [VArg],
-  apply: (_context, pipe, brightness, saturation, hue) => {
+  args: [VArg, VArg, VArg, VArg],
+  apply: (_context, pipe, brightness, saturation, hue, lightness) => {
+    // Sharp validates with `key in options`, so omitted args have to be left
+    // out of the object entirely rather than passed as `undefined`.
     return pipe.modulate({
-      brightness,
-      saturation,
-      hue,
+      ...(brightness === undefined ? {} : { brightness }),
+      ...(saturation === undefined ? {} : { saturation }),
+      ...(hue === undefined ? {} : { hue }),
+      ...(lightness === undefined ? {} : { lightness }),
     });
   },
 };
