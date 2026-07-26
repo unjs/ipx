@@ -89,8 +89,8 @@ const xssVectors = [
 
 // Sanitization must not depend on optimization being enabled
 describe.each([
-  { name: "svgo enabled", options: undefined },
-  { name: "svgo disabled", options: { svgo: false } as const },
+  { name: "default", options: undefined },
+  { name: "optimize disabled", options: { svg: { optimize: false } } as const },
 ])("sanitize svg ($name)", ({ options }) => {
   it.each(xssVectors)("$name", async ({ svg, absent, present }) => {
     const output = await processSVG(svg, options);
@@ -135,4 +135,10 @@ describe.each([
     expect(output).toContain(`data:image/png;base64,iVBORw0KGgo=`);
     expect(output).toContain(`<animate attributeName="fill"`);
   });
+});
+
+it("svg.unsafeSkipSanitize opts out of sanitization", async () => {
+  const svg = `<svg ${svgAttrs}><script>alert(1)</script></svg>`;
+  const output = await processSVG(svg, { svg: { unsafeSkipSanitize: true } });
+  expect(output).toBe(svg);
 });

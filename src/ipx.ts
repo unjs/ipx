@@ -149,13 +149,28 @@ export type IPXOptions = {
   httpStorage?: IPXStorage;
 
   /**
-   * Configuration for the SVGO library used when processing SVG images.
-   *
-   * Set to `false` to disable optimization. SVG sanitization (removal of
-   * scripts, event handlers and unsafe URIs) is always applied.
+   * Options for SVG images, which are served as-is instead of being processed by Sharp.
    * @optional
    */
-  svgo?: false | SVGOConfig;
+  svg?: {
+    /**
+     * Configuration for the SVGO library used to optimize SVG images.
+     *
+     * Set to `false` to disable optimization. Sanitization is applied either way.
+     * @optional
+     */
+    optimize?: false | SVGOConfig;
+
+    /**
+     * Disable SVG sanitization.
+     *
+     * Sanitized SVG images cannot execute scripts. Only disable this if all sources
+     * are fully trusted, as it allows serving SVG images with XSS payloads.
+     * @default false
+     * @optional
+     */
+    unsafeSkipSanitize?: boolean;
+  };
 };
 
 // https://sharp.pixelplumbing.com/#formats
@@ -296,15 +311,25 @@ export function createIPX(userOptions: IPXOptions): IPX {
       // svg is requested or no format is specified. SVG is not a supported
       // output format for sharp, so it cannot be handled by the ternary below.
       if (imageMeta.type === "svg" && (!mFormat || mFormat === "svg")) {
+        const sanitize = !options.svg?.unsafeSkipSanitize;
+        const svgoConfig =
+          options.svg?.optimize === false ? undefined : options.svg?.optimize;
+
+        // Nothing to do if both sanitization and optimization are disabled
+        if (!sanitize && !svgoConfig) {
+          return {
+            data: sourceData,
+            format: "svg+xml",
+            meta: imageMeta,
+          };
+        }
+
         // https://github.com/svg/svgo
         const { optimize } = await getSVGO();
-        // Sanitization is always applied, `svgo: false` only opts out of optimization
-        const svgoConfig = options.svgo === false ? undefined : options.svgo;
         const svg = optimize(sourceData.toString("utf8"), {
           ...svgoConfig,
           plugins: [
-            "removeScripts",
-            sanitizeSVGPlugin,
+            ...(sanitize ? ["removeScripts" as const, sanitizeSVGPlugin] : []),
             ...(svgoConfig?.plugins || []),
           ],
         }).data;

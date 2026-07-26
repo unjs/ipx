@@ -18,6 +18,7 @@ Used by [Nuxt Image](https://image.nuxt.com/) and [Netlify](https://www.npmjs.co
 
 - The server creation APIs have changed. See the Programmatic API section for examples.
 - The JSON error format has changed from `{ error: string }` to `{ status, statusText, message }`.
+- The `svgo` option is now `svg.optimize`. SVG images are always sanitized, even when optimization is disabled. See the SVG Security section.
 
 ## Using CLI
 
@@ -223,7 +224,7 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 
 ## SVG Security
 
-SVG documents can carry active content, so IPX **always** sanitizes them before serving. Sanitization is independent of optimization: setting `svgo: false` only disables SVGO's optimization plugins.
+SVG documents can carry active content, so IPX **always** sanitizes them before serving. Sanitization is independent of optimization: `svg: { optimize: false }` only disables SVGO's optimization plugins.
 
 Removed from every SVG:
 
@@ -238,6 +239,8 @@ Removed from every SVG:
 **External references are kept.** Attributes such as `<image href="https://…">`, `<use href="…">`, external fonts and `@import` inside `<style>` are preserved, since stripping them would break legitimate images. They are not a script execution vector, but they do allow the SVG to make requests to third-party origins (and thereby leak the viewer's IP address) when rendered as a document. If this matters for your threat model, host such images from a separate origin or block the requests with a Content-Security-Policy.
 
 The bundled server sends `content-security-policy: default-src 'none'` with every response, which blocks both script execution and external references in browsers that honor it. Custom servers built on the programmatic API should send the same header, since sanitization cannot cover every future browser behavior on its own.
+
+Sanitization can be disabled with `svg: { unsafeSkipSanitize: true }`. Only do this when every source is fully trusted: IPX will then serve SVG images with XSS payloads unchanged.
 
 ## License
 
