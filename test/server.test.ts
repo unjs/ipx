@@ -37,6 +37,10 @@ describe("server", () => {
     const handler = createIPXFetchHandler(ipx);
     const res = await handler("http://example.com/w_200/test.jpg");
     await expect(res.text()).resolves.toEqual("data");
+    expect(res.headers.get("content-security-policy")).toEqual(
+      "default-src 'none'",
+    );
+    expect(res.headers.get("x-content-type-options")).toEqual("nosniff");
   });
 
   describe("conditional requests", () => {
@@ -81,7 +85,7 @@ describe("server", () => {
       expect(processed).toEqual(1);
     });
 
-    it("keeps cache-control and last-modified on 304 responses", async () => {
+    it("keeps cache-control, last-modified and security headers on 304 responses", async () => {
       const handler = createTestIPX({ maxAge: 3600, mtime });
       const res = await handler("http://example.com/w_200/test.jpg");
       const res2 = await handler(
@@ -95,6 +99,7 @@ describe("server", () => {
       expect(res2.headers.get("content-security-policy")).toEqual(
         "default-src 'none'",
       );
+      expect(res2.headers.get("x-content-type-options")).toEqual("nosniff");
     });
 
     it("matches an if-none-match list", async () => {

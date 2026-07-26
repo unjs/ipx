@@ -180,6 +180,9 @@ function createIPXHandler(
       "default-src 'none'",
     );
 
+    // Prevent MIME type sniffing (crafted image files could be sniffed as HTML)
+    sendResponseHeaderIfNotSet(event, "x-content-type-options", "nosniff");
+
     // Send Cache-Control header (also sent with 304 responses)
     if (typeof sourceMeta.maxAge === "number") {
       sendResponseHeaderIfNotSet(
