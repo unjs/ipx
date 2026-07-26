@@ -15,11 +15,14 @@ export type FetchHandler = (
 export interface IPXHandlerOptions {
   /**
    * Custom URL parser to extract the resource id and modifiers from the request URL.
+   * Can be async.
    *
    * Defaults to {@link parseIPXURL} which handles URLs in the form `/<modifiers>/<id>`.
    *
-   * The returned `id` and `modifiers` are always escaped by the handler, so custom
-   * parsers do not need to (and should not) escape them.
+   * Returned values are escaped (control characters) by the handler, so custom parsers
+   * do not need to escape them. This is not an access check: exactly as with the default
+   * parser, what the resulting `id` is allowed to resolve to is enforced by the storage
+   * layer. Throw an `HTTPError` to reject a request with a specific status code.
    *
    * @optional
    */
@@ -63,11 +66,14 @@ export interface IPXParsedURL {
 
   /**
    * Modifiers to apply, keyed by modifier name. See {@link IPXModifiers}.
+   *
+   * Values are coerced to strings. Use `""` (or `undefined`) for valueless
+   * modifiers such as `grayscale`.
    */
-  modifiers: Record<string, string>;
+  modifiers: Record<string, string | number | boolean | undefined>;
 }
 
-export type IPXURLParser = (url: URL) => IPXParsedURL;
+export type IPXURLParser = (url: URL) => IPXParsedURL | Promise<IPXParsedURL>;
 
 const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/;
@@ -81,7 +87,7 @@ const MODIFIER_VAL_SEP = /[:=_]/;
  * @returns {IPXParsedURL} The parsed resource id and modifiers. See {@link IPXParsedURL}.
  * @throws {HTTPError} If the modifiers segment is missing.
  */
-export const parseIPXURL: IPXURLParser = (url) => {
+export function parseIPXURL(url: URL): IPXParsedURL {
   const [modifiersString = "", ...idSegments] = url.pathname
     .slice(1 /* leading slash */)
     .split("/");
@@ -92,7 +98,7 @@ export const parseIPXURL: IPXURLParser = (url) => {
     throw new HTTPError({
       statusCode: 400,
       statusText: "IPX_MISSING_MODIFIERS",
-      message: `Modifiers are missing: ${id}`,
+      message: `Modifiers are missing: ${safeString(id)}`,
     });
   }
 
@@ -106,7 +112,7 @@ export const parseIPXURL: IPXURLParser = (url) => {
   }
 
   return { id, modifiers };
-};
+}
 
 // --- Handler ---
 
@@ -117,10 +123,10 @@ function createIPXHandler(
   const parseURL = opts.parseURL || parseIPXURL;
 
   return defineEventHandler(async (event: H3Event) => {
-    // Parse URL
-    const parsed = parseURL(event.url);
+    // Parse URL (never trust the parser output: it can be user provided)
+    const parsed: Partial<IPXParsedURL> = (await parseURL(event.url)) || {};
 
-    // Sanitize and validate id
+    // Escape and validate id
     const id = safeString(parsed.id);
     if (!id || id === "/") {
       throw new HTTPError({
@@ -130,9 +136,9 @@ function createIPXHandler(
       });
     }
 
-    // Sanitize modifiers (never trust the parser output)
+    // Escape modifiers
     const modifiers: Record<string, string> = Object.create(null);
-    for (const [key, value] of Object.entries(parsed.modifiers)) {
+    for (const [key, value] of Object.entries(parsed.modifiers || {})) {
       modifiers[safeString(key)] = safeString(value);
     }
 
@@ -241,8 +247,8 @@ function autoDetectFormat(acceptHeader: string, animated: boolean): string {
   return acceptMime?.split("/")[1] || "jpeg";
 }
 
-function safeString(input: string | undefined) {
-  return JSON.stringify(input)
+function safeString(input: unknown) {
+  return JSON.stringify(input ?? "")
     .replace(/^"|"$/g, "")
     .replace(/\\+/g, "\\")
     .replace(/\\"/g, '"');

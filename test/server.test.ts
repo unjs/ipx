@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   type IPX,
   type IPXURLParser,
@@ -7,7 +7,11 @@ import {
 } from "../src/index.ts";
 
 describe("server", () => {
-  let lastRequest: { id: string; modifiers?: Record<string, any> };
+  let lastRequest: { id?: string; modifiers?: Record<string, any> };
+
+  beforeEach(() => {
+    lastRequest = {};
+  });
 
   const ipx: IPX = (id, modifiers?, _requestOptions?) => {
     lastRequest = { id, modifiers };
@@ -43,9 +47,16 @@ describe("server", () => {
     });
 
     it("supports `_` for no modifiers", () => {
-      expect(
-        parseIPXURL(new URL("http://example.com/_/nested/test.jpg")),
-      ).toMatchObject({ id: "nested/test.jpg", modifiers: {} });
+      const parsed = parseIPXURL(
+        new URL("http://example.com/_/nested/test.jpg"),
+      );
+      expect(parsed.id).toEqual("nested/test.jpg");
+      expect({ ...parsed.modifiers }).toEqual({});
+    });
+
+    it("supports valueless modifiers", () => {
+      const parsed = parseIPXURL(new URL("http://example.com/grayscale/a.jpg"));
+      expect({ ...parsed.modifiers }).toEqual({ grayscale: "" });
     });
   });
 
@@ -59,7 +70,10 @@ describe("server", () => {
       }
       const [, id = "", modifiersString = "", format = ""] = match;
       const modifiers = Object.fromEntries(
-        modifiersString.split(",").map((m) => m.split("_")),
+        modifiersString.split(",").map((m) => {
+          const [key = "", ...values] = m.split("_");
+          return [key, values.join("_")];
+        }),
       );
       return { id, modifiers: { ...modifiers, format } };
     };
@@ -78,7 +92,43 @@ describe("server", () => {
       const handler = createIPXFetchHandler(ipx, { parseURL });
       const res = await handler("http://example.com/test.png");
       await expect(res.text()).resolves.toEqual("data");
-      expect(lastRequest).toMatchObject({ id: "test.png", modifiers: {} });
+      expect(lastRequest.id).toEqual("test.png");
+      expect({ ...lastRequest.modifiers }).toEqual({});
+    });
+
+    it("supports valueless modifiers", async () => {
+      const handler = createIPXFetchHandler(ipx, { parseURL });
+      const res = await handler("http://example.com/test.png@@grayscale.webp");
+      expect(res.status).toEqual(200);
+      expect({ ...lastRequest.modifiers }).toEqual({
+        grayscale: "",
+        format: "webp",
+      });
+    });
+
+    it("supports async parsers", async () => {
+      const handler = createIPXFetchHandler(ipx, {
+        parseURL: async (url) => parseIPXURL(url),
+      });
+      const res = await handler("http://example.com/w_200/test.jpg");
+      expect(res.status).toEqual(200);
+      expect(lastRequest).toMatchObject({
+        id: "test.jpg",
+        modifiers: { w: "200" },
+      });
+    });
+
+    it("does not crash on malformed parser output", async () => {
+      for (const parseURL of [
+        () => undefined,
+        () => ({ id: "test.jpg" }),
+        () => ({ id: "test.jpg", modifiers: { w: 200, grayscale: undefined } }),
+      ] as unknown as IPXURLParser[]) {
+        const handler = createIPXFetchHandler(ipx, { parseURL });
+        const res = await handler("http://example.com/test.jpg");
+        expect([200, 400]).toContain(res.status);
+      }
+      expect({ ...lastRequest.modifiers }).toEqual({ w: "200", grayscale: "" });
     });
 
     it("can delegate to the default parser", async () => {

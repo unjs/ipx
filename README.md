@@ -167,7 +167,10 @@ const handler = createIPXFetchHandler(ipx, {
 
     const [, id = "", modifiersString = "", format = ""] = match;
     const modifiers = Object.fromEntries(
-      modifiersString.split(",").map((m) => m.split("_")),
+      modifiersString.split(",").map((m) => {
+        const [key = "", ...values] = m.split("_");
+        return [key, values.join("_")];
+      }),
     );
 
     return { id, modifiers: { ...modifiers, format } };
@@ -175,9 +178,12 @@ const handler = createIPXFetchHandler(ipx, {
 });
 
 // http://localhost:3000/static/buffalo.png@@s_200x200.webp
+// http://localhost:3000/static/buffalo.png@@grayscale,w_200.webp
 ```
 
-Returned values are escaped and validated by IPX, so custom parsers don't need to do it themselves.
+The parser may be async, and can throw an `HTTPError` (re-exported from `ipx`) to reject a request with a specific status code.
+
+Returned values are escaped by IPX, so custom parsers don't need to do it themselves. Note this is not an access check — exactly as with the default URL style, what the resulting id is allowed to resolve to is enforced by the storage layer (`ipxFSStorage`'s directory boundary, `ipxHttpStorage`'s domain allowlist).
 
 ## Config
 
