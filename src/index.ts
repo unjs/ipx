@@ -6,7 +6,11 @@ export {
 } from "./ipx.ts";
 
 export {
+  type IPXHandlerOptions,
+  type IPXParsedURL,
+  type IPXURLParser,
   serveIPX,
+  parseIPXURL,
   createIPXFetchHandler,
   createIPXNodeHandler,
 } from "./server.ts";

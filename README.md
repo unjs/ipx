@@ -146,6 +146,39 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 
 `/embed,f_webp,s_200x200/static/buffalo.png`
 
+## Custom URL Style
+
+The `parseURL` option accepts a function that extracts the resource id and modifiers from the request URL, allowing any URL style you like.
+
+**Example:** modifiers in the filename (`/<id>@@<modifiers>.<format>`), which can be preferable when prerendering images for static hosting.
+
+```ts
+import { createIPXFetchHandler, parseIPXURL } from "ipx";
+
+const handler = createIPXFetchHandler(ipx, {
+  parseURL(url) {
+    const path = decodeURIComponent(url.pathname.slice(1));
+
+    const match = path.match(/^(.+)@@(.+)\.([^.]+)$/);
+    if (!match) {
+      // Not our style, fall back to the default `/<modifiers>/<id>`
+      return parseIPXURL(url);
+    }
+
+    const [, id = "", modifiersString = "", format = ""] = match;
+    const modifiers = Object.fromEntries(
+      modifiersString.split(",").map((m) => m.split("_")),
+    );
+
+    return { id, modifiers: { ...modifiers, format } };
+  },
+});
+
+// http://localhost:3000/static/buffalo.png@@s_200x200.webp
+```
+
+Returned values are escaped and validated by IPX, so custom parsers don't need to do it themselves.
+
 ## Config
 
 You can universally customize IPX configuration using `IPX_*` environment variables.

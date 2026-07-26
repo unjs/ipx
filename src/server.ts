@@ -12,48 +12,116 @@ export type FetchHandler = (
   request: Request | string | URL,
 ) => Response | Promise<Response>;
 
-export function createIPXFetchHandler(ipx: IPX): FetchHandler {
-  return createIPXHandler(ipx).fetch as FetchHandler;
+export interface IPXHandlerOptions {
+  /**
+   * Custom URL parser to extract the resource id and modifiers from the request URL.
+   *
+   * Defaults to {@link parseIPXURL} which handles URLs in the form `/<modifiers>/<id>`.
+   *
+   * The returned `id` and `modifiers` are always escaped by the handler, so custom
+   * parsers do not need to (and should not) escape them.
+   *
+   * @optional
+   */
+  parseURL?: IPXURLParser;
 }
 
-export function createIPXNodeHandler(ipx: IPX): NodeHttpHandler {
+export function createIPXFetchHandler(
+  ipx: IPX,
+  opts?: IPXHandlerOptions,
+): FetchHandler {
+  return createIPXHandler(ipx, opts).fetch as FetchHandler;
+}
+
+export function createIPXNodeHandler(
+  ipx: IPX,
+  opts?: IPXHandlerOptions,
+): NodeHttpHandler {
   const { toNodeHandler } =
     requireModule<typeof import("srvx/node")>("srvx/node");
-  const fetch = createIPXFetchHandler(ipx);
+  const fetch = createIPXFetchHandler(ipx, opts);
   return toNodeHandler(fetch);
 }
 
 export function serveIPX(
   ipx: IPX,
-  opts?: Omit<ServerOptions, "fetch">,
+  opts?: Omit<ServerOptions, "fetch"> & IPXHandlerOptions,
 ): Server {
   const { serve } = requireModule<typeof import("srvx")>("srvx");
-  const fetch = createIPXFetchHandler(ipx);
-  return serve({ ...opts, fetch });
+  const { parseURL, ...serverOptions } = opts || {};
+  const fetch = createIPXFetchHandler(ipx, { parseURL });
+  return serve({ ...serverOptions, fetch });
 }
 
-// --- Handler ---
+// --- URL Parser ---
+
+export interface IPXParsedURL {
+  /**
+   * The identifier of the source image (path or URL, depending on the storage).
+   */
+  id: string;
+
+  /**
+   * Modifiers to apply, keyed by modifier name. See {@link IPXModifiers}.
+   */
+  modifiers: Record<string, string>;
+}
+
+export type IPXURLParser = (url: URL) => IPXParsedURL;
 
 const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/;
 
-function createIPXHandler(ipx: IPX): EventHandlerWithFetch {
+/**
+ * Default IPX URL parser, handling URLs in the form `/<modifiers>/<id>`.
+ *
+ * Use `_` as the modifiers segment to apply none (`/_/image.png`).
+ *
+ * @param {URL} url - The request URL. See {@link URL}.
+ * @returns {IPXParsedURL} The parsed resource id and modifiers. See {@link IPXParsedURL}.
+ * @throws {HTTPError} If the modifiers segment is missing.
+ */
+export const parseIPXURL: IPXURLParser = (url) => {
+  const [modifiersString = "", ...idSegments] = url.pathname
+    .slice(1 /* leading slash */)
+    .split("/");
+
+  const id = decode(idSegments.join("/"));
+
+  if (!modifiersString) {
+    throw new HTTPError({
+      statusCode: 400,
+      statusText: "IPX_MISSING_MODIFIERS",
+      message: `Modifiers are missing: ${id}`,
+    });
+  }
+
+  const modifiers: Record<string, string> = Object.create(null);
+
+  if (modifiersString !== "_") {
+    for (const p of modifiersString.split(MODIFIER_SEP)) {
+      const [key = "", ...values] = p.split(MODIFIER_VAL_SEP);
+      modifiers[key] = values.map((v) => decode(v)).join("_");
+    }
+  }
+
+  return { id, modifiers };
+};
+
+// --- Handler ---
+
+function createIPXHandler(
+  ipx: IPX,
+  opts: IPXHandlerOptions = {},
+): EventHandlerWithFetch {
+  const parseURL = opts.parseURL || parseIPXURL;
+
   return defineEventHandler(async (event: H3Event) => {
     // Parse URL
-    const [modifiersString = "", ...idSegments] = event.url.pathname
-      .slice(1 /* leading slash */)
-      .split("/");
+    const parsed = parseURL(event.url);
 
-    const id = safeString(decode(idSegments.join("/")));
-
-    // Validate
-    if (!modifiersString) {
-      throw new HTTPError({
-        statusCode: 400,
-        statusText: "IPX_MISSING_MODIFIERS",
-        message: `Modifiers are missing: ${id}`,
-      });
-    }
+    // Sanitize and validate id
+    const id = safeString(parsed.id);
     if (!id || id === "/") {
       throw new HTTPError({
         statusCode: 400,
@@ -62,17 +130,10 @@ function createIPXHandler(ipx: IPX): EventHandlerWithFetch {
       });
     }
 
-    // Construct modifiers
+    // Sanitize modifiers (never trust the parser output)
     const modifiers: Record<string, string> = Object.create(null);
-
-    // Read modifiers from first segment
-    if (modifiersString !== "_") {
-      for (const p of modifiersString.split(MODIFIER_SEP)) {
-        const [key, ...values] = p.split(MODIFIER_VAL_SEP);
-        modifiers[safeString(key)] = values
-          .map((v) => safeString(decode(v)))
-          .join("_");
-      }
+    for (const [key, value] of Object.entries(parsed.modifiers)) {
+      modifiers[safeString(key)] = safeString(value);
     }
 
     // Auto format
