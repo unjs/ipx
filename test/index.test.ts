@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { resolve } from "pathe";
 import { serve } from "srvx";
-import { serveStatic } from "srvx/static";
+import { staticMiddleware } from "srvx/static";
 
 import {
   type IPX,
@@ -25,7 +25,7 @@ describe("ipx", () => {
       port: 0,
       hostname: "127.0.0.1",
       fetch: () => new Response("Not Found", { status: 404 }),
-      middleware: [serveStatic({ dir: assetsDir })],
+      middleware: [staticMiddleware({ dir: assetsDir })],
     });
     await server.ready();
     const source = await ipx(`${server.url}/bliss.jpg`);
