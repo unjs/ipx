@@ -1,6 +1,5 @@
 import getEtag from "etag";
 import { negotiate } from "@fastify/accept-negotiator";
-import { decode } from "ufo";
 import { defineEventHandler, HTTPError } from "h3";
 import { requireModule } from "./utils.ts";
 
@@ -12,48 +11,129 @@ export type FetchHandler = (
   request: Request | string | URL,
 ) => Response | Promise<Response>;
 
-export function createIPXFetchHandler(ipx: IPX): FetchHandler {
-  return createIPXHandler(ipx).fetch as FetchHandler;
+export interface IPXHandlerOptions {
+  /**
+   * Custom URL parser to extract the resource id and modifiers from the request URL.
+   * Can be async.
+   *
+   * Receives the raw (absolute, still percent-encoded) request URL, so parsers can
+   * decode it themselves without going through h3's normalization.
+   *
+   * Defaults to {@link parseIPXURL} which handles URLs in the form `/<modifiers>/<id>`.
+   *
+   * Returned values are escaped (control characters) by the handler, so custom parsers
+   * do not need to escape them. This is not an access check: exactly as with the default
+   * parser, what the resulting `id` is allowed to resolve to is enforced by the storage
+   * layer. Throw an `HTTPError` to reject a request with a specific status code.
+   *
+   * @optional
+   */
+  parseURL?: IPXURLParser;
 }
 
-export function createIPXNodeHandler(ipx: IPX): NodeHttpHandler {
+export function createIPXFetchHandler(
+  ipx: IPX,
+  opts?: IPXHandlerOptions,
+): FetchHandler {
+  return createIPXHandler(ipx, opts).fetch as FetchHandler;
+}
+
+export function createIPXNodeHandler(
+  ipx: IPX,
+  opts?: IPXHandlerOptions,
+): NodeHttpHandler {
   const { toNodeHandler } =
     requireModule<typeof import("srvx/node")>("srvx/node");
-  const fetch = createIPXFetchHandler(ipx);
+  const fetch = createIPXFetchHandler(ipx, opts);
   return toNodeHandler(fetch);
 }
 
 export function serveIPX(
   ipx: IPX,
-  opts?: Omit<ServerOptions, "fetch">,
+  opts?: Omit<ServerOptions, "fetch"> & IPXHandlerOptions,
 ): Server {
   const { serve } = requireModule<typeof import("srvx")>("srvx");
-  const fetch = createIPXFetchHandler(ipx);
-  return serve({ ...opts, fetch });
+  const { parseURL, ...serverOptions } = opts || {};
+  const fetch = createIPXFetchHandler(ipx, { parseURL });
+  return serve({ ...serverOptions, fetch });
 }
 
-// --- Handler ---
+// --- URL Parser ---
+
+export interface IPXParsedURL {
+  /**
+   * The identifier of the source image (path or URL, depending on the storage).
+   */
+  id: string;
+
+  /**
+   * Modifiers to apply, keyed by modifier name. See {@link IPXModifiers}.
+   *
+   * Values are coerced to strings. Use `""` (or `undefined`) for valueless
+   * modifiers such as `grayscale`.
+   */
+  modifiers: Record<string, string | number | boolean | undefined>;
+}
+
+export type IPXURLParser = (
+  url: string,
+) => IPXParsedURL | Promise<IPXParsedURL>;
 
 const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/;
 
-function createIPXHandler(ipx: IPX): EventHandlerWithFetch {
-  return defineEventHandler(async (event: H3Event) => {
-    // Parse URL
-    const [modifiersString = "", ...idSegments] = event.url.pathname
-      .slice(1 /* leading slash */)
-      .split("/");
+/**
+ * Default IPX URL parser, handling URLs in the form `/<modifiers>/<id>`.
+ *
+ * Use `_` as the modifiers segment to apply none (`/_/image.png`).
+ *
+ * @param {string} url - The raw (absolute) request URL.
+ * @returns {IPXParsedURL} The parsed resource id and modifiers. See {@link IPXParsedURL}.
+ * @throws {HTTPError} If the modifiers segment is missing.
+ */
+export function parseIPXURL(url: string): IPXParsedURL {
+  const [modifiersString = "", ...idSegments] = new URL(url).pathname
+    .slice(1 /* leading slash */)
+    .split("/");
 
-    const id = safeString(decode(idSegments.join("/")));
+  const id = decode(idSegments.join("/"));
 
-    // Validate
-    if (!modifiersString) {
-      throw new HTTPError({
-        statusCode: 400,
-        statusText: "IPX_MISSING_MODIFIERS",
-        message: `Modifiers are missing: ${id}`,
-      });
+  if (!modifiersString) {
+    throw new HTTPError({
+      statusCode: 400,
+      statusText: "IPX_MISSING_MODIFIERS",
+      message: `Modifiers are missing: ${safeString(id)}`,
+    });
+  }
+
+  const modifiers: Record<string, string> = Object.create(null);
+
+  if (modifiersString !== "_") {
+    for (const p of modifiersString.split(MODIFIER_SEP)) {
+      const [key = "", ...values] = p.split(MODIFIER_VAL_SEP);
+      modifiers[key] = values.map((v) => decode(v)).join("_");
     }
+  }
+
+  return { id, modifiers };
+}
+
+// --- Handler ---
+
+function createIPXHandler(
+  ipx: IPX,
+  opts: IPXHandlerOptions = {},
+): EventHandlerWithFetch {
+  const parseURL = opts.parseURL || parseIPXURL;
+
+  return defineEventHandler(async (event: H3Event) => {
+    // Parse URL (never trust the parser output: it can be user provided)
+    // `event.req.url` is used over `event.url` since the latter is normalized by
+    // h3, silently dropping percent-encoded tab/newline/carriage-return.
+    const parsed: Partial<IPXParsedURL> = (await parseURL(event.req.url)) || {};
+
+    // Escape and validate id
+    const id = safeString(parsed.id);
     if (!id || id === "/") {
       throw new HTTPError({
         statusCode: 400,
@@ -62,17 +142,10 @@ function createIPXHandler(ipx: IPX): EventHandlerWithFetch {
       });
     }
 
-    // Construct modifiers
+    // Escape modifiers
     const modifiers: Record<string, string> = Object.create(null);
-
-    // Read modifiers from first segment
-    if (modifiersString !== "_") {
-      for (const p of modifiersString.split(MODIFIER_SEP)) {
-        const [key, ...values] = p.split(MODIFIER_VAL_SEP);
-        modifiers[safeString(key)] = values
-          .map((v) => safeString(decode(v)))
-          .join("_");
-      }
+    for (const [key, value] of Object.entries(parsed.modifiers || {})) {
+      modifiers[safeString(key)] = safeString(value);
     }
 
     // Auto format
@@ -180,8 +253,17 @@ function autoDetectFormat(acceptHeader: string, animated: boolean): string {
   return acceptMime?.split("/")[1] || "jpeg";
 }
 
-function safeString(input: string | undefined) {
-  return JSON.stringify(input)
+function decode(input: string) {
+  try {
+    return decodeURIComponent(input);
+  } catch {
+    // Keep malformed percent-encoding as-is (e.g. `100%.jpg`)
+    return input;
+  }
+}
+
+function safeString(input: unknown) {
+  return JSON.stringify(input ?? "")
     .replace(/^"|"$/g, "")
     .replace(/\\+/g, "\\")
     .replace(/\\"/g, '"');

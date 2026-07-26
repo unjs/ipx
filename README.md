@@ -148,6 +148,45 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 
 `/embed,f_webp,s_200x200/static/buffalo.png`
 
+## Custom URL Style
+
+The `parseURL` option accepts a function that extracts the resource id and modifiers from the request URL, allowing any URL style you like. It receives the raw (still percent-encoded) request URL, so it is free to decode it however the URL style requires.
+
+**Example:** modifiers in the filename (`/<id>@@<modifiers>.<format>`), which can be preferable when prerendering images for static hosting.
+
+```ts
+import { createIPXFetchHandler, parseIPXURL } from "ipx";
+
+const handler = createIPXFetchHandler(ipx, {
+  parseURL(url) {
+    const path = decodeURIComponent(new URL(url).pathname.slice(1));
+
+    const match = path.match(/^(.+)@@(.+)\.([^.]+)$/);
+    if (!match) {
+      // Not our style, fall back to the default `/<modifiers>/<id>`
+      return parseIPXURL(url);
+    }
+
+    const [, id = "", modifiersString = "", format = ""] = match;
+    const modifiers = Object.fromEntries(
+      modifiersString.split(",").map((m) => {
+        const [key = "", ...values] = m.split("_");
+        return [key, values.join("_")];
+      }),
+    );
+
+    return { id, modifiers: { ...modifiers, format } };
+  },
+});
+
+// http://localhost:3000/static/buffalo.png@@s_200x200.webp
+// http://localhost:3000/static/buffalo.png@@grayscale,w_200.webp
+```
+
+The parser may be async, and can throw an `HTTPError` (re-exported from `ipx`) to reject a request with a specific status code.
+
+Returned values are escaped by IPX, so custom parsers don't need to do it themselves. Note this is not an access check — exactly as with the default URL style, what the resulting id is allowed to resolve to is enforced by the storage layer (`ipxFSStorage`'s directory boundary, `ipxHttpStorage`'s domain allowlist).
+
 ## Config
 
 You can universally customize IPX configuration using `IPX_*` environment variables.

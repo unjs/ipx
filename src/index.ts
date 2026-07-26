@@ -5,8 +5,15 @@ export {
   createIPX,
 } from "./ipx.ts";
 
+// Re-exported so custom `parseURL` implementations can reject requests with a status code.
+export { HTTPError } from "h3";
+
 export {
+  type IPXHandlerOptions,
+  type IPXParsedURL,
+  type IPXURLParser,
   serveIPX,
+  parseIPXURL,
   createIPXFetchHandler,
   createIPXNodeHandler,
 } from "./server.ts";
