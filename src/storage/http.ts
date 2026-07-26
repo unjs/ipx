@@ -36,6 +36,15 @@ export type HTTPStorageOptions = {
 
 const HTTP_RE = /^https?:\/\//;
 
+function decode(input: string) {
+  try {
+    return decodeURIComponent(input);
+  } catch {
+    // Keep malformed percent-encoding as-is (e.g. `100%.jpg`)
+    return input;
+  }
+}
+
 /**
  * Creates an HTTP storage handler for IPX that fetches image data from external URLs.
  * This handler allows configuration to specify allowed domains, caching behaviour and custom fetch options.
@@ -70,7 +79,18 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
   );
 
   function validateId(id: string) {
-    const url = new URL(decodeURIComponent(id));
+    let url: URL;
+    try {
+      // Ids are usually already decoded by the URL parser but the storage API
+      // can also be used directly with still encoded ids.
+      url = new URL(decode(id));
+    } catch {
+      throw new HTTPError({
+        statusCode: 400,
+        statusText: `IPX_INVALID_URL`,
+        message: `Invalid URL: ${id}`,
+      });
+    }
     if (!url.hostname) {
       throw new HTTPError({
         statusCode: 403,
