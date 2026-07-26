@@ -208,7 +208,8 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 | flop           | [Docs](https://sharp.pixelplumbing.com/api-operation#flop)      | `/flop/buffalo.png`                                  |
 | sharpen        | [Docs](https://sharp.pixelplumbing.com/api-operation#sharpen)   | `/sharpen_30/buffalo.png`                            |
 | median         | [Docs](https://sharp.pixelplumbing.com/api-operation#median)    | `/median_10/buffalo.png`                             |
-| blur           | [Docs](https://sharp.pixelplumbing.com/api-operation#blur)      | `/blur_5/buffalo.png`                                |
+| blur           | [Docs](https://sharp.pixelplumbing.com/api-operation#blur)      | `/blur_5/buffalo.png`
+| unflatten      | [Docs](https://sharp.pixelplumbing.com/api-operation#unflatten) | `/unflatten/buffalo.png`                             |                                |
 | gamma          | [Docs](https://sharp.pixelplumbing.com/api-operation#gamma)     | `/gamma_3/buffalo.png`                               |
 | negate         | [Docs](https://sharp.pixelplumbing.com/api-operation#negate)    | `/negate/buffalo.png`                                |
 | normalize      | [Docs](https://sharp.pixelplumbing.com/api-operation#normalize) | `/normalize/buffalo.png`                             |
@@ -216,7 +217,7 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 | tint           | [Docs](https://sharp.pixelplumbing.com/api-colour#tint)         | `/tint_1098123/buffalo.png`                          |
 | grayscale      | [Docs](https://sharp.pixelplumbing.com/api-colour#grayscale)    | `/grayscale/buffalo.png`                             |
 | flatten        | [Docs](https://sharp.pixelplumbing.com/api-operation#flatten)   | `/flatten/buffalo.png`                               | Remove alpha channel, if any, and replace with background colour.                                                                                                 |
-| modulate       | [Docs](https://sharp.pixelplumbing.com/api-operation#modulate)  | `/modulate_brightness_saturation_hue/buffalo.png`    | Transforms the image using brightness, saturation and hue rotation.                                                                                               |
+| modulate       | [Docs](https://sharp.pixelplumbing.com/api-operation#modulate)  | `/modulate_2_1.2_90_10/buffalo.png`                  | Transforms the image using `{brightness}_{saturation}_{hue}_{lightness}`. Trailing arguments may be omitted.                                                      |
 | crop           | [Docs](https://sharp.pixelplumbing.com/api-resize#extract)      | `/crop_{left}_{top}_{width}_{height}/buffalo.png`    | Alias for extract. Extract/crop a region of the image.                                                                                                            |
 | animated / a   | -                                                               | `/animated/buffalo.gif` or `/a/buffalo.gif`          | Experimental                                                                                                                                                      |
 

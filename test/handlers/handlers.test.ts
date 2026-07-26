@@ -27,6 +27,7 @@ import {
   tint,
   grayscale,
 } from "../../src/handlers/handlers.ts";
+import { applyHandler } from "../../src/handlers/utils.ts";
 
 describe("handlers", () => {
   it("quality.apply() returns expected values", () => {
@@ -326,13 +327,43 @@ describe("handlers", () => {
       modulate: vi.fn(),
     };
 
-    modulate.apply({} as any, sharpMock as any, 100, 200, 300);
+    modulate.apply({} as any, sharpMock as any, 100, 200, 300, 400);
 
     expect(sharpMock.modulate).toHaveBeenCalledWith({
       brightness: 100,
       saturation: 200,
       hue: 300,
+      lightness: 400,
     });
+  });
+
+  // Regression: `args` used to declare a single mapper, so `parseArgs` never
+  // reached saturation/hue/lightness. Drive the handler through applyHandler so
+  // the arg-count contract itself is covered.
+  it("modulate parses every arg", () => {
+    const sharpMock = {
+      modulate: vi.fn(),
+    };
+
+    applyHandler({} as any, sharpMock as any, modulate, "2_1.2_90_10");
+
+    expect(sharpMock.modulate).toHaveBeenCalledWith({
+      brightness: 2,
+      saturation: 1.2,
+      hue: 90,
+      lightness: 10,
+    });
+  });
+
+  // Sharp checks `key in options`, so omitted args must not be forwarded at all.
+  it("modulate omits trailing args that were not provided", () => {
+    const sharpMock = {
+      modulate: vi.fn(),
+    };
+
+    applyHandler({} as any, sharpMock as any, modulate, "2");
+
+    expect(sharpMock.modulate).toHaveBeenCalledWith({ brightness: 2 });
   });
 
   it("tint.apply() returns expected values", () => {
