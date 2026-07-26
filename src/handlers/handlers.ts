@@ -206,6 +206,14 @@ export const flatten: Handler = {
   },
 };
 
+// https://sharp.pixelplumbing.com/api-operation#unflatten
+export const unflatten: Handler = {
+  args: [],
+  apply: (_context, pipe) => {
+    return pipe.unflatten();
+  },
+};
+
 // https://sharp.pixelplumbing.com/api-operation#gamma
 export const gamma: Handler = {
   args: [VArg, VArg, VArg],
