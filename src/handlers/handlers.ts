@@ -118,14 +118,15 @@ export const trim: Handler = {
 
 // https://sharp.pixelplumbing.com/api-resize#extend
 export const extend: Handler = {
-  args: [VArg, VArg, VArg, VArg],
-  apply: (context, pipe, top, right, bottom, left) => {
+  args: [VArg, VArg, VArg, VArg, VArg],
+  apply: (context, pipe, top, right, bottom, left, extendWith) => {
     return pipe.extend({
       top,
       left,
       bottom,
       right,
       background: context.background,
+      extendWith,
     });
   },
 };

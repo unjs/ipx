@@ -163,7 +163,15 @@ describe("handlers", () => {
       extend: vi.fn(),
     };
 
-    extend.apply(context as any, sharpMock as any, 100, 100, 100, 100);
+    extend.apply(
+      context as any,
+      sharpMock as any,
+      100,
+      100,
+      100,
+      100,
+      "background",
+    );
 
     expect(sharpMock.extend).toHaveBeenCalledWith({
       top: 100,
@@ -171,6 +179,7 @@ describe("handlers", () => {
       left: 100,
       right: 100,
       background: context.background,
+      extendWith: "background",
     });
   });
 
