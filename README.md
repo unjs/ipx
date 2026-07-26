@@ -18,6 +18,8 @@ Used by [Nuxt Image](https://image.nuxt.com/) and [Netlify](https://www.npmjs.co
 
 - The server creation APIs have changed. See the Programmatic API section for examples.
 - The JSON error format has changed from `{ error: string }` to `{ status, statusText, message }`.
+- The `svgo` option is now `svg.optimize`. SVG images are always sanitized, even when optimization is disabled.
+- SVG optimization now applies SVGO's `preset-default` unless custom `plugins` are configured (previously only the configured plugins ran), so SVG output is restructured more than before. See the SVG Images section.
 
 ## Using CLI
 
@@ -220,6 +222,72 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 | modulate       | [Docs](https://sharp.pixelplumbing.com/api-operation#modulate)  | `/modulate_2_1.2_90_10/buffalo.png`                  | Transforms the image using `{brightness}_{saturation}_{hue}_{lightness}`. Trailing arguments may be omitted.                                                      |
 | crop           | [Docs](https://sharp.pixelplumbing.com/api-resize#extract)      | `/crop_{left}_{top}_{width}_{height}/buffalo.png`    | Alias for extract. Extract/crop a region of the image.                                                                                                            |
 | animated / a   | -                                                               | `/animated/buffalo.gif` or `/a/buffalo.gif`          | Experimental                                                                                                                                                      |
+
+## SVG Images
+
+SVG images are not processed by sharp. They are sanitized, optimized with [svgo](https://github.com/svg/svgo) and served as `image/svg+xml`. Input that is not well-formed XML (an unescaped `&` is a common cause) is rejected with a `400 IPX_INVALID_SVG`.
+
+```ts
+createIPX({
+  storage,
+  svg: {
+    // SVGO config, or `false` to disable optimization
+    optimize: { multipass: true },
+    // Serve SVG images unsanitized. Only for fully trusted sources!
+    unsafeSkipSanitize: false,
+  },
+});
+```
+
+### Optimization
+
+SVGO's `preset-default` is applied unless you configure `plugins` yourself. Output is always a re-serialized document, never byte-identical to the source: ids are renamed, elements that are neither visible nor referenced within the same file are dropped, shapes are converted to paths and `<style>` rules are inlined.
+
+That is fine for images used as `<img src>` or as CSS backgrounds, but it can break consumers that reach into the document:
+
+- Sprite sheets: a `<symbol id="icon">` with no `<use>` in the same file is removed, so `<use href="/sprite.svg#icon">` renders nothing.
+- References by id from outside the file, since ids are renamed (`icon-home` becomes `a`).
+- Selectors in a host page that inlines the SVG, since `<rect>` becomes `<path>` and class-based rules are inlined.
+
+Use `svg: { optimize: false }` to sanitize without optimizing, or keep optimization with the structural plugins disabled (about 1% larger output for typical icons):
+
+```ts
+createIPX({
+  storage,
+  svg: {
+    optimize: {
+      plugins: [
+        {
+          name: "preset-default",
+          params: {
+            overrides: { cleanupIds: false, removeHiddenElems: false },
+          },
+        },
+      ],
+    },
+  },
+});
+```
+
+### Sanitization
+
+SVG documents can carry active content, so IPX **always** sanitizes them before serving. Sanitization is independent of optimization: `svg: { optimize: false }` only disables SVGO's optimization plugins.
+
+Removed from every SVG:
+
+- `<script>` elements (including namespaced ones such as `<svg:script>`)
+- Event handler attributes (any `on*` attribute)
+- Embedded foreign documents: `<foreignObject>`, `<iframe>`, `<embed>`, `<object>`, `<base>`, `<link>` and `<meta>`
+- Event handler elements: `<handler>` and `<listener>`
+- SMIL animations (`<animate>`, `<animateMotion>`, `<animateTransform>` and `<set>`) that assign an `on*` attribute or an unsafe URI, which could otherwise re-introduce a handler after load
+- URIs (`href`, `xlink:href` and `src`) with a scheme other than `http:`, `https:`, `mailto:`, `tel:`, `ftp:` or a non-SVG `data:image/*` — in particular `javascript:`, including obfuscated variants using entities or control characters
+- The `<!DOCTYPE>` declaration and all processing instructions (`<?…?>`), which are serialized unescaped and can smuggle markup past an HTML parser
+
+**External references are kept.** Attributes such as `<image href="https://…">`, `<use href="…">`, external fonts and `@import` inside `<style>` are preserved, since stripping them would break legitimate images. They are not a script execution vector, but they do allow the SVG to make requests to third-party origins (and thereby leak the viewer's IP address) when rendered as a document. If this matters for your threat model, host such images from a separate origin or block the requests with a Content-Security-Policy.
+
+The bundled server sends `content-security-policy: default-src 'none'` with successful responses by default, which blocks both script execution and external references in browsers that honor it. Custom servers built on the programmatic API should send the same header, since sanitization cannot cover every future browser behavior on its own.
+
+Sanitization can be disabled with `svg: { unsafeSkipSanitize: true }`. Only do this when every source is fully trusted: IPX will then serve SVG images with XSS payloads unchanged.
 
 ## License
 

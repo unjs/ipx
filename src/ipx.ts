@@ -2,11 +2,15 @@ import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import { HTTPError } from "h3";
 import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
 import { applyHandler, getHandler } from "./handlers/index.ts";
+import { sanitizeSVGPlugin } from "./svg.ts";
 import { cachedPromise, getEnv } from "./utils.ts";
 
 import type { HandlerName } from "./handlers/index.ts";
 import type { SharpOptions } from "sharp";
-import type { Config as SVGOConfig } from "svgo";
+import type {
+  Config as SVGOConfig,
+  PluginConfig as SVGOPluginConfig,
+} from "svgo";
 import type { IPXStorage } from "./types.ts";
 
 type IPXSourceMeta = {
@@ -148,10 +152,29 @@ export type IPXOptions = {
   httpStorage?: IPXStorage;
 
   /**
-   * Configuration for the SVGO library used when processing SVG images.
+   * Options for SVG images, which are processed by SVGO instead of Sharp.
    * @optional
    */
-  svgo?: false | SVGOConfig;
+  svg?: {
+    /**
+     * Configuration for the SVGO library used to optimize SVG images.
+     *
+     * SVGO's `preset-default` is applied unless custom `plugins` are configured.
+     * Set to `false` to disable optimization. Sanitization is applied either way.
+     * @optional
+     */
+    optimize?: false | SVGOConfig;
+
+    /**
+     * Disable SVG sanitization.
+     *
+     * Sanitized SVG images cannot execute scripts. Only disable this if all sources
+     * are fully trusted, as it allows serving SVG images with XSS payloads.
+     * @default false
+     * @optional
+     */
+    unsafeSkipSanitize?: boolean;
+  };
 };
 
 // https://sharp.pixelplumbing.com/#formats
@@ -288,29 +311,57 @@ export function createIPX(userOptions: IPXOptions): IPX {
       if (mFormat === "jpg") {
         mFormat = "jpeg";
       }
-      // Use original SVG (optimized with svgo if enabled) when svg is
-      // requested or no format is specified. SVG is not a supported output
-      // format for sharp, so it cannot be handled by the ternary below.
+      // Use original SVG (sanitized and optimized with svgo if enabled) when
+      // svg is requested or no format is specified. SVG is not a supported
+      // output format for sharp, so it cannot be handled by the ternary below.
       if (imageMeta.type === "svg" && (!mFormat || mFormat === "svg")) {
-        if (options.svgo === false) {
+        const sanitize = !options.svg?.unsafeSkipSanitize;
+        const shouldOptimize = options.svg?.optimize !== false;
+        const svgoConfig =
+          options.svg?.optimize === false ? undefined : options.svg?.optimize;
+
+        // Nothing to do if both sanitization and optimization are disabled
+        if (!sanitize && !shouldOptimize) {
           return {
             data: sourceData,
             format: "svg+xml",
             meta: imageMeta,
           };
-        } else {
-          // https://github.com/svg/svgo
-          const { optimize } = await getSVGO();
-          const svg = optimize(sourceData.toString("utf8"), {
-            ...options.svgo,
-            plugins: ["removeScripts", ...(options.svgo?.plugins || [])],
-          }).data;
-          return {
-            data: svg,
-            format: "svg+xml",
-            meta: imageMeta,
-          };
         }
+
+        // Sanitization runs first so that optimization only sees safe input.
+        // SVGO skips `preset-default` whenever `plugins` is set, which is
+        // always the case here, so it has to be added explicitly.
+        const plugins: SVGOPluginConfig[] = sanitize
+          ? ["removeScripts", sanitizeSVGPlugin]
+          : [];
+        if (svgoConfig?.plugins) {
+          plugins.push(...svgoConfig.plugins);
+        } else if (shouldOptimize) {
+          plugins.push("preset-default");
+        }
+
+        // https://github.com/svg/svgo
+        const { optimize } = await getSVGO();
+        let svg: string;
+        try {
+          svg = optimize(sourceData.toString("utf8"), {
+            ...svgoConfig,
+            plugins,
+          }).data;
+        } catch (error) {
+          throw new HTTPError({
+            statusCode: 400,
+            statusText: `IPX_INVALID_SVG`,
+            message: `Cannot parse SVG: ${id}`,
+            cause: error,
+          });
+        }
+        return {
+          data: svg,
+          format: "svg+xml",
+          meta: imageMeta,
+        };
       }
 
       const format =

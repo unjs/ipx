@@ -85,7 +85,7 @@ describe("ipx", () => {
       expect(format).toBe("jpeg");
     });
 
-    it("removes scripts when svgo is enabled", async () => {
+    it("removes scripts", async () => {
       const { data } = await (await ipx("xss.svg", { f: "svg" })).process();
       expect(data.toString()).not.toContain("<script");
       expect(data.toString()).not.toContain("onclick");
