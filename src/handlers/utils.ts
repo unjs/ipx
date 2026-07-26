@@ -252,6 +252,106 @@ export function applyHandler(
   }
 }
 
+/**
+ * Clamps requested output dimensions to `max`, preserving the requested aspect
+ * ratio.
+ *
+ * Sharp's `limitInputPixels` only bounds the *input*, so without this cap a
+ * request such as `/enlarge,s_20000x20000/img.jpg` makes sharp allocate a
+ * ~1.6GB output buffer from an arbitrarily small source image.
+ *
+ * A side that was not requested stays omitted (sharp then derives it from the
+ * source aspect ratio), but `source` is used to make sure that derived side
+ * cannot exceed the limit either.
+ *
+ * @param max The limit, or `false`/`undefined` to leave the dimensions as-is.
+ * @param desired The requested dimensions.
+ * @param source The source dimensions, used to derive an omitted side.
+ */
+export function clampToMaxDimension(
+  max: number | false | undefined,
+  desired: { width?: number; height?: number },
+  source?: { width?: number; height?: number },
+): { width?: number; height?: number } {
+  const { width, height } = desired;
+  if (!max || (width === undefined && height === undefined)) {
+    return desired;
+  }
+
+  // Sharp preserves the source aspect ratio when only one side is requested.
+  const ratio =
+    source?.width && source?.height ? source.width / source.height : undefined;
+  const effectiveWidth =
+    width ?? (ratio && height ? height * ratio : undefined);
+  const effectiveHeight =
+    height ?? (ratio && width ? width / ratio : undefined);
+
+  const scale = Math.min(
+    effectiveWidth ? max / effectiveWidth : 1,
+    effectiveHeight ? max / effectiveHeight : 1,
+  );
+  if (scale >= 1) {
+    return desired;
+  }
+
+  // Both sides are scaled by the same factor, so the requested aspect ratio is
+  // preserved. `Math.min` guards against floating point rounding above `max`.
+  const clamp = (value?: number) =>
+    value === undefined
+      ? undefined
+      : Math.max(1, Math.min(max, Math.round(value * scale)));
+  return { width: clamp(width), height: clamp(height) };
+}
+
+/**
+ * Clamps `extend` edges so that the extended canvas cannot exceed `max` in
+ * either dimension.
+ *
+ * Both edges of an axis are scaled down by the same factor rather than the
+ * request being rejected, for consistency with how resize dimensions are
+ * clamped. Omitted edges stay omitted so sharp applies its own default (`0`).
+ *
+ * @param max The limit, or `false`/`undefined` to leave the edges as-is.
+ * @param edges The requested per-side extend values.
+ * @param source The dimensions of the image being extended.
+ */
+export function clampExtendEdges(
+  max: number | false | undefined,
+  edges: { top?: number; right?: number; bottom?: number; left?: number },
+  source?: { width?: number; height?: number },
+) {
+  if (!max) {
+    return edges;
+  }
+  const [top, bottom] = clampEdges(
+    max - (source?.height || 0),
+    edges.top,
+    edges.bottom,
+  );
+  const [left, right] = clampEdges(
+    max - (source?.width || 0),
+    edges.left,
+    edges.right,
+  );
+  return { top, right, bottom, left };
+}
+
+/** Clamps the two edges of one axis to the space left within the limit. */
+function clampEdges(
+  available: number,
+  a: number | undefined,
+  b: number | undefined,
+): [number | undefined, number | undefined] {
+  const total = (a || 0) + (b || 0);
+  if (total === 0 || total <= available) {
+    return [a, b];
+  }
+  const scale = Math.max(0, available) / total;
+  const clamp = (value?: number) =>
+    value === undefined ? undefined : Math.floor(value * scale);
+  return [clamp(a), clamp(b)];
+}
+
 export function clampDimensionsPreservingAspectRatio(
   sourceDimensions: ImageMeta,
   desiredDimensions: { width: number; height: number },

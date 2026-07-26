@@ -129,6 +129,27 @@ export type IPXOptions = {
   maxAge?: number;
 
   /**
+   * Maximum width and height (in pixels) of the output image.
+   *
+   * Modifiers are user input and sharp's `limitInputPixels` only bounds the
+   * *input*, so without this limit a request such as
+   * `/enlarge,s_20000x20000/img.jpg` or `/extend_10000_10000_10000_10000/img.jpg`
+   * makes sharp allocate a multi-gigabyte output buffer from a tiny source
+   * image, which is an easy way to exhaust the server memory.
+   *
+   * Requested `width`, `height`, `resize` dimensions are clamped to this value
+   * (preserving the requested aspect ratio) and `extend` edges are clamped so
+   * that the extended canvas stays within it.
+   *
+   * Set to `false` to disable the limit (only safe when modifiers come from a
+   * trusted source).
+   *
+   * @default 8192
+   * @optional
+   */
+  maxOutputDimension?: number | false;
+
+  /**
    * A mapping of URL aliases to their corresponding URLs, used to simplify resource identifiers.
    * @optional
    */
@@ -177,6 +198,10 @@ export type IPXOptions = {
   };
 };
 
+// A common CDN limit. `8192 x 8192 x 4B` is ~268MB of uncompressed pixels,
+// which bounds what a single request can allocate.
+const DEFAULT_MAX_OUTPUT_DIMENSION = 8192;
+
 // https://sharp.pixelplumbing.com/#formats
 // (gif and svg are not supported as output)
 const SUPPORTED_FORMATS = new Set([
@@ -203,6 +228,10 @@ export function createIPX(userOptions: IPXOptions): IPX {
       userOptions.alias || getEnv<Record<string, string>>("IPX_ALIAS") || {},
     maxAge:
       userOptions.maxAge ?? getEnv<number>("IPX_MAX_AGE") ?? 60 /* 1 minute */,
+    maxOutputDimension:
+      userOptions.maxOutputDimension ??
+      getEnv<number | false>("IPX_MAX_OUTPUT_DIMENSION") ??
+      DEFAULT_MAX_OUTPUT_DIMENSION,
     sharpOptions: {
       jpegProgressive: true,
       ...userOptions.sharpOptions,
@@ -400,7 +429,10 @@ export function createIPX(userOptions: IPXOptions): IPX {
         });
 
       // Apply handlers
-      const handlerContext: any = { meta: imageMeta };
+      const handlerContext: any = {
+        meta: imageMeta,
+        maxOutputDimension: options.maxOutputDimension,
+      };
       for (const h of handlers) {
         sharp =
           applyHandler(handlerContext, sharp, h.handler, h.args.toString()) ||

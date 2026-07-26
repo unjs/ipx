@@ -7,6 +7,8 @@ import {
   VRequired,
   VSize,
   clampDimensionsPreservingAspectRatio,
+  clampExtendEdges,
+  clampToMaxDimension,
 } from "./utils.ts";
 
 // Ranges below mirror the ones sharp enforces, so that invalid modifier
@@ -111,10 +113,19 @@ export const kernel: Handler = {
   },
 };
 
+// `withoutEnlargement` is disabled by the `enlarge` modifier, so the requested
+// dimensions are additionally capped to `maxOutputDimension` (see
+// `clampToMaxDimension`) to bound how much memory the output can take.
+
 export const width: Handler = {
   args: [VNumber("width", { min: 1, integer: true })],
   apply: (context, pipe, width) => {
-    return pipe.resize(width, undefined, {
+    const clamped = clampToMaxDimension(
+      context.maxOutputDimension,
+      { width },
+      context.meta,
+    );
+    return pipe.resize(clamped.width, undefined, {
       withoutEnlargement: !context.enlarge,
     });
   },
@@ -123,7 +134,12 @@ export const width: Handler = {
 export const height: Handler = {
   args: [VNumber("height", { min: 1, integer: true })],
   apply: (context, pipe, height) => {
-    return pipe.resize(undefined, height, {
+    const clamped = clampToMaxDimension(
+      context.maxOutputDimension,
+      { height },
+      context.meta,
+    );
+    return pipe.resize(undefined, clamped.height, {
       withoutEnlargement: !context.enlarge,
     });
   },
@@ -145,7 +161,12 @@ export const resize: Handler = {
       width = clamped.width;
       height = clamped.height;
     }
-    return pipe.resize(width, height, {
+    // Applies with `enlarge` too, where nothing else bounds the output size.
+    const capped = clampToMaxDimension(context.maxOutputDimension, {
+      width,
+      height,
+    });
+    return pipe.resize(capped.width, capped.height, {
       fit: context.fit,
       position: context.position,
       background: context.background,
@@ -177,11 +198,18 @@ export const extend: Handler = {
   // `background` is set by the `background` / `b` modifier and only used when
   // extending with `background` (the sharp default).
   apply: (context, pipe, top, right, bottom, left, extendWith) => {
+    // Edges grow the canvas without any input-size relation, so they are capped
+    // to keep the extended canvas within `maxOutputDimension`.
+    const edges = clampExtendEdges(
+      context.maxOutputDimension,
+      { top, right, bottom, left },
+      context.meta,
+    );
     return pipe.extend({
-      top,
-      left,
-      bottom,
-      right,
+      top: edges.top,
+      left: edges.left,
+      bottom: edges.bottom,
+      right: edges.right,
       background: context.background,
       extendWith,
     });

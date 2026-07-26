@@ -9,6 +9,8 @@ import {
   VSize,
   parseArgs,
   clampDimensionsPreservingAspectRatio,
+  clampExtendEdges,
+  clampToMaxDimension,
 } from "../../src/handlers/utils.ts";
 
 function catchError(function_: () => unknown) {
@@ -145,6 +147,86 @@ describe("utils", () => {
     const mappers = [(arg: string) => arg.toUpperCase()];
     const result = parseArgs("hello_world", mappers);
     expect(result).toEqual(["HELLO"]);
+  });
+
+  it("clampToMaxDimension", () => {
+    // Within the limit: untouched
+    expect(clampToMaxDimension(1000, { width: 500, height: 200 })).toEqual({
+      width: 500,
+      height: 200,
+    });
+    // Over the limit: scaled down, requested aspect ratio preserved
+    expect(clampToMaxDimension(1000, { width: 4000, height: 2000 })).toEqual({
+      width: 1000,
+      height: 500,
+    });
+    expect(clampToMaxDimension(1000, { width: 2000, height: 4000 })).toEqual({
+      width: 500,
+      height: 1000,
+    });
+    // Never below one pixel
+    expect(clampToMaxDimension(10, { width: 100_000, height: 1 })).toEqual({
+      width: 10,
+      height: 1,
+    });
+    // No limit
+    expect(clampToMaxDimension(false, { width: 40_000, height: 1 })).toEqual({
+      width: 40_000,
+      height: 1,
+    });
+    expect(
+      clampToMaxDimension(undefined, { width: 40_000, height: 1 }),
+    ).toEqual({ width: 40_000, height: 1 });
+  });
+
+  it("clampToMaxDimension (single dimension)", () => {
+    // The omitted side is derived by sharp from the source aspect ratio, so it
+    // has to be taken into account as well.
+    expect(
+      clampToMaxDimension(1000, { width: 800 }, { width: 400, height: 200 }),
+    ).toEqual({ width: 800, height: undefined });
+    expect(
+      clampToMaxDimension(1000, { width: 800 }, { width: 200, height: 400 }),
+    ).toEqual({ width: 500, height: undefined });
+    expect(
+      clampToMaxDimension(1000, { height: 800 }, { width: 400, height: 200 }),
+    ).toEqual({ width: undefined, height: 500 });
+    // Without source dimensions only the requested side can be clamped
+    expect(clampToMaxDimension(1000, { width: 4000 })).toEqual({
+      width: 1000,
+      height: undefined,
+    });
+    expect(clampToMaxDimension(1000, {})).toEqual({});
+  });
+
+  it("clampExtendEdges", () => {
+    const source = { width: 400, height: 300 };
+    // Within the limit: untouched
+    expect(clampExtendEdges(1000, { top: 10, bottom: 20 }, source)).toEqual({
+      top: 10,
+      right: undefined,
+      bottom: 20,
+      left: undefined,
+    });
+    // Over the limit: both edges of the axis are scaled down
+    expect(
+      clampExtendEdges(
+        1000,
+        { top: 5000, right: 5000, bottom: 5000, left: 5000 },
+        source,
+      ),
+    ).toEqual({ top: 350, right: 300, bottom: 350, left: 300 });
+    // A source larger than the limit is never grown further
+    expect(clampExtendEdges(100, { top: 10, left: 10 }, source)).toEqual({
+      top: 0,
+      right: undefined,
+      bottom: undefined,
+      left: 0,
+    });
+    // No limit
+    expect(clampExtendEdges(false, { top: 5000 }, source)).toEqual({
+      top: 5000,
+    });
   });
 
   it("clampDimensionsPreservingAspectRatio", () => {

@@ -404,6 +404,103 @@ describe("handlers", () => {
   });
 });
 
+// Modifiers are user input and sharp only limits the *input* size, so handlers
+// growing the output are capped by `context.maxOutputDimension`.
+describe("maxOutputDimension", () => {
+  const context = (maxOutputDimension: number | false | undefined) =>
+    ({
+      // `enlarge` disables every other bound on the output size
+      enlarge: true,
+      maxOutputDimension,
+      meta: { width: 400, height: 200 },
+    }) as any;
+
+  it("resize is clamped, preserving the requested aspect ratio", () => {
+    const pipe = { resize: vi.fn() };
+
+    applyHandler(context(1000), pipe as any, resize, "8000x4000");
+
+    expect(pipe.resize).toHaveBeenCalledWith(1000, 500, expect.anything());
+  });
+
+  it("width is clamped", () => {
+    const pipe = { resize: vi.fn() };
+
+    applyHandler(context(1000), pipe as any, width, "8000");
+
+    expect(pipe.resize).toHaveBeenCalledWith(1000, undefined, {
+      withoutEnlargement: false,
+    });
+  });
+
+  it("height is clamped", () => {
+    const pipe = { resize: vi.fn() };
+
+    applyHandler(context(1000), pipe as any, height, "8000");
+
+    // 500, not 1000: the source is twice as wide as it is tall, so a height of
+    // 1000 would give a derived width of 2000.
+    expect(pipe.resize).toHaveBeenCalledWith(undefined, 500, {
+      withoutEnlargement: false,
+    });
+  });
+
+  // Sharp derives the omitted side from the source aspect ratio, so a single
+  // dimension within the limit can still blow up the other one.
+  it("width is clamped for the derived height", () => {
+    const pipe = { resize: vi.fn() };
+    const tall = { ...context(1000), meta: { width: 200, height: 4000 } };
+
+    applyHandler(tall, pipe as any, width, "1000");
+
+    expect(pipe.resize).toHaveBeenCalledWith(50, undefined, {
+      withoutEnlargement: false,
+    });
+  });
+
+  it("extend edges are clamped to fit the canvas within the limit", () => {
+    const pipe = { extend: vi.fn() };
+
+    applyHandler(context(1000), pipe as any, extend, "5000_5000_5000_5000");
+
+    expect(pipe.extend).toHaveBeenCalledWith({
+      top: 400,
+      bottom: 400,
+      left: 300,
+      right: 300,
+      background: undefined,
+      extendWith: undefined,
+    });
+  });
+
+  it.each<false | undefined>([false, undefined])(
+    "is disabled with `%s`",
+    (max) => {
+      const pipe = { resize: vi.fn(), extend: vi.fn() };
+
+      applyHandler(context(max), pipe as any, resize, "8000x4000");
+      applyHandler(context(max), pipe as any, extend, "5000");
+
+      expect(pipe.resize).toHaveBeenCalledWith(8000, 4000, expect.anything());
+      expect(pipe.extend).toHaveBeenCalledWith(
+        expect.objectContaining({ top: 5000 }),
+      );
+    },
+  );
+
+  it("does not affect requests within the limit", () => {
+    const pipe = { resize: vi.fn(), extend: vi.fn() };
+
+    applyHandler(context(1000), pipe as any, resize, "300x150");
+    applyHandler(context(1000), pipe as any, extend, "10_20_30_40");
+
+    expect(pipe.resize).toHaveBeenCalledWith(300, 150, expect.anything());
+    expect(pipe.extend).toHaveBeenCalledWith(
+      expect.objectContaining({ top: 10, right: 20, bottom: 30, left: 40 }),
+    );
+  });
+});
+
 // Every modifier argument is validated up front so that bad input is a 400
 // instead of an unhandled sharp error (a 500) further down the pipeline.
 describe("handler args", () => {

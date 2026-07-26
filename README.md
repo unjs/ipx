@@ -193,6 +193,9 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 
 - `IPX_ALIAS`
   - Default: `{}`
+- `IPX_MAX_OUTPUT_DIMENSION`
+  - Default: `8192`
+  - Maximum width and height (in pixels) of the output image (option: `maxOutputDimension`). Requested `width`, `height` and `resize` dimensions are clamped to it, preserving the requested aspect ratio, and `extend` edges are clamped so the extended canvas stays within it. This bounds how much memory a single request can allocate: sharp only limits the _input_ size, so without it `/enlarge,s_20000x20000/image.jpg` (or `/extend_10000_10000_10000_10000/image.jpg`) allocates gigabytes from a small source image. Set to `false` to disable, which is only safe when modifiers come from a trusted source.
 
 ### Filesystem Source Options
 

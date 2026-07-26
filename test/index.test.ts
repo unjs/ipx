@@ -166,6 +166,82 @@ describe("ipx", () => {
     );
   });
 
+  // Sharp's `limitInputPixels` only bounds the *input*: without a cap on the
+  // output, `/enlarge,s_20000x20000/bliss.jpg` (or a large `extend`) makes it
+  // allocate gigabytes from a source image of any size.
+  describe("maxOutputDimension", () => {
+    // bliss.jpg is 3840x2160
+    const size = async (instance: IPX, modifiers: Record<string, string>) => {
+      const { data } = await (await instance("bliss.jpg", modifiers)).process();
+      const { width, height } = imageMeta(data as Uint8Array);
+      return `${width}x${height}`;
+    };
+
+    const createLimitedIPX = (maxOutputDimension: number | false) =>
+      createIPX({
+        storage: ipxFSStorage({ dir: resolve(__dirname, "assets") }),
+        maxOutputDimension,
+      });
+
+    it("clamps enlarged resize to the default limit", async () => {
+      expect(await size(ipx, { enlarge: "", resize: "20000x200" })).toBe(
+        "8192x82",
+      );
+    });
+
+    it("clamps enlarged width to the limit", async () => {
+      expect(
+        await size(createLimitedIPX(500), { enlarge: "", width: "5000" }),
+      ).toBe("500x281");
+    });
+
+    it("bounds the canvas of a large extend", async () => {
+      expect(
+        await size(createLimitedIPX(4000), {
+          extend: "10000_10000_10000_10000",
+        }),
+      ).toBe("4000x4000");
+    });
+
+    // Clamping only ever bounds growth: a source larger than the limit is
+    // served as-is rather than rejected.
+    it("does not extend a source already over the limit", async () => {
+      expect(await size(createLimitedIPX(1000), { extend: "100" })).toBe(
+        "3840x2160",
+      );
+    });
+
+    it("can be disabled with `false`", async () => {
+      expect(
+        await size(createLimitedIPX(false), {
+          enlarge: "",
+          resize: "20000x200",
+        }),
+      ).toBe("20000x200");
+    });
+
+    it("can be set with `IPX_MAX_OUTPUT_DIMENSION`", async () => {
+      process.env.IPX_MAX_OUTPUT_DIMENSION = "300";
+      try {
+        const limited = createIPX({
+          storage: ipxFSStorage({ dir: resolve(__dirname, "assets") }),
+        });
+        expect(await size(limited, { enlarge: "", resize: "5000x5000" })).toBe(
+          "300x300",
+        );
+      } finally {
+        delete process.env.IPX_MAX_OUTPUT_DIMENSION;
+      }
+    });
+
+    it("does not affect requests within the limit", async () => {
+      expect(await size(ipx, { resize: "100x50" })).toBe("100x50");
+      expect(await size(ipx, { enlarge: "", resize: "4000x2000" })).toBe(
+        "4000x2000",
+      );
+    });
+  });
+
   describe("svg", () => {
     it("passes through when no format is specified", async () => {
       const { data, format } = await (await ipx("nuxt.svg")).process();

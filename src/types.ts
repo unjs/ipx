@@ -41,6 +41,13 @@ export interface HandlerContext {
   kernel?: keyof KernelEnum;
 
   /**
+   * The maximum width and height of the output image, or `false` when
+   * unlimited. Set from the `maxOutputDimension` IPX option.
+   * @optional
+   */
+  maxOutputDimension?: number | false;
+
+  /**
    * Metadata about the image being processed.
    */
   meta: ImageMeta;
