@@ -61,9 +61,10 @@ const xssVectors = [
   },
   {
     name: "javascript: link",
-    svg: `<svg ${svgAttrs}><a href="javascript:alert(1)"><rect width="1" height="1"/></a></svg>`,
+    svg: `<svg ${svgAttrs}><a href="javascript:alert(1)"><circle cx="8" cy="8" r="4"/></a></svg>`,
     absent: ["javascript:"],
-    present: ["<rect"],
+    // The link is unwrapped, its contents are kept
+    present: ["<circle"],
   },
   {
     name: "javascript: URI outside of links",
@@ -128,8 +129,9 @@ describe.each([
         `</svg>`,
       options,
     );
-    expect(output).toContain(`<style>`);
-    expect(output).toContain(`<use href="#shape"/>`);
+    // Styles may be inlined by the optimizer, but must not be dropped
+    expect(output).toMatch(/fill:\s?red/);
+    expect(output).toContain(`<use href="#`);
     // External references are kept by design, see readme
     expect(output).toContain(`https://example.com/image.png`);
     expect(output).toContain(`data:image/png;base64,iVBORw0KGgo=`);
@@ -137,8 +139,46 @@ describe.each([
   });
 });
 
+describe("optimize svg", () => {
+  // `removeComments` is part of `preset-default`, `removeTitle` is not
+  const svg = `<svg ${svgAttrs}><!--comment--><title>title</title><script>alert(1)</script><rect width="1" height="1"/></svg>`;
+
+  it("applies preset-default by default", async () => {
+    const output = await processSVG(svg);
+    expect(output).not.toContain("<!--comment-->");
+    expect(output).toContain("<title>title</title>");
+  });
+
+  it("uses custom plugins instead of the preset", async () => {
+    const output = await processSVG(svg, {
+      svg: { optimize: { plugins: ["removeTitle"] } },
+    });
+    expect(output).not.toContain("<title>");
+    expect(output).toContain("<!--comment-->");
+    // Sanitization is applied before the configured plugins
+    expect(output).not.toContain("<script");
+  });
+
+  it("skips optimization when disabled", async () => {
+    const output = await processSVG(svg, { svg: { optimize: false } });
+    expect(output).toContain("<!--comment-->");
+    expect(output).toContain("<title>title</title>");
+    expect(output).not.toContain("<script");
+  });
+});
+
 it("svg.unsafeSkipSanitize opts out of sanitization", async () => {
   const svg = `<svg ${svgAttrs}><script>alert(1)</script></svg>`;
-  const output = await processSVG(svg, { svg: { unsafeSkipSanitize: true } });
-  expect(output).toBe(svg);
+
+  // Optimization still runs
+  expect(
+    await processSVG(svg, { svg: { unsafeSkipSanitize: true } }),
+  ).toContain("<script>alert(1)</script>");
+
+  // With optimization disabled too, the source is served as-is
+  expect(
+    await processSVG(svg, {
+      svg: { optimize: false, unsafeSkipSanitize: true },
+    }),
+  ).toBe(svg);
 });
