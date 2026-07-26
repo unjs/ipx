@@ -1,6 +1,6 @@
 import getEtag from "etag";
 import { negotiate } from "@fastify/accept-negotiator";
-import { decode, parseURL as parseURLParts } from "ufo";
+import { decode } from "ufo";
 import { defineEventHandler, HTTPError } from "h3";
 import { requireModule } from "./utils.ts";
 
@@ -17,8 +17,8 @@ export interface IPXHandlerOptions {
    * Custom URL parser to extract the resource id and modifiers from the request URL.
    * Can be async.
    *
-   * Receives the raw (still percent-encoded) request URL, so parsers can decode it
-   * themselves without going through h3's normalization.
+   * Receives the raw (absolute, still percent-encoded) request URL, so parsers can
+   * decode it themselves without going through h3's normalization.
    *
    * Defaults to {@link parseIPXURL} which handles URLs in the form `/<modifiers>/<id>`.
    *
@@ -88,13 +88,13 @@ const MODIFIER_VAL_SEP = /[:=_]/;
  *
  * Use `_` as the modifiers segment to apply none (`/_/image.png`).
  *
- * @param {string} url - The raw request URL.
+ * @param {string} url - The raw (absolute) request URL.
  * @returns {IPXParsedURL} The parsed resource id and modifiers. See {@link IPXParsedURL}.
  * @throws {HTTPError} If the modifiers segment is missing.
  */
 export function parseIPXURL(url: string): IPXParsedURL {
-  const [modifiersString = "", ...idSegments] = parseURLParts(url)
-    .pathname.slice(1 /* leading slash */)
+  const [modifiersString = "", ...idSegments] = new URL(url).pathname
+    .slice(1 /* leading slash */)
     .split("/");
 
   const id = decode(idSegments.join("/"));
