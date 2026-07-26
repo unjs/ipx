@@ -1,6 +1,5 @@
 import getEtag from "etag";
 import { negotiate } from "@fastify/accept-negotiator";
-import { decode } from "ufo";
 import { defineEventHandler, HTTPError } from "h3";
 import { requireModule } from "./utils.ts";
 
@@ -252,6 +251,15 @@ function autoDetectFormat(acceptHeader: string, animated: boolean): string {
     "image/gif",
   ]);
   return acceptMime?.split("/")[1] || "jpeg";
+}
+
+function decode(input: string) {
+  try {
+    return decodeURIComponent(input);
+  } catch {
+    // Keep malformed percent-encoding as-is (e.g. `100%.jpg`)
+    return input;
+  }
 }
 
 function safeString(input: unknown) {
