@@ -5,6 +5,12 @@ import type { IPXStorage } from "../types.ts";
 export type HTTPStorageOptions = {
   /**
    * Custom options for fetch operations, such as headers or method overrides.
+   *
+   * Redirects are followed manually (one hop at a time) so that each redirect target
+   * can be re-validated against the {@link HTTPStorageOptions.domains} allowlist.
+   * Explicitly setting `redirect` here opts out of this protection: the value is passed
+   * to `fetch` as-is and redirect targets are **not** validated (a redirect to an
+   * internal address is then possible: SSRF).
    * @optional
    */
   fetchOptions?: RequestInit;
@@ -17,6 +23,11 @@ export type HTTPStorageOptions = {
 
   /**
    * Whitelist of domains from which resource fetching is allowed. Can be a single string or an array of strings.
+   *
+   * Only `http:` and `https:` URLs are allowed. Redirects are followed only within this
+   * allowlist (up to 3 hops): a redirect to a host that is not listed is rejected with
+   * `403 IPX_FORBIDDEN_HOST`, so an allowlisted host cannot bounce IPX to an internal
+   * address. Hosts that redirect to a CDN must have the CDN hostname listed here too.
    * @optional
    */
   domains?: string | string[];
@@ -35,6 +46,11 @@ export type HTTPStorageOptions = {
 };
 
 const HTTP_RE = /^https?:\/\//;
+
+const REDIRECT_STATUS = new Set([301, 302, 303, 307, 308]);
+
+/** Maximum number of redirects followed when they are re-validated. */
+const MAX_REDIRECTS = 3;
 
 function decode(input: string) {
   try {
@@ -60,8 +76,10 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     _options.domains || getEnv<string | string[]>("IPX_HTTP_DOMAINS") || [];
   const defaultMaxAge =
     _options.maxAge || getEnv<string | number>("IPX_HTTP_MAX_AGE") || 300;
-  const fetchOptions =
-    _options.fetchOptions || getEnv("IPX_HTTP_FETCH_OPTIONS") || {};
+  const fetchOptions: RequestInit =
+    _options.fetchOptions ||
+    getEnv<RequestInit>("IPX_HTTP_FETCH_OPTIONS") ||
+    {};
 
   if (typeof _domains === "string") {
     _domains = _domains.split(",").map((s) => s.trim());
@@ -91,11 +109,23 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
         message: `Invalid URL: ${id}`,
       });
     }
+    validateURL(url, id);
+    return url.toString();
+  }
+
+  function validateURL(url: URL, id: string = url.toString()) {
     if (!url.hostname) {
       throw new HTTPError({
         statusCode: 403,
         statusText: `IPX_MISSING_HOSTNAME`,
         message: `Hostname is missing: ${id}`,
+      });
+    }
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      throw new HTTPError({
+        statusCode: 403,
+        statusText: `IPX_FORBIDDEN_PROTOCOL`,
+        message: `Forbidden protocol: ${url.protocol}`,
       });
     }
     if (!allowAllDomains && !domains.has(url.hostname)) {
@@ -105,7 +135,68 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
         message: `Forbidden host: ${url.hostname}`,
       });
     }
-    return url.toString();
+  }
+
+  /**
+   * Fetches `url`, following redirects manually so that every hop is re-validated
+   * against the allowlist (see {@link validateURL}).
+   *
+   * Skipped (plain `fetch` with default redirect handling) when all domains are
+   * allowed (nothing to validate) or when the user explicitly set `redirect` in
+   * `fetchOptions` (opt-out).
+   */
+  async function fetchURL(url: string, init?: RequestInit): Promise<Response> {
+    const _init: RequestInit = { ...fetchOptions, ...init };
+
+    if (allowAllDomains || _init.redirect) {
+      return fetch(url, _init);
+    }
+
+    let currentURL = url;
+    let method = _init.method || "GET";
+
+    for (let i = 0; i <= MAX_REDIRECTS; i++) {
+      const response = await fetch(currentURL, {
+        ..._init,
+        method,
+        redirect: "manual",
+      });
+
+      if (!REDIRECT_STATUS.has(response.status)) {
+        return response;
+      }
+
+      const location = response.headers.get("location");
+      if (!location) {
+        // Not an actionable redirect, treat it as the final response.
+        return response;
+      }
+
+      let nextURL: URL;
+      try {
+        nextURL = new URL(location, currentURL);
+      } catch {
+        throw new HTTPError({
+          statusCode: 502,
+          statusText: `IPX_INVALID_REDIRECT`,
+          message: `Invalid redirect location: ${location}`,
+        });
+      }
+
+      validateURL(nextURL, location);
+
+      // Per fetch semantics, 303 rewrites the request to GET (HEAD is kept as-is).
+      if (response.status === 303 && method !== "HEAD") {
+        method = "GET";
+      }
+      currentURL = nextURL.toString();
+    }
+
+    throw new HTTPError({
+      statusCode: 502,
+      statusText: `IPX_TOO_MANY_REDIRECTS`,
+      message: `Too many redirects (max ${MAX_REDIRECTS}): ${url}`,
+    });
   }
 
   function parseResponse(response: Response) {
@@ -134,7 +225,7 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     async getMeta(id) {
       const url = validateId(id);
       try {
-        const response = await fetch(url, { ...fetchOptions, method: "HEAD" });
+        const response = await fetchURL(url, { method: "HEAD" });
         if (!response.ok) {
           return {};
         }
@@ -146,7 +237,7 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     },
     async getData(id) {
       const url = validateId(id);
-      const response = await fetch(url, fetchOptions);
+      const response = await fetchURL(url);
       if (!response.ok) {
         throw new HTTPError({
           statusCode: response.status,

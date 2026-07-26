@@ -216,6 +216,7 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 #### `IPX_HTTP_DOMAINS`
 
 - Default: `[]`
+- Allowlist of hostnames images can be fetched from (option: `domains`). Only `http:` and `https:` URLs are allowed (anything else is rejected with `403 IPX_FORBIDDEN_PROTOCOL`), and redirects are followed **only within the allowlist**, up to 3 hops: each redirect target is re-validated and a redirect to a host that is not listed is rejected with `403 IPX_FORBIDDEN_HOST` (`502 IPX_TOO_MANY_REDIRECTS` beyond 3 hops). Previously redirects were followed blindly, which let an allowlisted host with an open redirect bounce IPX to internal addresses such as the cloud metadata service (SSRF). If an allowlisted host redirects to a CDN, add the CDN hostname to the allowlist as well. Redirect re-validation is skipped when `IPX_HTTP_ALLOW_ALL_DOMAINS` is enabled (nothing to validate) or when `redirect` is explicitly set in `IPX_HTTP_FETCH_OPTIONS`.
 
 #### `IPX_HTTP_MAX_AGE`
 
