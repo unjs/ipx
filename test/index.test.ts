@@ -41,4 +41,15 @@ describe("ipx", () => {
     expect(data).toBeInstanceOf(Buffer);
     expect(format).toBe("jpeg");
   });
+
+  // Mocking sharp hides this: sharp rejects `undefined` values for args that are
+  // present as keys, so every arity has to be exercised against the real thing.
+  it.each(["2", "2_1", "2_1_90", "2_1_90_10"])(
+    "modulate_%s",
+    async (modifier) => {
+      const source = await ipx("bliss.jpg", { modulate: modifier });
+      const { data } = await source.process();
+      expect(data).toBeInstanceOf(Buffer);
+    },
+  );
 });
