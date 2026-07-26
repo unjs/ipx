@@ -103,6 +103,22 @@ describe("ipx", () => {
       },
     );
 
+    // `kernel` only takes effect if it runs before `resize`. It has no `order`,
+    // so it relies on sorting by name ("kernel" < "resize" and < "s"). Assert
+    // the outcome rather than the Buffer, so a sort change cannot silently
+    // start dropping it.
+    it.each([
+      ["resize listed first", { resize: "100x100", kernel: "nearest" }],
+      ["kernel listed first", { kernel: "nearest", resize: "100x100" }],
+      ["`s` alias", { s: "100x100", kernel: "nearest" }],
+    ])("kernel is applied before resize (%s)", async (_name, modifiers) => {
+      const { data } = await (await ipx("bliss.jpg", modifiers)).process();
+      const { data: lanczos3 } = await (
+        await ipx("bliss.jpg", { resize: "100x100" })
+      ).process();
+      expect(data).not.toEqual(lanczos3);
+    });
+
     it("extend resizes the canvas", async () => {
       const { data } = await (
         await ipx("bliss.jpg", { extend: "10_20_30_40_mirror" })
