@@ -1,7 +1,7 @@
 import getEtag from "etag";
 import { negotiate } from "@fastify/accept-negotiator";
 import { defineEventHandler, HTTPError } from "h3";
-import { requireModule } from "./utils.ts";
+import { getBuiltinModule, requireModule } from "./utils.ts";
 
 import type { IPX } from "./ipx.ts";
 import type { H3Event, EventHandlerWithFetch } from "h3";
@@ -180,6 +180,17 @@ function createIPXHandler(
       "default-src 'none'",
     );
 
+    // Send Cache-Control header (also sent with 304 responses)
+    if (typeof sourceMeta.maxAge === "number") {
+      sendResponseHeaderIfNotSet(
+        event,
+        "cache-control",
+        `max-age=${+sourceMeta.maxAge}, public, s-maxage=${+sourceMeta.maxAge}`,
+      );
+    }
+
+    const ifNoneMatch = event.req.headers.get("if-none-match");
+
     // Handle modified time if available
     if (sourceMeta.mtime) {
       // Send Last-Modified header
@@ -197,26 +208,34 @@ function createIPXHandler(
       }
     }
 
+    // A weak ETag derived from the source mtime and the (already normalized)
+    // request params identifies the response without reading or processing the
+    // image, so revalidation requests can be answered before paying for it.
+    const weakEtag = sourceMeta.mtime
+      ? getWeakEtag(id, modifiers, sourceMeta.mtime)
+      : undefined;
+    if (weakEtag) {
+      sendResponseHeaderIfNotSet(event, "etag", weakEtag);
+      if (etagMatches(ifNoneMatch, weakEtag)) {
+        event.res.status = 304;
+        return;
+      }
+    }
+
     // Process image
     const { data, format } = await img.process();
 
-    // Send Cache-Control header
-    if (typeof sourceMeta.maxAge === "number") {
-      sendResponseHeaderIfNotSet(
-        event,
-        "cache-control",
-        `max-age=${+sourceMeta.maxAge}, public, s-maxage=${+sourceMeta.maxAge}`,
-      );
-    }
+    // Fallback to a content based ETag when the source has no mtime (or when
+    // hashing is unavailable) so that responses always have a validator.
+    if (!weakEtag) {
+      const etag = getEtag(data);
+      sendResponseHeaderIfNotSet(event, "etag", etag);
 
-    // Generate and send ETag header
-    const etag = getEtag(data);
-    sendResponseHeaderIfNotSet(event, "etag", etag);
-
-    // Check for if-none-match request header
-    if (etag && event.req.headers.get("if-none-match") === etag) {
-      event.res.status = 304;
-      return;
+      // Check for if-none-match request header
+      if (etagMatches(ifNoneMatch, etag)) {
+        event.res.status = 304;
+        return;
+      }
     }
 
     // Content-Type header
@@ -234,6 +253,56 @@ function sendResponseHeaderIfNotSet(event: H3Event, name: string, value: any) {
   if (!event.res.headers.has(name)) {
     event.res.headers.set(name, value);
   }
+}
+
+/**
+ * Compute a weak ETag from the inputs that fully determine the response:
+ * the source modification time and the request params.
+ *
+ * It is weak since it is not derived from the response bytes (the exact output
+ * also depends on the sharp/svgo versions and options) but it is stable for a
+ * given source revision and request, which is what validators need.
+ *
+ * Returns `undefined` when no hashing is available in the current runtime.
+ */
+function getWeakEtag(
+  id: string,
+  modifiers: Record<string, string>,
+  mtime: Date,
+): string | undefined {
+  const crypto = getBuiltinModule<typeof import("node:crypto")>("node:crypto");
+  if (!crypto?.createHash) {
+    return;
+  }
+  // Modifiers are serialized with sorted keys to be order independent
+  const key = JSON.stringify([
+    mtime.getTime(),
+    id,
+    Object.keys(modifiers)
+      .sort()
+      .map((key) => [key, modifiers[key]]),
+  ]);
+  const hash = crypto.createHash("sha256").update(key).digest("base64url");
+  return `W/"${hash.slice(0, 27)}"`;
+}
+
+/**
+ * Check an `if-none-match` header (possibly a list) against the sent ETag
+ * using the weak comparison function (RFC 9110).
+ */
+function etagMatches(ifNoneMatch: string | null, etag: string): boolean {
+  if (!ifNoneMatch || !etag) {
+    return false;
+  }
+  if (ifNoneMatch === "*") {
+    return true;
+  }
+  const opaque = opaqueTag(etag);
+  return ifNoneMatch.split(",").some((tag) => opaqueTag(tag.trim()) === opaque);
+}
+
+function opaqueTag(tag: string): string {
+  return tag.startsWith("W/") ? tag.slice(2) : tag;
 }
 
 function autoDetectFormat(acceptHeader: string, animated: boolean): string {

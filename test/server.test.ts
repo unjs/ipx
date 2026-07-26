@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { resolve } from "pathe";
 import {
   type IPX,
   type IPXURLParser,
+  createIPX,
   createIPXFetchHandler,
+  ipxFSStorage,
   parseIPXURL,
 } from "../src/index.ts";
 
@@ -34,6 +37,186 @@ describe("server", () => {
     const handler = createIPXFetchHandler(ipx);
     const res = await handler("http://example.com/w_200/test.jpg");
     await expect(res.text()).resolves.toEqual("data");
+  });
+
+  describe("conditional requests", () => {
+    const mtime = new Date("2024-01-01T00:00:00.000Z");
+
+    const request = (
+      headers: Record<string, string>,
+      url = "http://example.com/w_200/test.jpg",
+    ) => new Request(url, { headers });
+
+    let processed: number;
+
+    const createTestIPX = (sourceMeta: { maxAge?: number; mtime?: Date }) => {
+      processed = 0;
+      const ipx: IPX = (id, modifiers?) => {
+        lastRequest = { id, modifiers };
+        return {
+          getSourceMeta: async () => sourceMeta,
+          process: async () => {
+            processed++;
+            return { data: Buffer.from("data"), format: "jpg" };
+          },
+        };
+      };
+      return createIPXFetchHandler(ipx);
+    };
+
+    it("emits an ETag and replays it as a 304 without processing", async () => {
+      const handler = createTestIPX({ maxAge: 3600, mtime });
+
+      const res = await handler("http://example.com/w_200/test.jpg");
+      expect(res.status).toEqual(200);
+      const etag = res.headers.get("etag")!;
+      expect(etag).toMatch(/^W\/".+"$/);
+      expect(processed).toEqual(1);
+
+      const res2 = await handler(request({ "if-none-match": etag }));
+      expect(res2.status).toEqual(304);
+      expect(res2.headers.get("etag")).toEqual(etag);
+      expect(await res2.text()).toEqual("");
+      // The image is never processed for a revalidation request
+      expect(processed).toEqual(1);
+    });
+
+    it("keeps cache-control and last-modified on 304 responses", async () => {
+      const handler = createTestIPX({ maxAge: 3600, mtime });
+      const res = await handler("http://example.com/w_200/test.jpg");
+      const res2 = await handler(
+        request({ "if-none-match": res.headers.get("etag")! }),
+      );
+      expect(res2.status).toEqual(304);
+      expect(res2.headers.get("last-modified")).toEqual(mtime.toUTCString());
+      expect(res2.headers.get("cache-control")).toEqual(
+        "max-age=3600, public, s-maxage=3600",
+      );
+      expect(res2.headers.get("content-security-policy")).toEqual(
+        "default-src 'none'",
+      );
+    });
+
+    it("matches an if-none-match list", async () => {
+      const handler = createTestIPX({ mtime });
+      const etag = (
+        await handler("http://example.com/w_200/test.jpg")
+      ).headers.get("etag")!;
+      for (const ifNoneMatch of [
+        `"other", ${etag}`,
+        `${etag}, "other"`,
+        etag.slice(2) /* strong form of the same tag */,
+        "*",
+      ]) {
+        const res = await handler(request({ "if-none-match": ifNoneMatch }));
+        expect([ifNoneMatch, res.status]).toEqual([ifNoneMatch, 304]);
+      }
+      expect(processed).toEqual(1);
+    });
+
+    it("does not match an unrelated if-none-match", async () => {
+      const handler = createTestIPX({ mtime });
+      const res = await handler(request({ "if-none-match": '"nope"' }));
+      expect(res.status).toEqual(200);
+      expect(processed).toEqual(1);
+    });
+
+    it("changes the ETag with id, modifiers and mtime", async () => {
+      const etagOf = async (url: string, sourceMtime?: Date) => {
+        const res = await createTestIPX({ mtime: sourceMtime || mtime })(url);
+        return res.headers.get("etag");
+      };
+      const base = await etagOf("http://example.com/w_200/test.jpg");
+      expect(base).toBeTruthy();
+
+      // Stable for the same inputs
+      expect(await etagOf("http://example.com/w_200/test.jpg")).toEqual(base);
+      // ...and order independent
+      expect(await etagOf("http://example.com/w_200,f_webp/test.jpg")).toEqual(
+        await etagOf("http://example.com/f_webp,w_200/test.jpg"),
+      );
+
+      for (const url of [
+        "http://example.com/w_300/test.jpg",
+        "http://example.com/_/test.jpg",
+        "http://example.com/w_200/other.jpg",
+        "http://example.com/w_200,f_webp/test.jpg",
+      ]) {
+        expect([url, await etagOf(url)]).not.toEqual([url, base]);
+      }
+
+      expect(
+        await etagOf(
+          "http://example.com/w_200/test.jpg",
+          new Date("2025-01-01T00:00:00.000Z"),
+        ),
+      ).not.toEqual(base);
+    });
+
+    it("falls back to a content ETag without mtime", async () => {
+      const handler = createTestIPX({ maxAge: 3600 });
+
+      const res = await handler("http://example.com/w_200/test.jpg");
+      expect(res.status).toEqual(200);
+      expect(res.headers.get("last-modified")).toEqual(null);
+      const etag = res.headers.get("etag")!;
+      expect(etag).toMatch(/^"[\d a-f]+-[\d A-Za-z+/]+"$/);
+
+      const res2 = await handler(request({ "if-none-match": etag }));
+      expect(res2.status).toEqual(304);
+      expect(await res2.text()).toEqual("");
+      // Processing cost is accepted for content based ETags
+      expect(processed).toEqual(2);
+    });
+
+    // Real storage: revalidation must not even read the source data
+    it("does not read the source on revalidation", async () => {
+      const fsStorage = ipxFSStorage({ dir: resolve(__dirname, "assets") });
+      let reads = 0;
+      const handler = createIPXFetchHandler(
+        createIPX({
+          storage: {
+            ...fsStorage,
+            getData: (...args) => {
+              reads++;
+              return fsStorage.getData!(...args);
+            },
+          },
+        }),
+      );
+
+      const url = "http://example.com/w_100/bliss.jpg";
+      const res = await handler(url);
+      expect(res.status).toEqual(200);
+      expect(reads).toEqual(1);
+
+      const etag = res.headers.get("etag")!;
+      expect(etag).toMatch(/^W\/".+"$/);
+
+      const res2 = await handler(request({ "if-none-match": etag }, url));
+      expect(res2.status).toEqual(304);
+      expect(await res2.text()).toEqual("");
+      expect(reads).toEqual(1);
+    });
+
+    it("supports if-modified-since", async () => {
+      const handler = createTestIPX({ mtime });
+
+      const res = await handler("http://example.com/w_200/test.jpg");
+      expect(res.headers.get("last-modified")).toEqual(mtime.toUTCString());
+
+      const res2 = await handler(
+        request({ "if-modified-since": mtime.toUTCString() }),
+      );
+      expect(res2.status).toEqual(304);
+      expect(await res2.text()).toEqual("");
+
+      const res3 = await handler(
+        request({ "if-modified-since": new Date("2020-01-01").toUTCString() }),
+      );
+      expect(res3.status).toEqual(200);
+      expect(processed).toEqual(2);
+    });
   });
 
   describe("parseIPXURL", () => {

@@ -5,6 +5,10 @@ export function getEnv<T>(name: string): T | undefined {
   }
 }
 
+export function getBuiltinModule<T = any>(id: string): T | undefined {
+  return globalThis.process?.getBuiltinModule?.(id) as T | undefined;
+}
+
 export function requireModule<T = any>(id: string): T {
   const { createRequire } = globalThis.process.getBuiltinModule("node:module");
   const require = createRequire(import.meta.url);
