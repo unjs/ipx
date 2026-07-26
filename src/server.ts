@@ -1,31 +1,46 @@
+import getEtag from "etag";
 import { negotiate } from "@fastify/accept-negotiator";
 import { decode } from "ufo";
-import getEtag from "etag";
-import {
-  defineEventHandler,
-  getRequestHeader,
-  setResponseHeader,
-  setResponseStatus,
-  createApp,
-  toNodeListener,
-  toPlainHandler,
-  toWebHandler,
-  createError,
-  H3Event,
-  H3Error,
-  send,
-  appendResponseHeader,
-  getResponseHeader,
-} from "h3";
-import { IPX } from "./ipx";
+import { defineEventHandler, HTTPError } from "h3";
+import { requireModule } from "./utils.ts";
+
+import type { IPX } from "./ipx.ts";
+import type { H3Event, EventHandlerWithFetch } from "h3";
+import type { NodeHttpHandler, Server, ServerOptions } from "srvx";
+
+export type FetchHandler = (
+  request: Request | string | URL,
+) => Response | Promise<Response>;
+
+export function createIPXFetchHandler(ipx: IPX): FetchHandler {
+  return createIPXHandler(ipx).fetch as FetchHandler;
+}
+
+export function createIPXNodeHandler(ipx: IPX): NodeHttpHandler {
+  const { toNodeHandler } =
+    requireModule<typeof import("srvx/node")>("srvx/node");
+  const fetch = createIPXFetchHandler(ipx);
+  return toNodeHandler(fetch);
+}
+
+export function serveIPX(
+  ipx: IPX,
+  opts?: Omit<ServerOptions, "fetch">,
+): Server {
+  const { serve } = requireModule<typeof import("srvx")>("srvx");
+  const fetch = createIPXFetchHandler(ipx);
+  return serve({ ...opts, fetch });
+}
+
+// --- Handler ---
 
 const MODIFIER_SEP = /[&,]/g;
 const MODIFIER_VAL_SEP = /[:=_]/;
 
-export function createIPXH3Handler(ipx: IPX) {
-  const _handler = async (event: H3Event) => {
+function createIPXHandler(ipx: IPX): EventHandlerWithFetch {
+  return defineEventHandler(async (event: H3Event) => {
     // Parse URL
-    const [modifiersString = "", ...idSegments] = event.path
+    const [modifiersString = "", ...idSegments] = event.url.pathname
       .slice(1 /* leading slash */)
       .split("/");
 
@@ -33,21 +48,21 @@ export function createIPXH3Handler(ipx: IPX) {
 
     // Validate
     if (!modifiersString) {
-      throw createError({
+      throw new HTTPError({
         statusCode: 400,
-        statusText: `IPX_MISSING_MODIFIERS`,
+        statusText: "IPX_MISSING_MODIFIERS",
         message: `Modifiers are missing: ${id}`,
       });
     }
     if (!id || id === "/") {
-      throw createError({
+      throw new HTTPError({
         statusCode: 400,
-        statusText: `IPX_MISSING_ID`,
+        statusText: "IPX_MISSING_ID",
         message: `Resource id is missing: ${event.path}`,
       });
     }
 
-    // Contruct modifiers
+    // Construct modifiers
     const modifiers: Record<string, string> = Object.create(null);
 
     // Read modifiers from first segment
@@ -63,16 +78,19 @@ export function createIPXH3Handler(ipx: IPX) {
     // Auto format
     const mFormat = modifiers.f || modifiers.format;
     if (mFormat === "auto") {
-      const acceptHeader = getRequestHeader(event, "accept") || "";
+      const acceptHeader = event.req.headers.get("accept") || "";
+      const animated = modifiers.animated ?? modifiers.a;
       const autoFormat = autoDetectFormat(
         acceptHeader,
-        !!(modifiers.a || modifiers.animated),
+        // #234 "animated" param adds {animated: ''} to the modifiers
+        // TODO: fix modifiers to normalized to boolean
+        !!animated || animated === "",
       );
       delete modifiers.f;
       delete modifiers.format;
       if (autoFormat) {
         modifiers.format = autoFormat;
-        appendResponseHeader(event, "vary", "Accept");
+        event.res.headers.append("vary", "Accept");
       }
     }
 
@@ -99,10 +117,10 @@ export function createIPXH3Handler(ipx: IPX) {
       );
 
       // Check for last-modified request header
-      const _ifModifiedSince = getRequestHeader(event, "if-modified-since");
+      const _ifModifiedSince = event.req.headers.get("if-modified-since");
       if (_ifModifiedSince && new Date(_ifModifiedSince) >= sourceMeta.mtime) {
-        setResponseStatus(event, 304);
-        return send(event);
+        event.res.status = 304;
+        return;
       }
     }
 
@@ -123,9 +141,9 @@ export function createIPXH3Handler(ipx: IPX) {
     sendResponseHeaderIfNotSet(event, "etag", etag);
 
     // Check for if-none-match request header
-    if (etag && getRequestHeader(event, "if-none-match") === etag) {
-      setResponseStatus(event, 304);
-      return send(event);
+    if (etag && event.req.headers.get("if-none-match") === etag) {
+      event.res.status = 304;
+      return;
     }
 
     // Content-Type header
@@ -134,52 +152,18 @@ export function createIPXH3Handler(ipx: IPX) {
     }
 
     return data;
-  };
-
-  return defineEventHandler(async (event) => {
-    try {
-      return await _handler(event);
-    } catch (_error: unknown) {
-      const error = createError(_error as H3Error);
-      setResponseStatus(event, error.statusCode, error.statusMessage);
-      return {
-        error: {
-          message: `[${error.statusCode}] [${
-            error.statusMessage || "IPX_ERROR"
-          }] ${error.message}`,
-        },
-      };
-    }
   });
-}
-
-export function createIPXH3App(ipx: IPX) {
-  const app = createApp({ debug: true });
-  app.use(createIPXH3Handler(ipx));
-  return app;
-}
-
-export function createIPXWebServer(ipx: IPX) {
-  return toWebHandler(createIPXH3App(ipx));
-}
-
-export function createIPXNodeServer(ipx: IPX) {
-  return toNodeListener(createIPXH3App(ipx));
-}
-
-export function createIPXPlainServer(ipx: IPX) {
-  return toPlainHandler(createIPXH3App(ipx));
 }
 
 // --- Utils ---
 
 function sendResponseHeaderIfNotSet(event: H3Event, name: string, value: any) {
-  if (!getResponseHeader(event, name)) {
-    setResponseHeader(event, name, value);
+  if (!event.res.headers.has(name)) {
+    event.res.headers.set(name, value);
   }
 }
 
-function autoDetectFormat(acceptHeader: string, animated: boolean) {
+function autoDetectFormat(acceptHeader: string, animated: boolean): string {
   if (animated) {
     const acceptMime = negotiate(acceptHeader, ["image/webp", "image/gif"]);
     return acceptMime?.split("/")[1] || "gif";
@@ -196,7 +180,7 @@ function autoDetectFormat(acceptHeader: string, animated: boolean) {
   return acceptMime?.split("/")[1] || "jpeg";
 }
 
-function safeString(input: string) {
+function safeString(input: string | undefined) {
   return JSON.stringify(input)
     .replace(/^"|"$/g, "")
     .replace(/\\+/g, "\\")

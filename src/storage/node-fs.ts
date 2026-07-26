@@ -1,33 +1,42 @@
+import { HTTPError } from "h3";
 import { resolve, parse, join } from "pathe";
-import { createError } from "h3";
-import { cachedPromise, getEnv } from "../utils";
-import type { IPXStorage } from "../types";
+import { getEnv } from "../utils.ts";
+
+import type { IPXStorage } from "../types.ts";
 
 export type NodeFSSOptions = {
+  /**
+   * The directory or list of directories from which to serve files. If not specified, the current directory is used by default.
+   * @optional
+   */
   dir?: string | string[];
+
+  /**
+   * The directory or list of directories from which to serve files. If not specified, the current directory is used by default.
+   * @optional
+   */
   maxAge?: number;
 };
 
+/**
+ * Creates a file system storage handler for IPX that allows images to be served from local directories specified in the options.
+ * This handler resolves directories and handles file access, ensuring that files are served safely.
+ *
+ * @param {NodeFSSOptions} [_options={}] - File system storage configuration options, with optional directory paths and caching configuration. See {@link NodeFSSOptions}.
+ * @returns {IPXStorage} An implementation of the IPXStorage interface for accessing images stored on the local file system. See {@link IPXStorage}.
+ * @throws {H3Error} If there is a problem accessing the file system module or resolving/reading files. See {@link H3Error}.
+ */
 export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
   const dirs = resolveDirs(_options.dir);
   const maxAge = _options.maxAge || getEnv("IPX_FS_MAX_AGE");
 
-  const _getFS = cachedPromise(() =>
-    import("node:fs/promises").catch(() => {
-      throw createError({
-        statusCode: 500,
-        statusText: `IPX_FILESYSTEM_ERROR`,
-        message: `Failed to resolve filesystem module`,
-      });
-    }),
-  );
+  const fs = globalThis.process.getBuiltinModule("node:fs/promises");
 
   const resolveFile = async (id: string) => {
-    const fs = await _getFS();
     for (const dir of dirs) {
       const filePath = join(dir, id);
-      if (!isValidPath(filePath) || !filePath.startsWith(dir)) {
-        throw createError({
+      if (!isValidPath(filePath) || !filePath.startsWith(dir + "/")) {
+        throw new HTTPError({
           statusCode: 403,
           statusText: `IPX_FORBIDDEN_PATH`,
           message: `Forbidden path: ${id}`,
@@ -48,14 +57,14 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
           // Keep looking in other dirs
           continue;
         }
-        throw createError({
+        throw new HTTPError({
           statusCode: 403,
           statusText: `IPX_FORBIDDEN_FILE`,
           message: `Cannot access file: ${id}`,
         });
       }
     }
-    throw createError({
+    throw new HTTPError({
       statusCode: 404,
       statusText: `IPX_FILE_NOT_FOUND`,
       message: `File not found: ${id}`,

@@ -1,14 +1,23 @@
 # 🖼️ IPX
 
-[![npm version][npm-version-src]][npm-version-href]
-[![npm downloads][npm-downloads-src]][npm-downloads-href]
+<!-- automd:badges color=yellow -->
 
-> [!NOTE]
-> This is the active branch for IPX v2. Check out [ipx/v1](https://github.com/unjs/ipx/tree/v1) for v1 docs.
+[![npm version](https://img.shields.io/npm/v/ipx?color=yellow)](https://npmjs.com/package/ipx)
+[![npm downloads](https://img.shields.io/npm/dm/ipx?color=yellow)](https://npm.chart.dev/ipx)
+
+<!-- /automd -->
 
 High performance, secure and easy-to-use image optimizer powered by [sharp](https://github.com/lovell/sharp) and [svgo](https://github.com/svg/svgo).
 
 Used by [Nuxt Image](https://image.nuxt.com/) and [Netlify](https://www.npmjs.com/package/@netlify/ipx) and open to everyone!
+
+## Migration from v3 to v4
+
+> [!NOTE]
+> This is the active development branch for IPX v4. Check out [v3](https://github.com/unjs/ipx/tree/v3) for v3 docs.
+
+- The server creation APIs have changed. See the Programmatic API section for examples.
+- The JSON error format has changed from `{ error: string }` to `{ status, statusText, message }`.
 
 ## Using CLI
 
@@ -20,70 +29,100 @@ Using `npx`:
 npx ipx serve --dir ./
 ```
 
-Usin `bun`
+Using `bun`
 
 ```bash
-bun x npx ipx serve --dir ./
+bunx ipx serve --dir ./
 ```
 
 The default serve directory is the current working directory.
 
-## Programatic API
+## Programmatic API
 
 You can use IPX as a middleware or directly use IPX interface.
 
-```ts
-import { createIPX, ipxFSStorage, ipxHttpStorage } from "ipx";
+**Example:** Using built-in server
+
+<!-- automd:file code src="./examples/serve.ts" -->
+
+```ts [serve.ts]
+import { serveIPX, createIPX, ipxFSStorage, ipxHttpStorage } from "ipx";
 
 const ipx = createIPX({
   storage: ipxFSStorage({ dir: "./public" }),
   httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
+  alias: { "/picsum": "https://picsum.photos" },
 });
+
+// http://localhost:3000/w_512/picsum/1000
+serveIPX(ipx);
 ```
 
-**Example**: Using with [unjs/h3](https://github.com/unjs/h3):
+<!-- /automd -->
 
-```js
-import { listen } from "listhen";
-import { createApp, toNodeListener } from "h3";
+**Example**: Using with [h3](https://h3.dev)
+
+<!-- automd:file code src="./examples/h3.ts" -->
+
+```ts [h3.ts]
+import { H3, serve } from "h3";
+
 import {
   createIPX,
   ipxFSStorage,
   ipxHttpStorage,
-  createIPXH3Handler,
+  createIPXFetchHandler,
 } from "ipx";
 
 const ipx = createIPX({
   storage: ipxFSStorage({ dir: "./public" }),
   httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
+  alias: { "/picsum": "https://picsum.photos" },
 });
 
-const app = createApp().use("/", createIPXH3Handler(ipx));
+const app = new H3();
 
-listen(toNodeListener(app));
+app.mount("/ipx", createIPXFetchHandler(ipx));
+
+// http://localhost:3000/ipx/w_512/picsum/1000
+serve(app);
 ```
 
-**Example:** Using [express](https://expressjs.com):
+<!-- /automd -->
 
-```js
-import { listen } from "listhen";
-import express from "express";
+**Example:** Using with [express](https://expressjs.com)
+
+<!-- automd:file code src="./examples/express.ts" -->
+
+```ts [express.ts]
+import Express from "express";
+
 import {
   createIPX,
   ipxFSStorage,
   ipxHttpStorage,
-  createIPXNodeServer,
+  createIPXNodeHandler,
 } from "ipx";
+
+import type { RequestHandler } from "express";
 
 const ipx = createIPX({
   storage: ipxFSStorage({ dir: "./public" }),
   httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
+  alias: { "/picsum": "https://picsum.photos" },
 });
 
-const app = express().use("/", createIPXNodeServer(ipx));
+const app = Express();
 
-listen(app);
+app.use("/ipx", createIPXNodeHandler(ipx) as RequestHandler);
+
+// http://localhost:3000/ipx/w_512/picsum/1000
+app.listen(3000, () => {
+  console.log("Server is running on http://localhost:3000");
+});
 ```
+
+<!-- /automd -->
 
 ## URL Examples
 
@@ -94,6 +133,10 @@ Get original image:
 Change format to `webp` and keep other things same as source:
 
 `/f_webp/static/buffalo.png`
+
+Automatically convert to a preferred format (avif/webp/jpeg). Uses the browsers `accept` header to negotiate:
+
+`/f_auto/static/buffalo.png`
 
 Keep original format (`png`) and set width to `200`:
 
@@ -108,7 +151,6 @@ Resize to `200x200px` using `embed` method and change format to `webp`:
 You can universally customize IPX configuration using `IPX_*` environment variables.
 
 - `IPX_ALIAS`
-
   - Default: `{}`
 
 ### Filesystem Source Options
@@ -147,8 +189,8 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 
 | Property       | Docs                                                            | Example                                              | Comments                                                                                                                                                          |
 | -------------- | :-------------------------------------------------------------- | :--------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| width / w      | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/width_200/buffalo.png`                             |
-| height / h     | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/height_200/buffalo.png`                            |
+| width / w      | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/width_200/buffalo.png` or `/w_200/buffalo.png`     |
+| height / h     | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/height_200/buffalo.png` or `/h_200/buffalo.png`    |
 | resize / s     | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/s_200x200/buffalo.png`                             |
 | kernel         | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/s_200x200,kernel_nearest/buffalo.png`              | Supported kernel: `nearest`, `cubic`, `mitchell`, `lanczos2` and `lanczos3` (default).                                                                            |
 | fit            | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/s_200x200,fit_outside/buffalo.png`                 | Sets `fit` option for `resize`.                                                                                                                                   |
@@ -157,8 +199,9 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 | extend         | [Docs](https://sharp.pixelplumbing.com/api-resize#extend)       | `/extend_{top}_{right}_{bottom}_{left}/buffalo.png`  | Extend / pad / extrude one or more edges of the image with either the provided background colour or pixels derived from the image.                                |
 | background / b | \_                                                              | `/r_45,b_00ff00/buffalo.png`                         |
 | extract        | [Docs](https://sharp.pixelplumbing.com/api-resize#extract)      | `/extract_{left}_{top}_{width}_{height}/buffalo.png` | Extract/crop a region of the image.                                                                                                                               |
-| format / f     | [Docs](https://sharp.pixelplumbing.com/api-output#toformat)     | `/format_webp/buffalo.png`                           | Supported format: `jpg`, `jpeg`, `png`, `webp`, `avif`, `gif`, `heif`, `tiff` and `auto` (experimental only with middleware)                                      |
-| quality / q    | \_                                                              | `/quality_50/buffalo.png`                            | Accepted values: 0 to 100                                                                                                                                         |
+| crop           | [Docs](https://sharp.pixelplumbing.com/api-resize#extract)      | `/crop_{left}_{top}_{width}_{height}/buffalo.png`    | Alias for extract. Extract/crop a region of the image.                                                                                                            |
+| format / f     | [Docs](https://sharp.pixelplumbing.com/api-output#toformat)     | `/format_webp/buffalo.png` or `/f_webp/buffalo.png`  | Supported format: `jpg`, `jpeg`, `png`, `webp`, `avif`, `gif`, `heif`, `tiff` and `auto` (experimental only with middleware)                                      |
+| quality / q    | \_                                                              | `/quality_50/buffalo.png` or `/q_50/buffalo.png`     | Accepted values: 0 to 100                                                                                                                                         |
 | rotate         | [Docs](https://sharp.pixelplumbing.com/api-operation#rotate)    | `/rotate_45/buffalo.png`                             |
 | enlarge        | \_                                                              | `/enlarge,s_2000x2000/buffalo.png`                   | Allow the image to be upscaled. By default the returned image will never be larger than the source in any dimension, while preserving the requested aspect ratio. |
 | flip           | [Docs](https://sharp.pixelplumbing.com/api-operation#flip)      | `/flip/buffalo.png`                                  |
@@ -173,23 +216,11 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 | threshold      | [Docs](https://sharp.pixelplumbing.com/api-operation#threshold) | `/threshold_10/buffalo.png`                          |
 | tint           | [Docs](https://sharp.pixelplumbing.com/api-colour#tint)         | `/tint_1098123/buffalo.png`                          |
 | grayscale      | [Docs](https://sharp.pixelplumbing.com/api-colour#grayscale)    | `/grayscale/buffalo.png`                             |
-| animated       | -                                                               | `/animated/buffalo.gif`                              | Experimental                                                                                                                                                      |
+| flatten        | [Docs](https://sharp.pixelplumbing.com/api-operation#flatten)   | `/flatten/buffalo.png`                               | Remove alpha channel, if any, and replace with background colour.                                                                                                 |
+| modulate       | [Docs](https://sharp.pixelplumbing.com/api-operation#modulate)  | `/modulate_2_1.2_90_10/buffalo.png`                  | Transforms the image using `{brightness}_{saturation}_{hue}_{lightness}`. Trailing arguments may be omitted.                                                      |
+| crop           | [Docs](https://sharp.pixelplumbing.com/api-resize#extract)      | `/crop_{left}_{top}_{width}_{height}/buffalo.png`    | Alias for extract. Extract/crop a region of the image.                                                                                                            |
+| animated / a   | -                                                               | `/animated/buffalo.gif` or `/a/buffalo.gif`          | Experimental                                                                                                                                                      |
 
 ## License
 
 [MIT](./LICENSE)
-
-<!-- Badges -->
-
-[npm-version-src]: https://img.shields.io/npm/v/ipx?style=flat&colorA=18181B&colorB=F0DB4F
-[npm-version-href]: https://npmjs.com/package/ipx
-[npm-downloads-src]: https://img.shields.io/npm/dm/ipx?style=flat&colorA=18181B&colorB=F0DB4F
-[npm-downloads-href]: https://npmjs.com/package/ipx
-[github-actions-src]: https://img.shields.io/github/workflow/status/unjs/ipx/ci/main?style=flat&colorA=18181B&colorB=F0DB4F
-[github-actions-href]: https://github.com/unjs/ipx/actions?query=workflow%3Aci
-[codecov-src]: https://img.shields.io/codecov/c/gh/unjs/ipx/main?style=flat&colorA=18181B&colorB=F0DB4F
-[codecov-href]: https://codecov.io/gh/unjs/ipx
-[bundle-src]: https://img.shields.io/bundlephobia/minzip/ipx?style=flat&colorA=18181B&colorB=F0DB4F
-[bundle-href]: https://bundlephobia.com/result?p=ipx
-[license-src]: https://img.shields.io/github/license/unjs/ipx.svg?style=flat&colorA=18181B&colorB=F0DB4F
-[license-href]: https://github.com/unjs/ipx/blob/main/LICENSE

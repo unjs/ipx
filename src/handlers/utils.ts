@@ -1,11 +1,31 @@
-import destr from "destr";
 import type { Sharp } from "sharp";
 import type { ImageMeta } from "image-meta";
-import type { Handler, HandlerContext } from "../types";
-import * as Handlers from "./handlers";
+import type { Handler, HandlerContext } from "../types.ts";
+import * as Handlers from "./handlers.ts";
 
 export function VArg(argument: string) {
-  return destr(argument);
+  if (argument === "Infinity") {
+    return Infinity;
+  }
+  if (argument === "undefined") {
+    return undefined;
+  }
+  try {
+    const val = JSON.parse(argument);
+    const t = typeof val;
+    if (t === "boolean" || t === "number" || t === "string" || val === null) {
+      return val;
+    }
+  } catch {
+    // ignore parsing errors
+  }
+  // Fallback to the raw string (e.g. "40x40", "cover", "top", hex colors).
+  // TODO: Add explicit, per-modifier validation/coercion instead of passing raw
+  // strings straight to sharp. Numeric modifiers (blur, rotate, extend, extract,
+  // sharpen, gamma, threshold, quality, ...) currently rely on sharp throwing on
+  // a bad type; we should validate (e.g. number, enum for fit/position/kernel,
+  // hex for background) up front and return a clear error for invalid input.
+  return argument;
 }
 
 export function parseArgs(
@@ -19,7 +39,6 @@ export function parseArgs(
 export type HandlerName = keyof typeof Handlers;
 
 export function getHandler(key: HandlerName): Handler {
-  // eslint-disable-next-line import/namespace
   return Handlers[key];
 }
 

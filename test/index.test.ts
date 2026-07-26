@@ -1,32 +1,38 @@
-import { listen } from "listhen";
-import { resolve } from "pathe";
 import { describe, it, expect, beforeAll } from "vitest";
-import serveHandler from "serve-handler";
-import { IPX, createIPX, ipxFSStorage, ipxHttpStorage } from "../src";
+import { resolve } from "pathe";
+import { serve } from "srvx";
+import { staticMiddleware } from "srvx/static";
+
+import {
+  type IPX,
+  createIPX,
+  ipxFSStorage,
+  ipxHttpStorage,
+} from "../src/index.ts";
 
 describe("ipx", () => {
   let ipx: IPX;
   beforeAll(() => {
     ipx = createIPX({
-      // eslint-disable-next-line unicorn/prefer-module
       storage: ipxFSStorage({ dir: resolve(__dirname, "assets") }),
-      httpStorage: ipxHttpStorage({ domains: ["localhost:3000"] }),
+      httpStorage: ipxHttpStorage({ domains: ["127.0.0.1"] }),
     });
   });
 
   it("remote file", async () => {
-    const listener = await listen(
-      (request, res) => {
-        // eslint-disable-next-line unicorn/prefer-module
-        serveHandler(request, res, { public: resolve(__dirname, "assets") });
-      },
-      { port: 0 },
-    );
-    const source = await ipx(`${listener.url}/bliss.jpg`);
+    const assetsDir = resolve(__dirname, "assets");
+    const server = await serve({
+      port: 0,
+      hostname: "127.0.0.1",
+      fetch: () => new Response("Not Found", { status: 404 }),
+      middleware: [staticMiddleware({ dir: assetsDir })],
+    });
+    await server.ready();
+    const source = await ipx(`${server.url}/bliss.jpg`);
     const { data, format } = await source.process();
     expect(data).toBeInstanceOf(Buffer);
     expect(format).toBe("jpeg");
-    await listener.close();
+    await server.close();
   });
 
   it("local file", async () => {
@@ -35,4 +41,15 @@ describe("ipx", () => {
     expect(data).toBeInstanceOf(Buffer);
     expect(format).toBe("jpeg");
   });
+
+  // Mocking sharp hides this: sharp rejects `undefined` values for args that are
+  // present as keys, so every arity has to be exercised against the real thing.
+  it.each(["2", "2_1", "2_1_90", "2_1_90_10"])(
+    "modulate_%s",
+    async (modifier) => {
+      const source = await ipx("bliss.jpg", { modulate: modifier });
+      const { data } = await source.process();
+      expect(data).toBeInstanceOf(Buffer);
+    },
+  );
 });

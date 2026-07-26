@@ -1,0 +1,40 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  VArg,
+  parseArgs,
+  clampDimensionsPreservingAspectRatio,
+} from "../../src/handlers/utils.ts";
+
+describe("utils", () => {
+  it("VArg", () => {
+    expect(VArg("123")).toBe(123);
+    expect(VArg("true")).toBe(true);
+    expect(VArg("false")).toBe(false);
+    expect(VArg("null")).toBe(null);
+    expect(VArg("undefined")).toBe(undefined);
+    expect(VArg("Infinity")).toBe(Infinity);
+    expect(VArg("450x300")).toBe("450x300");
+    expect(VArg("cover")).toBe("cover");
+    expect(VArg("ff0000")).toBe("ff0000");
+    // TODO: Once explicit per-modifier validation lands (see VArg in utils.ts),
+    // assert that invalid numeric input (e.g. VArg("abc") for blur/rotate/quality)
+    // is rejected/coerced rather than passed through as a raw string to sharp.
+  });
+
+  it("parseArgs", () => {
+    const mappers = [(arg: string) => arg.toUpperCase()];
+    const result = parseArgs("hello_world", mappers);
+    expect(result).toEqual(["HELLO"]);
+  });
+
+  it("clampDimensionsPreservingAspectRatio", () => {
+    const sourceDimensions = { width: 200, height: 100 };
+    const desiredDimensions = { width: 300, height: 150 };
+    const result = clampDimensionsPreservingAspectRatio(
+      sourceDimensions,
+      desiredDimensions,
+    );
+    expect(result).toEqual({ width: 200, height: 100 });
+  });
+});

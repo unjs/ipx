@@ -1,11 +1,14 @@
+import { describe, it, expect, beforeAll } from "vitest";
+
 import { readFile } from "node:fs/promises";
 import { resolve } from "pathe";
-import { describe, it, expect, beforeAll } from "vitest";
+
+import { type IPX, createIPX, unstorageToIPXStorage } from "../src/index.ts";
+
 import { createStorage } from "unstorage";
 import fsLiteDriver from "unstorage/drivers/fs-lite";
 import githubDriver from "unstorage/drivers/github";
 import httpDriver from "unstorage/drivers/http";
-import { IPX, createIPX, unstorageToIPXStorage } from "../src";
 
 const sampleImage = await readFile(
   new URL("assets/bliss.jpg", import.meta.url),
@@ -16,7 +19,6 @@ const tests = [
     name: "node-fs",
     skip: false,
     setup() {
-      // eslint-disable-next-line unicorn/prefer-module
       const driver = fsLiteDriver({ base: resolve(__dirname, "assets") });
       const storage = createStorage({ driver });
       return createIPX({ storage: unstorageToIPXStorage(storage) });
