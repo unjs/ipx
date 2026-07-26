@@ -55,6 +55,17 @@ const xssVectors = [
     absent: ["<set", "onload", "alert(1)"],
   },
   {
+    name: "SMIL event handler injection with padded attributeName",
+    svg: `<svg ${svgAttrs}><rect width="1" height="1"><set attributeName=" onload" to="alert(1)"/></rect></svg>`,
+    absent: ["<set", "onload", "alert(1)"],
+  },
+  {
+    // An HTML parser lowercases these into a live `<set attributeName="href">`
+    name: "SMIL injection with uppercase names",
+    svg: `<svg ${svgAttrs}><a><SET ATTRIBUTENAME="HREF" TO="javascript:alert(1)"/><circle cx="8" cy="8" r="4"/></a></svg>`,
+    absent: ["SET", "javascript:", "alert(1)"],
+  },
+  {
     name: "SMIL href injection",
     svg: `<svg ${svgAttrs}><a><animate attributeName="xlink:href" values="javascript:alert(1)" dur="1s"/><rect width="1" height="1"/></a></svg>`,
     absent: ["<animate", "javascript:"],
@@ -85,6 +96,13 @@ const xssVectors = [
     name: "xml-stylesheet processing instruction",
     svg: `<?xml-stylesheet type="text/xsl" href="http://evil.com/evil.xsl"?><svg ${svgAttrs}><rect width="1" height="1"/></svg>`,
     absent: ["xml-stylesheet", "evil.xsl"],
+  },
+  {
+    // Instructions are serialized unescaped, an HTML parser ends the bogus
+    // comment at the first `>` and treats the rest as markup
+    name: "markup smuggled in a processing instruction",
+    svg: `<?foo ><script>alert(1)</script>?><svg ${svgAttrs}><rect width="1" height="1"/></svg>`,
+    absent: ["<?foo", "<script", "alert(1)"],
   },
 ];
 
@@ -159,11 +177,30 @@ describe("optimize svg", () => {
     expect(output).not.toContain("<script");
   });
 
+  it("uses no plugins when configured with an empty list", async () => {
+    const output = await processSVG(svg, {
+      svg: { optimize: { plugins: [] } },
+    });
+    expect(output).toContain("<!--comment-->");
+    expect(output).toContain("<title>title</title>");
+    expect(output).not.toContain("<script");
+  });
+
   it("skips optimization when disabled", async () => {
     const output = await processSVG(svg, { svg: { optimize: false } });
     expect(output).toContain("<!--comment-->");
     expect(output).toContain("<title>title</title>");
     expect(output).not.toContain("<script");
+  });
+
+  it("throws a 400 for unparsable svg", async () => {
+    // Unescaped `&` is invalid XML but common in the wild
+    const svg = `<svg ${svgAttrs}><image href="https://example.com/i?a=1&b=2" width="1" height="1"/></svg>`;
+    const ipx = createIPX({ storage: inlineStorage(svg) });
+    await expect(ipx("test.svg").process()).rejects.toMatchObject({
+      statusCode: 400,
+      statusText: "IPX_INVALID_SVG",
+    });
   });
 });
 

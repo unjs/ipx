@@ -69,14 +69,22 @@ function isUnsafeURI(value: string): boolean {
 }
 
 function isUnsafeAnimation(attributes: Record<string, string>): boolean {
+  // Attributes are looked up by local name since an HTML parser lowercases
+  // them, turning `ATTRIBUTENAME` into a live `attributeName` when inlined
+  const attrs: Record<string, string> = {};
+  for (const [name, value] of Object.entries(attributes)) {
+    attrs[localName(name)] = value;
+  }
+
   // <set attributeName="onload" to="alert(1)" />
-  if (localName(attributes.attributeName || "").startsWith("on")) {
+  // The value is trimmed, as optimizers do the same before it reaches a browser
+  if (localName(attrs.attributename?.trim() || "").startsWith("on")) {
     return true;
   }
   // <animate attributeName="href" values="javascript:alert(1)" />
   return ANIMATION_VALUE_ATTRS.some((attr) =>
     // `values` is a `;` separated list
-    (attributes[attr] || "").split(";").some((value) => isUnsafeURI(value)),
+    (attrs[attr] || "").split(";").some((value) => isUnsafeURI(value)),
   );
 }
 
@@ -88,9 +96,10 @@ function detach(node: XastChild, parent: XastParent): void {
  * An SVGO plugin that strips the parts of an SVG document that can execute
  * script when the image is served or inlined.
  *
- * It is always applied, regardless of the `svgo` option, and complements
- * SVGO's built-in `removeScripts` plugin which only handles `<script>`, the
- * known `on*` attributes and `javascript:` links on `<a>`.
+ * It is always applied, regardless of the `svg.optimize` option. SVGO's
+ * built-in `removeScripts` plugin runs alongside it as a second layer, but
+ * only handles `<script>`, the known `on*` attributes and `javascript:`
+ * links on `<a>`.
  *
  * External references (`<image href>`, `<use href>`, `@import` in `<style>`,
  * fonts, ...) are intentionally kept. See the security section of the readme.
@@ -98,18 +107,17 @@ function detach(node: XastChild, parent: XastParent): void {
 export const sanitizeSVGPlugin: CustomPlugin = {
   name: "ipx-sanitize",
   fn: () => ({
-    // Drop the internal subset. Entities are already expanded while parsing and
-    // re-emitting the declarations would allow expansion again downstream.
+    // Drop the doctype. Entities of the internal subset are already expanded
+    // while parsing and re-emitting the declarations would allow expansion
+    // again downstream.
     doctype: {
       enter: (node, parentNode) => detach(node, parentNode),
     },
-    // <?xml-stylesheet href="..."?> can load an external (XSLT) stylesheet.
+    // Drop processing instructions. `<?xml-stylesheet href="..."?>` can load an
+    // external (XSLT) stylesheet, and instructions are serialized unescaped, so
+    // `<?foo ><script>...</script>?>` turns into markup in an HTML parser.
     instruction: {
-      enter: (node, parentNode) => {
-        if (node.name.toLowerCase() === "xml-stylesheet") {
-          detach(node, parentNode);
-        }
-      },
+      enter: (node, parentNode) => detach(node, parentNode),
     },
     element: {
       enter: (node, parentNode) => {

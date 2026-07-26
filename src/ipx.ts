@@ -152,7 +152,7 @@ export type IPXOptions = {
   httpStorage?: IPXStorage;
 
   /**
-   * Options for SVG images, which are served as-is instead of being processed by Sharp.
+   * Options for SVG images, which are processed by SVGO instead of Sharp.
    * @optional
    */
   svg?: {
@@ -330,11 +330,12 @@ export function createIPX(userOptions: IPXOptions): IPX {
         }
 
         // Sanitization runs first so that optimization only sees safe input.
-        // SVGO applies `preset-default` only when no plugins are configured.
+        // SVGO skips `preset-default` whenever `plugins` is set, which is
+        // always the case here, so it has to be added explicitly.
         const plugins: SVGOPluginConfig[] = sanitize
           ? ["removeScripts", sanitizeSVGPlugin]
           : [];
-        if (svgoConfig?.plugins?.length) {
+        if (svgoConfig?.plugins) {
           plugins.push(...svgoConfig.plugins);
         } else if (shouldOptimize) {
           plugins.push("preset-default");
@@ -342,10 +343,20 @@ export function createIPX(userOptions: IPXOptions): IPX {
 
         // https://github.com/svg/svgo
         const { optimize } = await getSVGO();
-        const svg = optimize(sourceData.toString("utf8"), {
-          ...svgoConfig,
-          plugins,
-        }).data;
+        let svg: string;
+        try {
+          svg = optimize(sourceData.toString("utf8"), {
+            ...svgoConfig,
+            plugins,
+          }).data;
+        } catch (error) {
+          throw new HTTPError({
+            statusCode: 400,
+            statusText: `IPX_INVALID_SVG`,
+            message: `Cannot parse SVG: ${id}`,
+            cause: error,
+          });
+        }
         return {
           data: svg,
           format: "svg+xml",
