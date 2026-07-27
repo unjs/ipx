@@ -80,8 +80,11 @@ describe("ipx", () => {
       "dilate (no args)": { dilate: "" },
       erode: { erode: "3" },
       "erode (no args)": { erode: "" },
-      clahe: { clahe: "10" },
-      "clahe (all args)": { clahe: "10_20_5" },
+      // Resized first: clahe is expensive enough on the full 3840x2160
+      // source to trip the default test timeout, and what is under test here
+      // is the argument handling.
+      clahe: { resize: "200", clahe: "10" },
+      "clahe (all args)": { resize: "200", clahe: "10_20_5" },
       flatten: { flatten: "", background: "ff0000" },
       unflatten: { unflatten: "" },
       gamma: { gamma: "2.2_1.8" },
@@ -102,8 +105,13 @@ describe("ipx", () => {
       tint: { tint: "00ff00" },
       "tint (named)": { tint: "red" },
       grayscale: { grayscale: "" },
-      opacity: { opacity: "0.5", format: "png" },
-      "opacity (background)": { opacity: "0.5", background: "ffffff" },
+      // Resized first: encoding a full size png is slow enough to matter.
+      opacity: { resize: "200", opacity: "0.5", format: "png" },
+      "opacity (background)": {
+        resize: "200",
+        opacity: "0.5",
+        background: "ffffff",
+      },
     };
 
     it.each(Object.entries(valid))("%s", async (_name, modifiers) => {
