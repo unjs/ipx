@@ -260,25 +260,71 @@ export function applyHandler(
   try {
     return handler.apply(context, pipe, ...arguments_);
   } catch (error) {
-    // Arg mappers cover the common cases, but sharp does some validation of its
-    // own (unknown colour names, ...). Modifiers are user input, so surface it
-    // as a `400` rather than an unhandled `500`.
-    if (HTTPError.isError(error)) {
-      throw error;
-    }
-    throw new HTTPError({
-      statusCode: 400,
-      statusText: "IPX_INVALID_MODIFIER",
-      message: `Cannot apply modifier: ${(error as Error)?.message || error}`,
-      cause: error,
-    });
+    throw asModifierError(error);
   }
+}
+
+/**
+ * Turns an error raised while applying modifiers into a `400`.
+ *
+ * Arg mappers cover the common cases, but sharp and libvips do some validation
+ * of their own (unknown colour names, a `clahe` window larger than the image,
+ * ...). Modifiers are user input, so their failures are surfaced as a `400`
+ * rather than an unhandled `500`.
+ */
+export function asModifierError(error: unknown): Error {
+  if (HTTPError.isError(error)) {
+    return error;
+  }
+  return new HTTPError({
+    statusCode: 400,
+    statusText: "IPX_INVALID_MODIFIER",
+    message: `Cannot apply modifier: ${(error as Error)?.message || error}`,
+    cause: error,
+  });
 }
 
 // Colours are interpolated into SVG attributes below. `VColor` only lets a hex,
 // functional or named colour through, none of which can contain a quote or an
 // angle bracket, so they cannot break out of the attribute.
 const SVG_NS = "http://www.w3.org/2000/svg";
+
+/**
+ * Rejects a `round` that would need a raw buffer larger than the budget.
+ *
+ * `applyRoundedCorners` has to materialize the whole output as raw pixels, so
+ * unlike the rest of the pipeline -- which libvips streams -- its cost is the
+ * full size of the image at once. The check runs before anything is allocated,
+ * from the largest output the modifiers could produce: `maxOutputDimension`
+ * bounds a single page, but an animated image stacks all of its pages into one
+ * tall image and nothing else bounds *that*.
+ *
+ * @param max The limit, or `false`/`undefined` to leave it unchecked.
+ * @param output Upper bounds on the pipeline output.
+ * @throws {HTTPError} A `400` when the image cannot fit.
+ */
+export function assertRoundedCornersFit(
+  max: number | false | undefined,
+  output: {
+    pages: number;
+    source: { width?: number; height?: number };
+    canGrow: boolean;
+  },
+): void {
+  if (!max) {
+    return;
+  }
+  const { pages, source, canGrow } = output;
+  const width = canGrow ? max : Math.min(max, source.width || max);
+  const height = canGrow ? max : Math.min(max, source.height || max);
+  if (pages * width * height > max * max) {
+    throw new HTTPError({
+      statusCode: 400,
+      statusText: "IPX_OUTPUT_TOO_LARGE",
+      message: `Cannot round the corners of ${pages} pages of up to ${width}x${height}: it exceeds the ${max}x${max} budget`,
+    });
+  }
+}
 
 /**
  * Rounds the corners of the image.
@@ -305,8 +351,10 @@ export async function applyRoundedCorners(
   Sharp: typeof import("sharp").default,
   pipe: Sharp,
   radius: number,
-  background?: string,
+  options: { background?: string; maxOutputDimension?: number | false } = {},
 ): Promise<Sharp> {
+  const { background, maxOutputDimension: max } = options;
+
   // `depth` is forced so that a 16-bit pipeline cannot be re-read as 8-bit.
   const { data, info } = await pipe
     .ensureAlpha()
@@ -314,6 +362,19 @@ export async function applyRoundedCorners(
     .toBuffer({ resolveWithObject: true });
 
   const { width, height, channels } = info;
+
+  // Rasterizing the overlay and decoding the raw data again both allocate
+  // another copy of the image, so the total is held to the same budget as a
+  // single `maxOutputDimension` square. Animated images are the case that gets
+  // there, since their pages are stacked into one tall image.
+  if (max && width * height > max * max) {
+    throw new HTTPError({
+      statusCode: 400,
+      statusText: "IPX_OUTPUT_TOO_LARGE",
+      message: `Cannot round the corners of a ${width}x${height} image: it exceeds the ${max}x${max} budget`,
+    });
+  }
+
   const pageHeight = info.pageHeight || height;
   const pages = Math.max(1, Math.round(height / pageHeight));
   const r = Math.min(radius, width / 2, pageHeight / 2);
@@ -346,6 +407,9 @@ export async function applyRoundedCorners(
   }).composite([
     {
       input: Buffer.from(overlay),
+      // The overlay covers every page of an animated image, so it can be taller
+      // than the sharp default allows. It is bounded by the check above.
+      limitInputPixels: false,
       blend: background ? "over" : "dest-in",
     },
   ]);

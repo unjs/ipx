@@ -217,20 +217,72 @@ describe("ipx", () => {
         expect(`${width}x${height}`).toBe("120x60");
       });
 
-      it("round keeps the frames of an animated image", async () => {
-        const { data } = await (
-          await ipx("giphy.gif", { round: "20", animated: "" })
-        ).process();
-        const sharp = await import("sharp").then((r) => r.default);
-        const source = await sharp(resolve(__dirname, "assets/giphy.gif"), {
-          animated: true,
-        }).metadata();
-        const output = await sharp(data as Buffer, {
-          animated: true,
-        }).metadata();
-        expect(output.pages).toBe(source.pages);
-        expect(output.pageHeight).toBe(source.pageHeight);
+      // The mask is composited onto a pipeline rebuilt from raw pixels, which
+      // carries neither the frame layout nor the frame timing.
+      it.each(["gif", "webp"])(
+        "round keeps the frames of an animated image (%s)",
+        async (format) => {
+          const { data } = await (
+            await ipx("giphy.gif", { round: "20", animated: "", format })
+          ).process();
+          const sharp = await import("sharp").then((r) => r.default);
+          const source = await sharp(resolve(__dirname, "assets/giphy.gif"), {
+            animated: true,
+          }).metadata();
+          const output = await sharp(data as Buffer, {
+            animated: true,
+          }).metadata();
+          expect(output.pages).toBe(source.pages);
+          expect(output.pageHeight).toBe(source.pageHeight);
+          expect(output.delay).toEqual(source.delay);
+          expect(output.loop).toBe(source.loop);
+        },
+      );
+
+      // The mask needs the whole output as raw pixels at once, unlike the rest
+      // of the pipeline, which libvips streams. `maxOutputDimension` only
+      // bounds a single page, and an animated image stacks all of its pages.
+      it("round rejects an animated image that busts the output budget", async () => {
+        await expect(
+          (
+            await ipx("giphy.gif", {
+              animated: "",
+              enlarge: "",
+              resize: "4096x4096",
+              round: "20",
+            })
+          ).process(),
+        ).rejects.toMatchObject({
+          statusCode: 400,
+          statusText: "IPX_OUTPUT_TOO_LARGE",
+        });
       });
+
+      // Both are composited through an SVG, where an unparseable colour would
+      // otherwise silently render as black.
+      it.each([
+        ["round", { round: "20", background: "nosuchcolour" }],
+        ["opacity", { opacity: "0.5", background: "nosuchcolour" }],
+      ])(
+        "%s rejects an unknown background colour",
+        async (_name, modifiers) => {
+          await expect(
+            (await ipx("bliss.jpg", modifiers)).process(),
+          ).rejects.toMatchObject({ statusCode: 400 });
+        },
+      );
+    });
+
+    // libvips validates some arguments only once it runs, which happens after
+    // every handler has been applied.
+    it.each([
+      // A clahe window larger than the (resized) image
+      ["clahe", { resize: "50", clahe: "100" }],
+      ["extract", { extract: "0_0_99999_99999" }],
+    ])("%s failing inside libvips is a 400", async (_name, modifiers) => {
+      await expect(
+        (await ipx("bliss.jpg", modifiers)).process(),
+      ).rejects.toMatchObject({ statusCode: 400 });
     });
 
     const invalid: Record<string, Record<string, string>> = {

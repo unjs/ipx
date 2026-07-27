@@ -275,6 +275,24 @@ describe("handlers", () => {
     expect(sharpMock.sharpen).toHaveBeenCalledWith();
   });
 
+  // libvips rejects a window larger than the image ("window too large"), so it
+  // is clamped to the source rather than surfacing as a 500.
+  it("clahe.apply() clamps its window to the source", () => {
+    const sharpMock = {
+      clahe: vi.fn(),
+    };
+
+    clahe.apply(
+      { meta: { width: 40, height: 30 } } as any,
+      sharpMock as any,
+      100,
+      100,
+      undefined,
+    );
+
+    expect(sharpMock.clahe).toHaveBeenCalledWith({ width: 40, height: 30 });
+  });
+
   it("median.apply() returns expected values", () => {
     const sharpMock = {
       median: vi.fn(),
@@ -834,11 +852,11 @@ describe("handler args", () => {
       blur,
       ["abc", "0.2", "1001", "true", "5_nearest", "5_float_0", "5_float_1.5"],
     ],
-    dilate: [dilate, ["abc", "0", "1.5", "1001"]],
-    erode: [erode, ["abc", "0", "1.5", "1001"]],
-    clahe: [clahe, ["", "abc", "0", "1.5", "65537", "10_0", "10_10_101"]],
-    linear: [linear, ["abc", "1001", "1.2_256", "true"]],
-    brightness: [brightness, ["", "abc", "-1", "101"]],
+    dilate: [dilate, ["abc", "0", "1.5", "101"]],
+    erode: [erode, ["abc", "0", "1.5", "101"]],
+    clahe: [clahe, ["", "abc", "0", "1.5", "101", "10_0", "10_10_101"]],
+    linear: [linear, ["abc", "true", "Infinity", "1_abc"]],
+    brightness: [brightness, ["", "abc", "-1"]],
     saturation: [saturation, ["", "abc", "-1"]],
     hue: [hue, ["", "abc", "1.5"]],
     lightness: [lightness, ["", "abc"]],

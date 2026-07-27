@@ -352,10 +352,12 @@ export const blur: Handler = {
 };
 
 // https://sharp.pixelplumbing.com/api-operation#dilate
-// The mask grows with the width, so the (much higher) sharp maximum of `65536`
-// is not exposed here, in line with the `median` cap.
+// The cost grows with the width -- sharp's maximum of `65536` takes minutes on
+// a large image -- so these are capped at a value that still covers what the
+// operation is useful for.
+const MAX_MORPHOLOGY = 100;
 export const dilate: Handler = {
-  args: [VNumber("dilate", { min: 1, max: 1000, integer: true })],
+  args: [VNumber("dilate", { min: 1, max: MAX_MORPHOLOGY, integer: true })],
   apply: (_context, pipe, width) => {
     return pipe.dilate(width);
   },
@@ -363,28 +365,36 @@ export const dilate: Handler = {
 
 // https://sharp.pixelplumbing.com/api-operation#erode
 export const erode: Handler = {
-  args: [VNumber("erode", { min: 1, max: 1000, integer: true })],
+  args: [VNumber("erode", { min: 1, max: MAX_MORPHOLOGY, integer: true })],
   apply: (_context, pipe, width) => {
     return pipe.erode(width);
   },
 };
 
 // https://sharp.pixelplumbing.com/api-operation#clahe
+// libvips also rejects a window larger than the image itself ("window too
+// large"), and the cost grows with it, so the range is capped well below the
+// sharp maximum of `65536` -- in line with the `median` cap -- and clamped to
+// the source dimensions.
+const MAX_CLAHE = 100;
 export const clahe: Handler = {
   args: [
     // sharp requires both sides, but a square window is the common case so an
     // omitted `height` falls back to `width` rather than being rejected.
     VRequired(
       "clahe.width",
-      VNumber("clahe.width", { min: 1, max: 65_536, integer: true }),
+      VNumber("clahe.width", { min: 1, max: MAX_CLAHE, integer: true }),
     ),
-    VNumber("clahe.height", { min: 1, max: 65_536, integer: true }),
+    VNumber("clahe.height", { min: 1, max: MAX_CLAHE, integer: true }),
     VNumber("clahe.maxSlope", { min: 0, max: 100, integer: true }),
   ],
-  apply: (_context, pipe, width, height, maxSlope) => {
+  apply: (context, pipe, width, height, maxSlope) => {
     return pipe.clahe({
-      width,
-      height: height ?? width,
+      width: Math.min(width, context.meta.width || width),
+      height: Math.min(
+        height ?? width,
+        (context.meta.height || height) ?? width,
+      ),
       ...(maxSlope === undefined ? {} : { maxSlope }),
     });
   },
@@ -461,8 +471,9 @@ export const threshold: Handler = {
 // https://sharp.pixelplumbing.com/api-operation#linear
 export const linear: Handler = {
   args: [
-    VNumber("linear.a", { min: -1000, max: 1000 }),
-    VNumber("linear.b", { min: -255, max: 255 }),
+    // sharp accepts any finite number for both.
+    VNumber("linear.a"),
+    VNumber("linear.b"),
   ],
   apply: (_context, pipe, a, b) => {
     return pipe.linear(a, b);
@@ -494,14 +505,14 @@ export const modulate: Handler = {
 // merges the calls, so `/brightness_2,hue_90/` is one `modulate` operation.
 
 export const brightness: Handler = {
-  args: [VRequired("brightness", VNumber("brightness", { min: 0, max: 100 }))],
+  args: [VRequired("brightness", VNumber("brightness", { min: 0 }))],
   apply: (_context, pipe, brightness) => {
     return pipe.modulate({ brightness });
   },
 };
 
 export const saturation: Handler = {
-  args: [VRequired("saturation", VNumber("saturation", { min: 0, max: 100 }))],
+  args: [VRequired("saturation", VNumber("saturation", { min: 0 }))],
   apply: (_context, pipe, saturation) => {
     return pipe.modulate({ saturation });
   },
