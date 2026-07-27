@@ -19,9 +19,10 @@
   ],
   "scripts": {
     "build": "obuild",
+    "gen:operations": "node ./scripts/gen-operations.ts",
     "ipx": "node ./src/cli.ts",
-    "lint": "eslint . && prettier -c src test",
-    "lint:fix": "automd && eslint . --fix && prettier -w src test",
+    "lint": "eslint . && prettier -c src test scripts automd.config.ts",
+    "lint:fix": "automd && eslint . --fix && prettier -w src test scripts automd.config.ts",
     "prepack": "pnpm build",
     "release": "pnpm test && pnpm build && changelogen --release --prerelease --publish --publishTag alpha --push",
     "start": "node bin/ipx.js",

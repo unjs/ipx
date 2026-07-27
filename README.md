@@ -236,48 +236,326 @@ Modifier arguments are separated with `_` and validated before they reach sharp.
 
 Colours (`background`, `tint`) accept any colour sharp understands: hex (`f00`, `ff0000`, `ff000080`) with an optional leading `#` — which cannot be used inside a URL path, so it may be dropped — or a CSS colour name (`red`). Boolean arguments accept `true` / `false` as well as the shorter `1` / `0`.
 
-| Property       | Docs                                                            | Example                                                          | Comments                                                                                                                                                                                                                                          |
-| -------------- | :-------------------------------------------------------------- | :--------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| width / w      | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/width_200/buffalo.png` or `/w_200/buffalo.png`                 | Positive integer.                                                                                                                                                                                                                                 |
-| height / h     | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/height_200/buffalo.png` or `/h_200/buffalo.png`                | Positive integer.                                                                                                                                                                                                                                 |
-| resize / s     | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/s_200x200/buffalo.png`                                         | `{width}x{height}` of positive integers. A single value (`/s_200/`) is a square.                                                                                                                                                                   |
-| kernel         | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/s_200x200,kernel_nearest/buffalo.png`                          | Sets `kernel` option for `resize`. One of `nearest`, `linear`, `cubic`, `mitchell`, `lanczos2`, `lanczos3` (default), `mks2013` or `mks2021`.                                                                                                      |
-| fit            | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/s_200x200,fit_outside/buffalo.png`                             | Sets `fit` option for `resize`. One of `contain`, `cover` (default), `fill`, `inside` or `outside`.                                                                                                                                                |
-| position / pos | [Docs](https://sharp.pixelplumbing.com/api-resize#resize)       | `/s_200x200,pos_top/buffalo.png`                                 | Sets `position` option for `resize`. A position (`top`, `right top`, `right`, `right bottom`, `bottom`, `left bottom`, `left`, `left top`), gravity (`north`, `northeast`, ..., `center`) or strategy (`entropy`, `attention`). Since `_` separates arguments, multi-word values use `-` (`/pos_right-top/`). The numeric gravity (`0`-`8`) and strategy (`16`-`17`) constants are also accepted.  |
-| trim           | [Docs](https://sharp.pixelplumbing.com/api-resize#trim)         | `/trim_100/buffalo.png`                                          | Trim threshold, a number `>= 0` (defaults to `10`).                                                                                                                                                                                               |
-| extend         | [Docs](https://sharp.pixelplumbing.com/api-resize#extend)       | `/extend_10_20_10_20_mirror/buffalo.png`                         | Extend / pad / extrude one or more edges of the image. Format: `/extend_{top}_{right}_{bottom}_{left}_{extendWith}/`. Edges are integers between `0` and `10000`. Optional `extendWith`: `background` (default), `copy`, `repeat` or `mirror`. When extending with `background`, the colour comes from the `background` / `b` modifier, e.g. `/b_00ff00,extend_10_20_10_20/buffalo.png`. |
-| background / b | \_                                                              | `/r_45,b_00ff00/buffalo.png`                                     | Background colour used by `extend`, `rotate`, `flatten`, `opacity` and `resize` (with `fit_contain`).                                                                                                                                     |
-| extract        | [Docs](https://sharp.pixelplumbing.com/api-resize#extract)      | `/extract_{left}_{top}_{width}_{height}/buffalo.png`             | Extract/crop a region of the image. All four arguments are required; `width` and `height` must be positive.                                                                                                                                        |
-| crop           | [Docs](https://sharp.pixelplumbing.com/api-resize#extract)      | `/crop_{left}_{top}_{width}_{height}/buffalo.png`                | Alias for extract. Extract/crop a region of the image.                                                                                                                                                                                            |
-| format / f     | [Docs](https://sharp.pixelplumbing.com/api-output#toformat)     | `/format_webp/buffalo.png` or `/f_webp/buffalo.png`              | Supported format: `jpg`, `jpeg`, `png`, `webp`, `avif`, `gif`, `heif`, `tiff` and `auto` (experimental only with middleware)                                                                                                                       |
-| quality / q    | \_                                                              | `/quality_50/buffalo.png` or `/q_50/buffalo.png`                 | Integer between `1` and `100`.                                                                                                                                                                                                                    |
-| rotate         | [Docs](https://sharp.pixelplumbing.com/api-operation#rotate)    | `/rotate_45/buffalo.png`                                         | Angle in degrees, between `-3600` and `3600`. Angles that are not a multiple of `90` are filled with the `background` / `b` colour. Without an angle (`/rotate/`) the image is auto-oriented from its EXIF tag.                                     |
-| enlarge        | \_                                                              | `/enlarge,s_2000x2000/buffalo.png`                               | Allow the image to be upscaled. By default the returned image will never be larger than the source in any dimension, while preserving the requested aspect ratio.                                                                                  |
-| autoorient     | [Docs](https://sharp.pixelplumbing.com/api-operation#autoorient) | `/autoorient/buffalo.png`                                       | Rotate and flip the image based on its EXIF `Orientation` tag, then remove the tag.                                                                                                                                                               |
-| flip           | [Docs](https://sharp.pixelplumbing.com/api-operation#flip)      | `/flip/buffalo.png`                                              |                                                                                                                                                                                                                                                   |
-| flop           | [Docs](https://sharp.pixelplumbing.com/api-operation#flop)      | `/flop/buffalo.png`                                              |                                                                                                                                                                                                                                                   |
-| sharpen        | [Docs](https://sharp.pixelplumbing.com/api-operation#sharpen)   | `/sharpen_2_1_2/buffalo.png`                                     | `{sigma}_{flat}_{jagged}_{x1}_{y2}_{y3}`. `sigma` is between `0.000001` and `10`, the rest between `0` and `1000000`. Without arguments (`/sharpen/`) a mild sharpen is applied.                                                                   |
-| median         | [Docs](https://sharp.pixelplumbing.com/api-operation#median)    | `/median_10/buffalo.png`                                         | Square mask size, an integer between `1` and `1000` (defaults to `3`).                                                                                                                                                                            |
-| blur           | [Docs](https://sharp.pixelplumbing.com/api-operation#blur)      | `/blur_5/buffalo.png`                                            | `{sigma}_{precision}_{minAmplitude}`. `sigma` is a number between `0.3` and `1000`, `precision` one of `integer` (default), `float` or `approximate`, `minAmplitude` a number between `0.001` and `1`. Without arguments (`/blur/`) a mild blur is applied. |
-| dilate         | [Docs](https://sharp.pixelplumbing.com/api-operation#dilate)    | `/dilate_3/buffalo.png`                                          | Expand foreground objects. Width in pixels, an integer between `1` and `100` (defaults to `1`). Capped below the sharp maximum, since the cost grows with the width.                                                                               |
-| erode          | [Docs](https://sharp.pixelplumbing.com/api-operation#erode)     | `/erode_3/buffalo.png`                                           | Shrink foreground objects. Width in pixels, an integer between `1` and `100` (defaults to `1`). Capped below the sharp maximum, since the cost grows with the width.                                                                               |
-| clahe          | [Docs](https://sharp.pixelplumbing.com/api-operation#clahe)     | `/clahe_50_50_3/buffalo.png`                                     | Contrast limiting adaptive histogram equalization, as `{width}_{height}_{maxSlope}`. `width` is required and `height` defaults to it (a square window); both are integers between `1` and `100`, capped below the sharp maximum since the cost grows with the window, and clamped to the source dimensions. `maxSlope` is an integer between `0` and `100` (defaults to `3`). |
-| unflatten      | [Docs](https://sharp.pixelplumbing.com/api-operation#unflatten) | `/unflatten/buffalo.png`                                         |                                                                                                                                                                                                                                                   |
-| gamma          | [Docs](https://sharp.pixelplumbing.com/api-operation#gamma)     | `/gamma_2.2_1.8/buffalo.png`                                     | `{gamma}_{gammaOut}`, each a number between `1.0` and `3.0` (defaults to `2.2`).                                                                                                                                                                  |
-| negate         | [Docs](https://sharp.pixelplumbing.com/api-operation#negate)    | `/negate/buffalo.png`                                            | Optional `{alpha}` (`true` by default) controls whether the alpha channel is negated too, e.g. `/negate_false/`.                                                                                                                                   |
-| normalize      | [Docs](https://sharp.pixelplumbing.com/api-operation#normalize) | `/normalize_1_99/buffalo.png`                                    | Stretch the luminance to the full dynamic range, as `{lower}_{upper}` percentiles. `lower` is a number between `0` and `99` (defaults to `1`), `upper` between `1` and `100` (defaults to `99`) and has to be greater than `lower`.                |
-| threshold      | [Docs](https://sharp.pixelplumbing.com/api-operation#threshold) | `/threshold_10/buffalo.png`                                      | `{threshold}_{grayscale}`. `threshold` is an integer between `0` and `255` (defaults to `128`). Optional `grayscale` (`true` by default) converts to single channel grayscale first, e.g. `/threshold_128_false/`.                                  |
-| linear         | [Docs](https://sharp.pixelplumbing.com/api-operation#linear)    | `/linear_1.2_-10/buffalo.png`                                    | Levels adjustment applying `a * input + b`, as `{a}_{b}`. `a` is the multiplier (defaults to `1`), `b` the offset (defaults to `0`).                                                                                                               |
-| tint           | [Docs](https://sharp.pixelplumbing.com/api-colour#tint)         | `/tint_00ff00/buffalo.png`                                       | Tint colour.                                                                                                                                                                                                                                      |
-| grayscale      | [Docs](https://sharp.pixelplumbing.com/api-colour#grayscale)    | `/grayscale/buffalo.png`                                         |                                                                                                                                                                                                                                                   |
-| flatten        | [Docs](https://sharp.pixelplumbing.com/api-operation#flatten)   | `/flatten/buffalo.png`                                           | Remove alpha channel, if any, and replace with the `background` / `b` colour.                                                                                                                                                                     |
-| modulate       | [Docs](https://sharp.pixelplumbing.com/api-operation#modulate)  | `/modulate_2_1.2_90_10/buffalo.png`                              | Transforms the image using `{brightness}_{saturation}_{hue}_{lightness}`. `brightness` and `saturation` are numbers `>= 0`, `hue` is an integer in degrees. Each is also available on its own (below), which is easier to read when only one is needed. |
-| brightness     | [Docs](https://sharp.pixelplumbing.com/api-operation#modulate)  | `/brightness_1.25/buffalo.png`                                   | Brightness multiplier, a number `>= 0`. Required.                                                                                                                                                                                                 |
-| saturation     | [Docs](https://sharp.pixelplumbing.com/api-operation#modulate)  | `/saturation_0.5/buffalo.png`                                    | Saturation multiplier, a number `>= 0`. Required.                                                                                                                                                                                                 |
-| hue            | [Docs](https://sharp.pixelplumbing.com/api-operation#modulate)  | `/hue_90/buffalo.png`                                            | Hue rotation, an integer in degrees. Required.                                                                                                                                                                                                    |
-| lightness      | [Docs](https://sharp.pixelplumbing.com/api-operation#modulate)  | `/lightness_10/buffalo.png`                                      | Lightness addend, a number. Required.                                                                                                                                                                                                             |
-| opacity        | \_                                                              | `/opacity_0.75/buffalo.png`                                      | Opacity, a number between `0` and `1`. Required. The image is made transparent, so the output format needs an alpha channel (`png`, `webp`, `avif`). Set the `background` / `b` colour to blend into it instead and keep the output opaque, e.g. `/opacity_0.75,b_fff,f_jpeg/`. |
-| animated / a   | -                                                               | `/animated/buffalo.gif` or `/a/buffalo.gif`                      | Experimental                                                                                                                                                                                                                                      |
+<!-- automd:ipx-operations -->
+
+<table>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/width.jpg" alt="/w_160/sample.jpg"></div>
+<div align="center"><b><code>width</code> / <code>w</code></b></div>
+<code>/w_160/sample.jpg</code>
+<br>
+Positive integer. (<a href="https://sharp.pixelplumbing.com/api-resize#resize">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/height.jpg" alt="/h_120/sample.jpg"></div>
+<div align="center"><b><code>height</code> / <code>h</code></b></div>
+<code>/h_120/sample.jpg</code>
+<br>
+Positive integer. (<a href="https://sharp.pixelplumbing.com/api-resize#resize">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/resize.jpg" alt="/s_200x200/sample.jpg"></div>
+<div align="center"><b><code>resize</code> / <code>s</code></b></div>
+<code>/s_200x200/sample.jpg</code>
+<br>
+<code>{width}x{height}</code> of positive integers. A single value (<code>s_200</code>) is a square. (<a href="https://sharp.pixelplumbing.com/api-resize#resize">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/kernel.jpg" alt="/s_80x80,kernel_nearest/sample.jpg"></div>
+<div align="center"><b><code>kernel</code></b></div>
+<code>/s_80x80,kernel_nearest/sample.jpg</code>
+<br>
+Sets <code>kernel</code> option for <code>resize</code>. One of <code>nearest</code>, <code>linear</code>, <code>cubic</code>, <code>mitchell</code>, <code>lanczos2</code>, <code>lanczos3</code> (default), <code>mks2013</code> or <code>mks2021</code>. (<a href="https://sharp.pixelplumbing.com/api-resize#resize">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/fit.jpg" alt="/s_200x200,fit_contain,b_00ff00/sample.jpg"></div>
+<div align="center"><b><code>fit</code></b></div>
+<code>/s_200x200,fit_contain,b_00ff00/sample.jpg</code>
+<br>
+Sets <code>fit</code> option for <code>resize</code>. One of <code>contain</code>, <code>cover</code> (default), <code>fill</code>, <code>inside</code> or <code>outside</code>. (<a href="https://sharp.pixelplumbing.com/api-resize#resize">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/position.jpg" alt="/s_200x200,pos_top/sample.jpg"></div>
+<div align="center"><b><code>position</code> / <code>pos</code></b></div>
+<code>/s_200x200,pos_top/sample.jpg</code>
+<br>
+Sets <code>position</code> option for <code>resize</code>. A position (<code>top</code>, <code>right top</code>, <code>right</code>, <code>right bottom</code>, <code>bottom</code>, <code>left bottom</code>, <code>left</code>, <code>left top</code>), gravity (<code>north</code>, <code>northeast</code>, ..., <code>center</code>) or strategy (<code>entropy</code>, <code>attention</code>). Since <code>_</code> separates arguments, multi-word values use <code>-</code> (<code>pos_right-top</code>). The numeric gravity (<code>0</code>-<code>8</code>) and strategy (<code>16</code>-<code>17</code>) constants are also accepted. (<a href="https://sharp.pixelplumbing.com/api-resize#resize">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/extend.jpg" alt="/extend_20_40_20_40_mirror/sample.jpg"></div>
+<div align="center"><b><code>extend</code></b></div>
+<code>/extend_20_40_20_40_mirror/sample.jpg</code>
+<br>
+Extend / pad / extrude one or more edges of the image. Format: <code>extend_{top}_{right}_{bottom}_{left}_{extendWith}</code>. Edges are integers between <code>0</code> and <code>10000</code>. Optional <code>extendWith</code>: <code>background</code> (default), <code>copy</code>, <code>repeat</code> or <code>mirror</code>. When extending with <code>background</code>, the colour comes from the <code>background</code> / <code>b</code> modifier, e.g. <code>b_00ff00,extend_20_40_20_40</code>. (<a href="https://sharp.pixelplumbing.com/api-resize#extend">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/background.jpg" alt="/rotate_45,b_00ff00/sample.jpg"></div>
+<div align="center"><b><code>background</code> / <code>b</code></b></div>
+<code>/rotate_45,b_00ff00/sample.jpg</code>
+<br>
+Background colour used by <code>extend</code>, <code>rotate</code>, <code>flatten</code>, <code>opacity</code> and <code>resize</code> (with <code>fit_contain</code>).
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/extract.jpg" alt="/extract_60_20_180_140/sample.jpg"></div>
+<div align="center"><b><code>extract</code> / <code>crop</code></b></div>
+<code>/extract_60_20_180_140/sample.jpg</code>
+<br>
+Extract/crop a region of the image, as <code>extract_{left}_{top}_{width}_{height}</code>. All four arguments are required; <code>width</code> and <code>height</code> must be positive. (<a href="https://sharp.pixelplumbing.com/api-resize#extract">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/format.webp" alt="/f_webp/sample.jpg"></div>
+<div align="center"><b><code>format</code> / <code>f</code></b></div>
+<code>/f_webp/sample.jpg</code>
+<br>
+Supported formats: <code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>webp</code>, <code>avif</code>, <code>gif</code>, <code>heif</code>, <code>tiff</code> and <code>auto</code> (experimental, only with middleware). (<a href="https://sharp.pixelplumbing.com/api-output#toformat">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/quality.jpg" alt="/q_10/sample.jpg"></div>
+<div align="center"><b><code>quality</code> / <code>q</code></b></div>
+<code>/q_10/sample.jpg</code>
+<br>
+Integer between <code>1</code> and <code>100</code>.
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/rotate.jpg" alt="/rotate_45/sample.jpg"></div>
+<div align="center"><b><code>rotate</code></b></div>
+<code>/rotate_45/sample.jpg</code>
+<br>
+Angle in degrees, between <code>-3600</code> and <code>3600</code>. Angles that are not a multiple of <code>90</code> are filled with the <code>background</code> / <code>b</code> colour. Without an angle (<code>rotate</code>) the image is auto-oriented from its EXIF tag. (<a href="https://sharp.pixelplumbing.com/api-operation#rotate">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/enlarge.jpg" alt="/enlarge,s_400x400/sample.jpg"></div>
+<div align="center"><b><code>enlarge</code></b></div>
+<code>/enlarge,s_400x400/sample.jpg</code>
+<br>
+Allow the image to be upscaled. By default the returned image will never be larger than the source in any dimension, while preserving the requested aspect ratio.
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/flip.jpg" alt="/flip/sample.jpg"></div>
+<div align="center"><b><code>flip</code></b></div>
+<code>/flip/sample.jpg</code>
+<br>
+Mirror the image vertically. (<a href="https://sharp.pixelplumbing.com/api-operation#flip">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/flop.jpg" alt="/flop/sample.jpg"></div>
+<div align="center"><b><code>flop</code></b></div>
+<code>/flop/sample.jpg</code>
+<br>
+Mirror the image horizontally. (<a href="https://sharp.pixelplumbing.com/api-operation#flop">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/sharpen.jpg" alt="/sharpen_5/sample.jpg"></div>
+<div align="center"><b><code>sharpen</code></b></div>
+<code>/sharpen_5/sample.jpg</code>
+<br>
+<code>{sigma}_{flat}_{jagged}_{x1}_{y2}_{y3}</code>. <code>sigma</code> is between <code>0.000001</code> and <code>10</code>, the rest between <code>0</code> and <code>1000000</code>. Without arguments (<code>sharpen</code>) a mild sharpen is applied. (<a href="https://sharp.pixelplumbing.com/api-operation#sharpen">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/median.jpg" alt="/median_10/sample.jpg"></div>
+<div align="center"><b><code>median</code></b></div>
+<code>/median_10/sample.jpg</code>
+<br>
+Square mask size, an integer between <code>1</code> and <code>1000</code> (defaults to <code>3</code>). (<a href="https://sharp.pixelplumbing.com/api-operation#median">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/blur.jpg" alt="/blur_5/sample.jpg"></div>
+<div align="center"><b><code>blur</code></b></div>
+<code>/blur_5/sample.jpg</code>
+<br>
+<code>{sigma}_{precision}_{minAmplitude}</code>. <code>sigma</code> is a number between <code>0.3</code> and <code>1000</code>, <code>precision</code> one of <code>integer</code> (default), <code>float</code> or <code>approximate</code>, <code>minAmplitude</code> a number between <code>0.001</code> and <code>1</code>. Without arguments (<code>blur</code>) a mild blur is applied. (<a href="https://sharp.pixelplumbing.com/api-operation#blur">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/dilate.png" alt="/dilate_5/sample-logo.png"></div>
+<div align="center"><b><code>dilate</code></b></div>
+<code>/dilate_5/sample-logo.png</code>
+<br>
+Expand foreground objects. Width in pixels, an integer between <code>1</code> and <code>100</code> (defaults to <code>1</code>). Capped below the sharp maximum, since the cost grows with the width. (<a href="https://sharp.pixelplumbing.com/api-operation#dilate">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/erode.png" alt="/erode_5/sample-logo.png"></div>
+<div align="center"><b><code>erode</code></b></div>
+<code>/erode_5/sample-logo.png</code>
+<br>
+Shrink foreground objects. Width in pixels, an integer between <code>1</code> and <code>100</code> (defaults to <code>1</code>). Capped below the sharp maximum, since the cost grows with the width. (<a href="https://sharp.pixelplumbing.com/api-operation#erode">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/clahe.jpg" alt="/clahe_20_20_5/sample.jpg"></div>
+<div align="center"><b><code>clahe</code></b></div>
+<code>/clahe_20_20_5/sample.jpg</code>
+<br>
+Contrast limiting adaptive histogram equalization, as <code>{width}_{height}_{maxSlope}</code>. <code>width</code> is required and <code>height</code> defaults to it (a square window); both are integers between <code>1</code> and <code>100</code>, capped below the sharp maximum since the cost grows with the window, and clamped to the source dimensions. <code>maxSlope</code> is an integer between <code>0</code> and <code>100</code> (defaults to <code>3</code>). (<a href="https://sharp.pixelplumbing.com/api-operation#clahe">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/flatten.jpg" alt="/flatten,b_00ff00,f_jpeg/sample-alpha.png"></div>
+<div align="center"><b><code>flatten</code></b></div>
+<code>/flatten,b_00ff00,f_jpeg/sample-alpha.png</code>
+<br>
+Remove alpha channel, if any, and replace with the <code>background</code> / <code>b</code> colour. (<a href="https://sharp.pixelplumbing.com/api-operation#flatten">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/unflatten.webp" alt="/unflatten,f_webp/sample-logo.png"></div>
+<div align="center"><b><code>unflatten</code></b></div>
+<code>/unflatten,f_webp/sample-logo.png</code>
+<br>
+Make every fully white pixel transparent, so the output format needs an alpha channel (<code>png</code>, <code>webp</code>, <code>avif</code>). (<a href="https://sharp.pixelplumbing.com/api-operation#unflatten">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/gamma.jpg" alt="/gamma_3/sample.jpg"></div>
+<div align="center"><b><code>gamma</code></b></div>
+<code>/gamma_3/sample.jpg</code>
+<br>
+<code>{gamma}_{gammaOut}</code>, each a number between <code>1.0</code> and <code>3.0</code> (defaults to <code>2.2</code>). (<a href="https://sharp.pixelplumbing.com/api-operation#gamma">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/negate.jpg" alt="/negate/sample.jpg"></div>
+<div align="center"><b><code>negate</code></b></div>
+<code>/negate/sample.jpg</code>
+<br>
+Optional <code>{alpha}</code> (<code>true</code> by default) controls whether the alpha channel is negated too, e.g. <code>negate_false</code>. (<a href="https://sharp.pixelplumbing.com/api-operation#negate">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/normalize.jpg" alt="/normalize_10_90/sample.jpg"></div>
+<div align="center"><b><code>normalize</code></b></div>
+<code>/normalize_10_90/sample.jpg</code>
+<br>
+Stretch the luminance to the full dynamic range, as <code>{lower}_{upper}</code> percentiles. <code>lower</code> is a number between <code>0</code> and <code>99</code> (defaults to <code>1</code>), <code>upper</code> between <code>1</code> and <code>100</code> (defaults to <code>99</code>) and has to be greater than <code>lower</code>. (<a href="https://sharp.pixelplumbing.com/api-operation#normalize">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/threshold.jpg" alt="/threshold_128/sample.jpg"></div>
+<div align="center"><b><code>threshold</code></b></div>
+<code>/threshold_128/sample.jpg</code>
+<br>
+<code>{threshold}_{grayscale}</code>. <code>threshold</code> is an integer between <code>0</code> and <code>255</code> (defaults to <code>128</code>). Optional <code>grayscale</code> (<code>true</code> by default) converts to single channel grayscale first, e.g. <code>threshold_128_false</code>. (<a href="https://sharp.pixelplumbing.com/api-operation#threshold">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/linear.jpg" alt="/linear_1.5_-30/sample.jpg"></div>
+<div align="center"><b><code>linear</code></b></div>
+<code>/linear_1.5_-30/sample.jpg</code>
+<br>
+Levels adjustment applying <code>a * input + b</code>, as <code>{a}_{b}</code>. <code>a</code> is the multiplier (defaults to <code>1</code>), <code>b</code> the offset (defaults to <code>0</code>). (<a href="https://sharp.pixelplumbing.com/api-operation#linear">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/tint.jpg" alt="/tint_00ff00/sample.jpg"></div>
+<div align="center"><b><code>tint</code></b></div>
+<code>/tint_00ff00/sample.jpg</code>
+<br>
+Tint colour. (<a href="https://sharp.pixelplumbing.com/api-colour#tint">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/grayscale.jpg" alt="/grayscale/sample.jpg"></div>
+<div align="center"><b><code>grayscale</code></b></div>
+<code>/grayscale/sample.jpg</code>
+<br>
+Convert to 8-bit greyscale. (<a href="https://sharp.pixelplumbing.com/api-colour#grayscale">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/modulate.jpg" alt="/modulate_1.5_2_90_10/sample.jpg"></div>
+<div align="center"><b><code>modulate</code></b></div>
+<code>/modulate_1.5_2_90_10/sample.jpg</code>
+<br>
+Transforms the image using <code>{brightness}_{saturation}_{hue}_{lightness}</code>. <code>brightness</code> and <code>saturation</code> are numbers <code>&gt;= 0</code>, <code>hue</code> is an integer in degrees. Each is also available on its own (below), which is easier to read when only one is needed. (<a href="https://sharp.pixelplumbing.com/api-operation#modulate">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/brightness.jpg" alt="/brightness_1.5/sample.jpg"></div>
+<div align="center"><b><code>brightness</code></b></div>
+<code>/brightness_1.5/sample.jpg</code>
+<br>
+Brightness multiplier, a number <code>&gt;= 0</code>. Required. (<a href="https://sharp.pixelplumbing.com/api-operation#modulate">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/saturation.jpg" alt="/saturation_0.3/sample.jpg"></div>
+<div align="center"><b><code>saturation</code></b></div>
+<code>/saturation_0.3/sample.jpg</code>
+<br>
+Saturation multiplier, a number <code>&gt;= 0</code>. Required. (<a href="https://sharp.pixelplumbing.com/api-operation#modulate">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/hue.jpg" alt="/hue_90/sample.jpg"></div>
+<div align="center"><b><code>hue</code></b></div>
+<code>/hue_90/sample.jpg</code>
+<br>
+Hue rotation, an integer in degrees. Required. (<a href="https://sharp.pixelplumbing.com/api-operation#modulate">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/lightness.jpg" alt="/lightness_30/sample.jpg"></div>
+<div align="center"><b><code>lightness</code></b></div>
+<code>/lightness_30/sample.jpg</code>
+<br>
+Lightness addend, a number. Required. (<a href="https://sharp.pixelplumbing.com/api-operation#modulate">docs</a>)
+</td>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/opacity.webp" alt="/opacity_0.5,f_webp/sample.jpg"></div>
+<div align="center"><b><code>opacity</code></b></div>
+<code>/opacity_0.5,f_webp/sample.jpg</code>
+<br>
+Opacity, a number between <code>0</code> and <code>1</code>. Required. The image is made transparent, so the output format needs an alpha channel (<code>png</code>, <code>webp</code>, <code>avif</code>). Set the <code>background</code> / <code>b</code> colour to blend into it instead and keep the output opaque, e.g. <code>opacity_0.5,b_fff,f_jpeg</code>.
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><img src="./assets/operations/animated.gif" alt="/a,w_160/sample.gif"></div>
+<div align="center"><b><code>animated</code> / <code>a</code></b></div>
+<code>/a,w_160/sample.gif</code>
+<br>
+Process every frame of an animated image. Experimental.
+</td>
+<td valign="top" width="50%">
+<div align="center"><em>No sample: the sample source has no uniform border to trim.</em></div>
+<div align="center"><b><code>trim</code></b></div>
+<code>/trim_30/sample.jpg</code>
+<br>
+Trim pixels from the edges that are within the threshold of the top-left pixel colour. Threshold is a number <code>&gt;= 0</code> (defaults to <code>10</code>). (<a href="https://sharp.pixelplumbing.com/api-resize#trim">docs</a>)
+</td>
+</tr>
+<tr>
+<td valign="top" width="50%">
+<div align="center"><em>No sample: the sample source carries no EXIF <code>Orientation</code> tag.</em></div>
+<div align="center"><b><code>autoorient</code></b></div>
+<code>/autoorient/sample.jpg</code>
+<br>
+Rotate and flip the image based on its EXIF <code>Orientation</code> tag, then remove the tag. (<a href="https://sharp.pixelplumbing.com/api-operation#autoorient">docs</a>)
+</td>
+<td valign="top" width="50%"></td>
+</tr>
+</table>
+
+<!-- /automd -->
 
 ## SVG Images
 

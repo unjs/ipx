@@ -13,6 +13,7 @@ pnpm lint             # eslint + prettier -c
 pnpm lint:fix         # automd (regenerates README blocks) + eslint --fix + prettier -w
 pnpm build            # obuild -> dist/
 pnpm ipx serve --dir ./test/assets   # run the CLI straight from src (Node runs TS)
+pnpm gen:operations   # regenerate assets/operations/ + the Modifiers table in README.md
 ```
 
 ## Layout
@@ -27,6 +28,9 @@ pnpm ipx serve --dir ./test/assets   # run the CLI straight from src (Node runs 
 | `src/storage/*`            | `node-fs`, `http`, `unstorage` backends implementing `IPXStorage`            |
 | `src/svg.ts`               | SVGO sanitizer plugin (XSS hardening)                                        |
 | `test/`                    | vitest, mirrors `src/`; fixtures in `test/assets*`                           |
+| `scripts/operations.ts`    | Modifier docs data: one entry per modifier, drives the README table + samples |
+| `scripts/gen-operations.ts` | Renders `assets/operations/*` with the real pipeline, then runs automd      |
+| `automd.config.ts`         | `ipx-operations` generator for the README table (generated, do not hand-edit) |
 
 ## Conventions
 
@@ -53,6 +57,6 @@ Both the resource `id` and every modifier are attacker-controlled. Existing prot
 1. Export a `Handler` from `src/handlers/handlers.ts`, using the validating `V*` arg mappers so bad input is a `400` before it reaches sharp. Clamp anything that drives allocation size.
 2. Add the key to `IPXModifiers` in `src/ipx.ts` — the `satisfies Record<HandlerName, …>` check fails otherwise.
 3. Tests in `test/handlers/handlers.test.ts` (unit, mocked pipe) **and** the real-sharp matrix in `test/index.test.ts` — mocking hides sharp's own validation.
-4. Add a row to the Modifiers table in `README.md`.
+4. Add an entry to `OPERATIONS` in `scripts/operations.ts` and run `pnpm gen:operations` — the Modifiers table in `README.md` is generated from it. The script fails on a modifier that is not listed there, so this step is not optional.
 
-`README.md` is partly automd-generated (badges, `examples/*.ts` code blocks); edit the example files, then `pnpm lint:fix`.
+`README.md` is partly automd-generated (badges, `examples/*.ts` code blocks, the Modifiers table); edit the source of a block, then `pnpm lint:fix`.
