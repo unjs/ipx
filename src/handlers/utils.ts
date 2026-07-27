@@ -125,6 +125,29 @@ export function VEnum<T extends string>(
   };
 }
 
+/**
+ * Creates an arg mapper accepting a boolean, or no value at all.
+ *
+ * `1` / `0` are accepted alongside `true` / `false` since they are shorter to
+ * write in a URL.
+ *
+ * @param name Argument name used in the error message (e.g. `negate.alpha`).
+ */
+export function VBoolean(name: string): ArgMapper<boolean> {
+  return (argument) => {
+    if (isOmitted(argument)) {
+      return undefined;
+    }
+    if (argument === "true" || argument === "1") {
+      return true;
+    }
+    if (argument === "false" || argument === "0") {
+      return false;
+    }
+    invalidArg(name, argument, "`true` or `false`");
+  };
+}
+
 // Hex colours (`fff`, `ffff`, `ffffff`, `ffffffff`) with an optional leading
 // `#` -- which cannot be used in a URL path, hence the shorthand.
 const HEX_COLOR_RE = /^#?(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/i;
@@ -237,19 +260,67 @@ export function applyHandler(
   try {
     return handler.apply(context, pipe, ...arguments_);
   } catch (error) {
-    // Arg mappers cover the common cases, but sharp does some validation of its
-    // own (unknown colour names, ...). Modifiers are user input, so surface it
-    // as a `400` rather than an unhandled `500`.
-    if (HTTPError.isError(error)) {
-      throw error;
-    }
-    throw new HTTPError({
-      statusCode: 400,
-      statusText: "IPX_INVALID_MODIFIER",
-      message: `Cannot apply modifier: ${(error as Error)?.message || error}`,
-      cause: error,
-    });
+    throw asModifierError(error);
   }
+}
+
+/**
+ * Turns an error raised while applying modifiers into a `400`.
+ *
+ * Arg mappers cover the common cases, but sharp and libvips do some validation
+ * of their own (unknown colour names, a `clahe` window larger than the image,
+ * ...). Modifiers are user input, so their failures are surfaced as a `400`
+ * rather than an unhandled `500`.
+ */
+export function asModifierError(error: unknown): Error {
+  if (HTTPError.isError(error)) {
+    return error;
+  }
+  return new HTTPError({
+    statusCode: 400,
+    statusText: "IPX_INVALID_MODIFIER",
+    message: `Cannot apply modifier: ${(error as Error)?.message || error}`,
+    cause: error,
+  });
+}
+
+// The colour below is interpolated into an SVG attribute. `VColor` only lets a
+// hex, functional or named colour through, none of which can contain a quote or
+// an angle bracket, so they cannot break out of the attribute.
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+/**
+ * Builds the single pixel overlay that the `opacity` modifier tiles over the
+ * image.
+ *
+ * @param opacity The requested opacity, between `0` and `1`.
+ * @param background Colour to blend the image into. When omitted the alpha
+ * channel is scaled instead, which needs an output format supporting it.
+ */
+export function opacityOverlay(opacity: number, background?: string) {
+  return background
+    ? // Blending the background over the image at `1 - opacity` leaves an
+      // opaque result, so formats without an alpha channel work too.
+      {
+        input: Buffer.from(
+          `<svg xmlns="${SVG_NS}" width="1" height="1"><rect width="1" height="1" fill="${background}" fill-opacity="${1 - opacity}"/></svg>`,
+        ),
+        tile: true,
+        blend: "over" as const,
+      }
+    : // `dest-in` multiplies the image alpha by the overlay alpha.
+      {
+        input: {
+          create: {
+            width: 1,
+            height: 1,
+            channels: 4 as const,
+            background: { r: 0, g: 0, b: 0, alpha: opacity },
+          },
+        },
+        tile: true,
+        blend: "dest-in" as const,
+      };
 }
 
 /**

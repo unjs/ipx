@@ -30,6 +30,16 @@ import {
   modulate,
   tint,
   grayscale,
+  autoorient,
+  dilate,
+  erode,
+  clahe,
+  linear,
+  brightness,
+  saturation,
+  hue,
+  lightness,
+  opacity,
 } from "../../src/handlers/handlers.ts";
 import { applyHandler } from "../../src/handlers/utils.ts";
 
@@ -264,6 +274,24 @@ describe("handlers", () => {
     expect(sharpMock.sharpen).toHaveBeenCalledWith();
   });
 
+  // libvips rejects a window larger than the image ("window too large"), so it
+  // is clamped to the source rather than surfacing as a 500.
+  it("clahe.apply() clamps its window to the source", () => {
+    const sharpMock = {
+      clahe: vi.fn(),
+    };
+
+    clahe.apply(
+      { meta: { width: 40, height: 30 } } as any,
+      sharpMock as any,
+      100,
+      100,
+      undefined,
+    );
+
+    expect(sharpMock.clahe).toHaveBeenCalledWith({ width: 40, height: 30 });
+  });
+
   it("median.apply() returns expected values", () => {
     const sharpMock = {
       median: vi.fn(),
@@ -279,9 +307,25 @@ describe("handlers", () => {
       blur: vi.fn(),
     };
 
-    blur.apply({} as any, sharpMock as any, 100);
+    blur.apply({} as any, sharpMock as any, 100, "approximate", 0.5);
 
-    expect(sharpMock.blur).toHaveBeenCalledWith(100);
+    expect(sharpMock.blur).toHaveBeenCalledWith({
+      sigma: 100,
+      precision: "approximate",
+      minAmplitude: 0.5,
+    });
+  });
+
+  // Sharp rejects an options object without a `sigma`, so it has to be left off
+  // entirely to get the default (mild) blur.
+  it("blur.apply() falls back to sharp defaults without a sigma", () => {
+    const sharpMock = {
+      blur: vi.fn(),
+    };
+
+    blur.apply({} as any, sharpMock as any, undefined, undefined, undefined);
+
+    expect(sharpMock.blur).toHaveBeenCalledWith();
   });
 
   it("flatten.apply() returns expected values", () => {
@@ -666,8 +710,31 @@ describe("handler args", () => {
     },
     "sharpen (no args)": { handler: sharpen, args: "", pipe: ["sharpen"] },
     median: { handler: median, args: "5", pipe: ["median", 5] },
-    blur: { handler: blur, args: "5", pipe: ["blur", 5] },
-    "blur (no args)": { handler: blur, args: "", pipe: ["blur", undefined] },
+    blur: { handler: blur, args: "5", pipe: ["blur", { sigma: 5 }] },
+    "blur (all args)": {
+      handler: blur,
+      args: "5_float_0.5",
+      pipe: ["blur", { sigma: 5, precision: "float", minAmplitude: 0.5 }],
+    },
+    "blur (no args)": { handler: blur, args: "", pipe: ["blur"] },
+    dilate: { handler: dilate, args: "3", pipe: ["dilate", 3] },
+    "dilate (no args)": {
+      handler: dilate,
+      args: "",
+      pipe: ["dilate", undefined],
+    },
+    erode: { handler: erode, args: "3", pipe: ["erode", 3] },
+    clahe: {
+      handler: clahe,
+      args: "10",
+      // An omitted height falls back to the width, for a square window.
+      pipe: ["clahe", { width: 10, height: 10 }],
+    },
+    "clahe (all args)": {
+      handler: clahe,
+      args: "10_20_5",
+      pipe: ["clahe", { width: 10, height: 20, maxSlope: 5 }],
+    },
     flatten: {
       handler: flatten,
       args: "",
@@ -676,8 +743,33 @@ describe("handler args", () => {
     unflatten: { handler: unflatten, args: "", pipe: ["unflatten"] },
     gamma: { handler: gamma, args: "2.2_1.8", pipe: ["gamma", 2.2, 1.8] },
     negate: { handler: negate, args: "", pipe: ["negate"] },
-    normalize: { handler: normalize, args: "", pipe: ["normalize"] },
+    "negate (alpha)": {
+      handler: negate,
+      args: "false",
+      pipe: ["negate", { alpha: false }],
+    },
+    normalize: {
+      handler: normalize,
+      args: "",
+      pipe: ["normalize", { lower: undefined, upper: undefined }],
+    },
+    "normalize (range)": {
+      handler: normalize,
+      args: "5_95",
+      pipe: ["normalize", { lower: 5, upper: 95 }],
+    },
     threshold: { handler: threshold, args: "128", pipe: ["threshold", 128] },
+    "threshold (grayscale)": {
+      handler: threshold,
+      args: "128_false",
+      pipe: ["threshold", 128, { grayscale: false }],
+    },
+    linear: { handler: linear, args: "1.2_-10", pipe: ["linear", 1.2, -10] },
+    "linear (no args)": {
+      handler: linear,
+      args: "",
+      pipe: ["linear", undefined, undefined],
+    },
     modulate: {
       handler: modulate,
       args: "2_1.2_90_10",
@@ -686,8 +778,25 @@ describe("handler args", () => {
         { brightness: 2, saturation: 1.2, hue: 90, lightness: 10 },
       ],
     },
+    brightness: {
+      handler: brightness,
+      args: "1.5",
+      pipe: ["modulate", { brightness: 1.5 }],
+    },
+    saturation: {
+      handler: saturation,
+      args: "0.5",
+      pipe: ["modulate", { saturation: 0.5 }],
+    },
+    hue: { handler: hue, args: "90", pipe: ["modulate", { hue: 90 }] },
+    lightness: {
+      handler: lightness,
+      args: "10",
+      pipe: ["modulate", { lightness: 10 }],
+    },
     tint: { handler: tint, args: "00ff00", pipe: ["tint", "#00ff00"] },
     grayscale: { handler: grayscale, args: "", pipe: ["grayscale"] },
+    autoorient: { handler: autoorient, args: "", pipe: ["autoOrient"] },
   };
 
   for (const [name, { handler, args, pipe, context }] of Object.entries(
@@ -727,9 +836,23 @@ describe("handler args", () => {
     rotate: [rotate, ["abc", "Infinity", "null", "1e10", "-3601"]],
     sharpen: [sharpen, ["abc", "0", "11", "2_-1", "2_1_abc"]],
     median: [median, ["abc", "0", "1001", "1.5"]],
-    blur: [blur, ["abc", "0.2", "1001", "true"]],
+    blur: [
+      blur,
+      ["abc", "0.2", "1001", "true", "5_nearest", "5_float_0", "5_float_1.5"],
+    ],
+    dilate: [dilate, ["abc", "0", "1.5", "101"]],
+    erode: [erode, ["abc", "0", "1.5", "101"]],
+    clahe: [clahe, ["", "abc", "0", "1.5", "101", "10_0", "10_10_101"]],
+    linear: [linear, ["abc", "true", "Infinity", "1_abc"]],
+    brightness: [brightness, ["", "abc", "-1"]],
+    saturation: [saturation, ["", "abc", "-1"]],
+    hue: [hue, ["", "abc", "1.5"]],
+    lightness: [lightness, ["", "abc"]],
+    opacity: [opacity, ["", "abc", "-0.1", "1.1"]],
     gamma: [gamma, ["abc", "0.5", "3.5", "2.2_abc", "2.2_4"]],
-    threshold: [threshold, ["abc", "-1", "256", "1.5"]],
+    threshold: [threshold, ["abc", "-1", "256", "1.5", "128_yes", "128_2"]],
+    negate: [negate, ["yes", "2", "null"]],
+    normalize: [normalize, ["abc", "-1", "100", "1_0.5", "1_101"]],
     modulate: [modulate, ["abc", "-1", "1_-1", "1_1_1.5", "1_1_1_abc"]],
     tint: [tint, ["not a colour", "12345", "#"]],
   };

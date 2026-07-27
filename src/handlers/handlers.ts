@@ -1,6 +1,7 @@
 import type { Handler } from "../types.ts";
 import type { ArgMapper } from "./utils.ts";
 import {
+  VBoolean,
   VColor,
   VEnum,
   VNumber,
@@ -9,6 +10,7 @@ import {
   clampDimensionsPreservingAspectRatio,
   clampExtendEdges,
   clampToMaxDimension,
+  opacityOverlay,
 } from "./utils.ts";
 
 // Ranges below mirror the ones sharp enforces, so that invalid modifier
@@ -262,6 +264,14 @@ export const rotate: Handler = {
   },
 };
 
+// https://sharp.pixelplumbing.com/api-operation#autoorient
+export const autoorient: Handler = {
+  args: [],
+  apply: (_context, pipe) => {
+    return pipe.autoOrient();
+  },
+};
+
 // https://sharp.pixelplumbing.com/api-operation#flip
 export const flip: Handler = {
   args: [],
@@ -284,13 +294,16 @@ export const sharpen: Handler = {
     VNumber("sharpen.sigma", { min: 0.000_001, max: 10 }),
     VNumber("sharpen.flat", { min: 0, max: 1_000_000 }),
     VNumber("sharpen.jagged", { min: 0, max: 1_000_000 }),
+    VNumber("sharpen.x1", { min: 0, max: 1_000_000 }),
+    VNumber("sharpen.y2", { min: 0, max: 1_000_000 }),
+    VNumber("sharpen.y3", { min: 0, max: 1_000_000 }),
   ],
-  apply: (_context, pipe, sigma, flat, jagged) => {
+  apply: (_context, pipe, sigma, flat, jagged, x1, y2, y3) => {
     // sharp requires a `sigma` whenever options are given, so fall back to its
     // default (mild) sharpening when it is omitted.
     return sigma === undefined
       ? pipe.sharpen()
-      : pipe.sharpen({ sigma, m1: flat, m2: jagged });
+      : pipe.sharpen({ sigma, m1: flat, m2: jagged, x1, y2, y3 });
   },
 };
 
@@ -303,10 +316,74 @@ export const median: Handler = {
 };
 
 // https://sharp.pixelplumbing.com/api-operation#blur
+const BLUR_PRECISIONS = ["integer", "float", "approximate"] as const;
 export const blur: Handler = {
-  args: [VNumber("blur", { min: 0.3, max: 1000 })],
-  apply: (_context, pipe, sigma) => {
-    return pipe.blur(sigma);
+  args: [
+    VNumber("blur.sigma", { min: 0.3, max: 1000 }),
+    VEnum("blur.precision", BLUR_PRECISIONS),
+    VNumber("blur.minAmplitude", { min: 0.001, max: 1 }),
+  ],
+  apply: (_context, pipe, sigma, precision, minAmplitude) => {
+    // sharp requires a `sigma` whenever options are given, so fall back to its
+    // default (mild) blur when it is omitted.
+    return sigma === undefined
+      ? pipe.blur()
+      : pipe.blur({
+          sigma,
+          // Sharp validates with `key in options`, so omitted args have to be
+          // left out of the object entirely.
+          ...(precision === undefined ? {} : { precision }),
+          ...(minAmplitude === undefined ? {} : { minAmplitude }),
+        });
+  },
+};
+
+// https://sharp.pixelplumbing.com/api-operation#dilate
+// The cost grows with the width -- sharp's maximum of `65536` takes minutes on
+// a large image -- so these are capped at a value that still covers what the
+// operation is useful for.
+const MAX_MORPHOLOGY = 100;
+export const dilate: Handler = {
+  args: [VNumber("dilate", { min: 1, max: MAX_MORPHOLOGY, integer: true })],
+  apply: (_context, pipe, width) => {
+    return pipe.dilate(width);
+  },
+};
+
+// https://sharp.pixelplumbing.com/api-operation#erode
+export const erode: Handler = {
+  args: [VNumber("erode", { min: 1, max: MAX_MORPHOLOGY, integer: true })],
+  apply: (_context, pipe, width) => {
+    return pipe.erode(width);
+  },
+};
+
+// https://sharp.pixelplumbing.com/api-operation#clahe
+// libvips also rejects a window larger than the image itself ("window too
+// large"), and the cost grows with it, so the range is capped well below the
+// sharp maximum of `65536` -- in line with the `median` cap -- and clamped to
+// the source dimensions.
+const MAX_CLAHE = 100;
+export const clahe: Handler = {
+  args: [
+    // sharp requires both sides, but a square window is the common case so an
+    // omitted `height` falls back to `width` rather than being rejected.
+    VRequired(
+      "clahe.width",
+      VNumber("clahe.width", { min: 1, max: MAX_CLAHE, integer: true }),
+    ),
+    VNumber("clahe.height", { min: 1, max: MAX_CLAHE, integer: true }),
+    VNumber("clahe.maxSlope", { min: 0, max: 100, integer: true }),
+  ],
+  apply: (context, pipe, width, height, maxSlope) => {
+    return pipe.clahe({
+      width: Math.min(width, context.meta.width || width),
+      height: Math.min(
+        height ?? width,
+        (context.meta.height || height) ?? width,
+      ),
+      ...(maxSlope === undefined ? {} : { maxSlope }),
+    });
   },
 };
 
@@ -342,25 +419,51 @@ export const gamma: Handler = {
 
 // https://sharp.pixelplumbing.com/api-operation#negate
 export const negate: Handler = {
-  args: [],
-  apply: (_context, pipe) => {
-    return pipe.negate();
+  args: [VBoolean("negate.alpha")],
+  apply: (_context, pipe, alpha) => {
+    // Sharp validates with `key in options`, so an omitted `alpha` has to be
+    // left out of the object entirely.
+    return alpha === undefined ? pipe.negate() : pipe.negate({ alpha });
   },
 };
 
 // https://sharp.pixelplumbing.com/api-operation#normalize
 export const normalize: Handler = {
-  args: [],
-  apply: (_context, pipe) => {
-    return pipe.normalize();
+  args: [
+    VNumber("normalize.lower", { min: 0, max: 99 }),
+    VNumber("normalize.upper", { min: 1, max: 100 }),
+  ],
+  // sharp rejects a `lower` that is not below `upper`, which `applyHandler`
+  // turns into a `400`.
+  apply: (_context, pipe, lower, upper) => {
+    return pipe.normalize({ lower, upper });
   },
 };
 
 // https://sharp.pixelplumbing.com/api-operation#threshold
 export const threshold: Handler = {
-  args: [VNumber("threshold", { min: 0, max: 255, integer: true })],
-  apply: (_context, pipe, threshold) => {
-    return pipe.threshold(threshold);
+  args: [
+    VNumber("threshold", { min: 0, max: 255, integer: true }),
+    VBoolean("threshold.grayscale"),
+  ],
+  apply: (_context, pipe, threshold, grayscale) => {
+    // sharp treats *any* options object without a truthy `grayscale` as
+    // `grayscale: false`, so it must be omitted entirely when not given.
+    return grayscale === undefined
+      ? pipe.threshold(threshold)
+      : pipe.threshold(threshold, { grayscale });
+  },
+};
+
+// https://sharp.pixelplumbing.com/api-operation#linear
+export const linear: Handler = {
+  args: [
+    // sharp accepts any finite number for both.
+    VNumber("linear.a"),
+    VNumber("linear.b"),
+  ],
+  apply: (_context, pipe, a, b) => {
+    return pipe.linear(a, b);
   },
 };
 
@@ -384,7 +487,55 @@ export const modulate: Handler = {
   },
 };
 
+// Each of the four `modulate` options is also exposed on its own, since
+// addressing a single one positionally is awkward (`/modulate___90/`). sharp
+// merges the calls, so `/brightness_2,hue_90/` is one `modulate` operation.
+
+export const brightness: Handler = {
+  args: [VRequired("brightness", VNumber("brightness", { min: 0 }))],
+  apply: (_context, pipe, brightness) => {
+    return pipe.modulate({ brightness });
+  },
+};
+
+export const saturation: Handler = {
+  args: [VRequired("saturation", VNumber("saturation", { min: 0 }))],
+  apply: (_context, pipe, saturation) => {
+    return pipe.modulate({ saturation });
+  },
+};
+
+export const hue: Handler = {
+  args: [VRequired("hue", VNumber("hue", { integer: true }))],
+  apply: (_context, pipe, hue) => {
+    return pipe.modulate({ hue });
+  },
+};
+
+export const lightness: Handler = {
+  args: [VRequired("lightness", VNumber("lightness"))],
+  apply: (_context, pipe, lightness) => {
+    return pipe.modulate({ lightness });
+  },
+};
+
 // --------- Colour Manipulation ---------
+
+// sharp has no opacity operation, so a uniformly transparent single pixel
+// overlay (repeated with `tile`) is composited over the image instead.
+// `background` is set by the `background` / `b` modifier and, when given, the
+// image is blended into it rather than made transparent.
+// https://sharp.pixelplumbing.com/api-composite#composite
+export const opacity: Handler = {
+  args: [VRequired("opacity", VNumber("opacity", { min: 0, max: 1 }))],
+  apply: (context, pipe, opacity) => {
+    const overlay = opacityOverlay(opacity, context.background as string);
+    // Scaling the alpha channel needs one to be there in the first place.
+    return (context.background ? pipe : pipe.ensureAlpha()).composite([
+      overlay,
+    ]);
+  },
+};
 
 // https://sharp.pixelplumbing.com/api-colour#tint
 export const tint: Handler = {

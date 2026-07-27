@@ -1,7 +1,7 @@
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import { HTTPError } from "h3";
 import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
-import { applyHandler, getHandler } from "./handlers/index.ts";
+import { applyHandler, asModifierError, getHandler } from "./handlers/index.ts";
 import { sanitizeSVGPlugin } from "./svg.ts";
 import { cachedPromise, getEnv } from "./utils.ts";
 
@@ -26,6 +26,9 @@ type IPXSourceMeta = {
    */
   maxAge?: number;
 };
+
+// A flag modifier is set by its presence: `/flip/` parses to `{ flip: "" }`.
+type FlagModifier = true | "true" | "";
 
 type FormatModifier =
   | "jpeg"
@@ -54,7 +57,7 @@ export interface IPXModifiers {
   b: string;
   position: string;
   pos: string;
-  enlarge: true | "true";
+  enlarge: FlagModifier;
   kernel:
     "nearest" | "cubic" | "mitchell" | "lanczos2" | "lanczos3" | (string & {});
   trim: number | string;
@@ -62,23 +65,33 @@ export interface IPXModifiers {
   extract: string;
   crop: string;
   rotate: number | string;
-  flip: true | "true";
-  flop: true | "true";
+  autoorient: FlagModifier;
+  flip: FlagModifier;
+  flop: FlagModifier;
   sharpen: number | string;
   median: number | string;
   blur: number | string;
-  flatten: true | "true";
-  unflatten: true | "true";
+  dilate: number | string;
+  erode: number | string;
+  clahe: number | string;
+  flatten: FlagModifier;
+  unflatten: FlagModifier;
   gamma: string;
-  negate: true | "true";
-  normalize: true | "true";
+  negate: FlagModifier | string;
+  normalize: FlagModifier | string;
   threshold: number | string;
+  linear: string;
   modulate: string;
+  brightness: number | string;
+  saturation: number | string;
+  hue: number | string;
+  lightness: number | string;
+  opacity: number | string;
   tint: number | string;
-  grayscale: true | "true";
-  animated: true | "true";
+  grayscale: FlagModifier;
+  animated: FlagModifier;
   // alias for animated
-  a: true | "true";
+  a: FlagModifier;
   width: string | number;
   w: string | number;
   height: string | number;
@@ -439,6 +452,24 @@ export function createIPX(userOptions: IPXOptions): IPX {
           sharp;
       }
 
+      // Colours are parsed eagerly by sharp, so an unknown name is rejected
+      // here rather than silently rendering as black in the overlay that
+      // `opacity` composites.
+      if (handlerContext.background) {
+        try {
+          Sharp({
+            create: {
+              width: 1,
+              height: 1,
+              channels: 4,
+              background: handlerContext.background,
+            },
+          });
+        } catch (error) {
+          throw asModifierError(error);
+        }
+      }
+
       // Apply format
       if (SUPPORTED_FORMATS.has(format || "")) {
         sharp = sharp.toFormat(format as any, {
@@ -446,8 +477,14 @@ export function createIPX(userOptions: IPXOptions): IPX {
         });
       }
 
-      // Convert to buffer
-      const processedImage = await sharp.toBuffer();
+      // Modifiers are user input and libvips does some validation of its own
+      // only once it runs, so a failure here is a `400` rather than a `500`.
+      let processedImage: Buffer;
+      try {
+        processedImage = await sharp.toBuffer();
+      } catch (error) {
+        throw asModifierError(error);
+      }
 
       return {
         data: processedImage,
