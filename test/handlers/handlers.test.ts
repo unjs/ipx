@@ -759,10 +759,10 @@ describe("handler args", () => {
       pipe: ["normalize", { lower: 5, upper: 95 }],
     },
     threshold: { handler: threshold, args: "128", pipe: ["threshold", 128] },
-    "threshold (greyscale)": {
+    "threshold (grayscale)": {
       handler: threshold,
       args: "128_false",
-      pipe: ["threshold", 128, { greyscale: false }],
+      pipe: ["threshold", 128, { grayscale: false }],
     },
     linear: { handler: linear, args: "1.2_-10", pipe: ["linear", 1.2, -10] },
     "linear (no args)": {

@@ -66,8 +66,6 @@ export interface IPXModifiers {
   crop: string;
   rotate: number | string;
   autoOrient: FlagModifier;
-  // alias for autoOrient
-  autoorient: FlagModifier;
   flip: FlagModifier;
   flop: FlagModifier;
   sharpen: number | string;
@@ -81,8 +79,6 @@ export interface IPXModifiers {
   gamma: string;
   negate: FlagModifier | string;
   normalize: FlagModifier | string;
-  // alias for normalize
-  normalise: FlagModifier | string;
   threshold: number | string;
   linear: string;
   modulate: string;
@@ -93,8 +89,6 @@ export interface IPXModifiers {
   opacity: number | string;
   tint: number | string;
   grayscale: FlagModifier;
-  // alias for grayscale
-  greyscale: FlagModifier;
   animated: FlagModifier;
   // alias for animated
   a: FlagModifier;

@@ -444,14 +444,14 @@ export const normalize: Handler = {
 export const threshold: Handler = {
   args: [
     VNumber("threshold", { min: 0, max: 255, integer: true }),
-    VBoolean("threshold.greyscale"),
+    VBoolean("threshold.grayscale"),
   ],
-  apply: (_context, pipe, threshold, greyscale) => {
-    // sharp treats *any* options object without a truthy `greyscale` as
-    // `greyscale: false`, so it must be omitted entirely when not given.
-    return greyscale === undefined
+  apply: (_context, pipe, threshold, grayscale) => {
+    // sharp treats *any* options object without a truthy `grayscale` as
+    // `grayscale: false`, so it must be omitted entirely when not given.
+    return grayscale === undefined
       ? pipe.threshold(threshold)
-      : pipe.threshold(threshold, { greyscale });
+      : pipe.threshold(threshold, { grayscale });
   },
 };
 
@@ -556,11 +556,6 @@ export const grayscale: Handler = {
 // --------- Aliases ---------
 
 export const crop = extract;
-// Modifier names are case sensitive, so the all-lowercase spelling is accepted
-// too -- it reads better in a URL.
-export const autoorient = autoOrient;
-export const normalise = normalize;
-export const greyscale = grayscale;
 export const q = quality;
 export const b = background;
 export const w = width;
