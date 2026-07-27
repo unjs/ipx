@@ -40,7 +40,6 @@ import {
   hue,
   lightness,
   opacity,
-  round,
 } from "../../src/handlers/handlers.ts";
 import { applyHandler } from "../../src/handlers/utils.ts";
 
@@ -798,17 +797,6 @@ describe("handler args", () => {
     tint: { handler: tint, args: "00ff00", pipe: ["tint", "#00ff00"] },
     grayscale: { handler: grayscale, args: "", pipe: ["grayscale"] },
     autoOrient: { handler: autoOrient, args: "", pipe: ["autoOrient"] },
-    round: {
-      handler: round,
-      args: "20",
-      context: { round: 20 },
-    },
-    "round (no args)": {
-      handler: round,
-      args: "",
-      // Clamped to the roundest shape the image can take.
-      context: { round: Number.POSITIVE_INFINITY },
-    },
   };
 
   for (const [name, { handler, args, pipe, context }] of Object.entries(
@@ -861,7 +849,6 @@ describe("handler args", () => {
     hue: [hue, ["", "abc", "1.5"]],
     lightness: [lightness, ["", "abc"]],
     opacity: [opacity, ["", "abc", "-0.1", "1.1"]],
-    round: [round, ["abc", "-1", "10001", "true"]],
     gamma: [gamma, ["abc", "0.5", "3.5", "2.2_abc", "2.2_4"]],
     threshold: [threshold, ["abc", "-1", "256", "1.5", "128_yes", "128_2"]],
     negate: [negate, ["yes", "2", "null"]],

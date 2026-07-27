@@ -1,13 +1,7 @@
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import { HTTPError } from "h3";
 import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
-import {
-  applyHandler,
-  applyRoundedCorners,
-  asModifierError,
-  assertRoundedCornersFit,
-  getHandler,
-} from "./handlers/index.ts";
+import { applyHandler, asModifierError, getHandler } from "./handlers/index.ts";
 import { sanitizeSVGPlugin } from "./svg.ts";
 import { cachedPromise, getEnv } from "./utils.ts";
 
@@ -97,7 +91,6 @@ export interface IPXModifiers {
   hue: number | string;
   lightness: number | string;
   opacity: number | string;
-  round: number | string;
   tint: number | string;
   grayscale: FlagModifier;
   // alias for grayscale
@@ -466,8 +459,8 @@ export function createIPX(userOptions: IPXOptions): IPX {
       }
 
       // Colours are parsed eagerly by sharp, so an unknown name is rejected
-      // here rather than silently rendering as black in the overlays that
-      // `round` and `opacity` composite.
+      // here rather than silently rendering as black in the overlay that
+      // `opacity` composites.
       if (handlerContext.background) {
         try {
           Sharp({
@@ -483,49 +476,10 @@ export function createIPX(userOptions: IPXOptions): IPX {
         }
       }
 
-      // The rounded corners mask has to match the output dimensions, which are
-      // only known once every other handler has been applied.
-      let animation: { delay?: number[]; loop?: number } | undefined;
-      if (handlerContext.round !== undefined) {
-        // The mask is composited onto a pipeline rebuilt from raw pixels, which
-        // carries no frame timing, so it has to be restored below.
-        const sourceMeta = animated ? await sharp.metadata() : undefined;
-        animation = sourceMeta;
-        assertRoundedCornersFit(options.maxOutputDimension, {
-          // Pages are stacked into one tall image and survive the pipeline, so
-          // they multiply the size of the raw buffer the mask needs.
-          pages: sourceMeta?.pages || 1,
-          source: imageMeta,
-          // Nothing else can take the output past the source dimensions, and
-          // both of these are themselves clamped to `maxOutputDimension`.
-          canGrow:
-            handlerContext.enlarge === true || modifiers.extend !== undefined,
-        });
-        try {
-          sharp = await applyRoundedCorners(
-            Sharp,
-            sharp,
-            handlerContext.round,
-            {
-              background: handlerContext.background,
-              maxOutputDimension: options.maxOutputDimension,
-            },
-          );
-        } catch (error) {
-          throw asModifierError(error);
-        }
-      }
-
       // Apply format
       if (SUPPORTED_FORMATS.has(format || "")) {
         sharp = sharp.toFormat(format as any, {
           quality: handlerContext.quality,
-          // Only the animated formats understand these.
-          ...(animation &&
-            (format === "gif" || format === "webp") && {
-              delay: animation.delay,
-              loop: animation.loop,
-            }),
         });
       }
 

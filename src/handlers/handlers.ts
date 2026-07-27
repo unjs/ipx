@@ -89,19 +89,6 @@ export const background: Handler = {
   },
 };
 
-// sharp has no rounded corners operation and the mask has to match the output
-// dimensions, which are only known once the pipeline has run. It is therefore
-// applied after every other handler, see `applyRoundedCorners`.
-export const round: Handler = {
-  args: [VNumber("round", { min: 0, max: 10_000 })],
-  order: -1,
-  apply: (context, _pipe, radius) => {
-    // Without a radius the image is made as round as it can be (a circle for
-    // square images, a pill otherwise). `applyRoundedCorners` clamps it.
-    context.round = radius ?? Number.POSITIVE_INFINITY;
-  },
-};
-
 // --------- Resize ---------
 
 export const enlarge: Handler = {

@@ -107,9 +107,6 @@ describe("ipx", () => {
       greyscale: { greyscale: "" },
       opacity: { opacity: "0.5", format: "png" },
       "opacity (background)": { opacity: "0.5", background: "ffffff" },
-      round: { round: "", format: "png" },
-      "round (radius)": { round: "20", format: "png" },
-      "round (background)": { round: "20", background: "ff0000" },
     };
 
     it.each(Object.entries(valid))("%s", async (_name, modifiers) => {
@@ -154,9 +151,9 @@ describe("ipx", () => {
       expect(height).toBe(2160 + 10 + 30);
     });
 
-    // `opacity` and `round` are composited rather than mapped to a sharp
-    // operation, so the outcome is asserted on the pixels themselves.
-    describe("opacity and round", () => {
+    // `opacity` is composited rather than mapped to a sharp operation, so the
+    // outcome is asserted on the pixels themselves.
+    describe("opacity", () => {
       const pixels = async (modifiers: Record<string, string>) => {
         const { data } = await (await ipx("bliss.jpg", modifiers)).process();
         const sharp = await import("sharp").then((r) => r.default);
@@ -170,7 +167,7 @@ describe("ipx", () => {
         };
       };
 
-      it("opacity scales the alpha channel", async () => {
+      it("scales the alpha channel", async () => {
         const at = await pixels({
           opacity: "0.5",
           resize: "100",
@@ -179,7 +176,7 @@ describe("ipx", () => {
         expect(at(50, 50)[3]).toBe(128);
       });
 
-      it("opacity blends into the background when one is set", async () => {
+      it("blends into the background when one is set", async () => {
         const at = await pixels({
           opacity: "0",
           resize: "100",
@@ -190,87 +187,18 @@ describe("ipx", () => {
         expect(at(50, 50)).toEqual([0, 255, 0, 255]);
       });
 
-      it("round cuts out the corners", async () => {
-        const at = await pixels({ round: "", resize: "100", format: "png" });
-        expect(at(1, 1)[3]).toBe(0);
-        // The middle of an edge and the centre are inside the circle.
-        expect(at(50, 1)[3]).toBe(255);
-        expect(at(50, 50)[3]).toBe(255);
-      });
-
-      it("round fills the corners with the background when one is set", async () => {
-        const at = await pixels({
-          round: "20",
-          resize: "100",
-          background: "00ff00",
-          format: "png",
-        });
-        expect(at(0, 0)).toEqual([0, 255, 0, 255]);
-        expect(at(50, 50)[3]).toBe(255);
-      });
-
-      it("round without a radius keeps the requested size", async () => {
-        const { data } = await (
-          await ipx("bliss.jpg", { round: "", resize: "120x60", format: "png" })
-        ).process();
-        const { width, height } = imageMeta(data as Uint8Array);
-        expect(`${width}x${height}`).toBe("120x60");
-      });
-
-      // The mask is composited onto a pipeline rebuilt from raw pixels, which
-      // carries neither the frame layout nor the frame timing.
-      it.each(["gif", "webp"])(
-        "round keeps the frames of an animated image (%s)",
-        async (format) => {
-          const { data } = await (
-            await ipx("giphy.gif", { round: "20", animated: "", format })
-          ).process();
-          const sharp = await import("sharp").then((r) => r.default);
-          const source = await sharp(resolve(__dirname, "assets/giphy.gif"), {
-            animated: true,
-          }).metadata();
-          const output = await sharp(data as Buffer, {
-            animated: true,
-          }).metadata();
-          expect(output.pages).toBe(source.pages);
-          expect(output.pageHeight).toBe(source.pageHeight);
-          expect(output.delay).toEqual(source.delay);
-          expect(output.loop).toBe(source.loop);
-        },
-      );
-
-      // The mask needs the whole output as raw pixels at once, unlike the rest
-      // of the pipeline, which libvips streams. `maxOutputDimension` only
-      // bounds a single page, and an animated image stacks all of its pages.
-      it("round rejects an animated image that busts the output budget", async () => {
+      // The overlay is an SVG, where an unparseable colour would otherwise
+      // silently render as black.
+      it("rejects an unknown background colour", async () => {
         await expect(
           (
-            await ipx("giphy.gif", {
-              animated: "",
-              enlarge: "",
-              resize: "4096x4096",
-              round: "20",
+            await ipx("bliss.jpg", {
+              opacity: "0.5",
+              background: "nosuchcolour",
             })
           ).process(),
-        ).rejects.toMatchObject({
-          statusCode: 400,
-          statusText: "IPX_OUTPUT_TOO_LARGE",
-        });
+        ).rejects.toMatchObject({ statusCode: 400 });
       });
-
-      // Both are composited through an SVG, where an unparseable colour would
-      // otherwise silently render as black.
-      it.each([
-        ["round", { round: "20", background: "nosuchcolour" }],
-        ["opacity", { opacity: "0.5", background: "nosuchcolour" }],
-      ])(
-        "%s rejects an unknown background colour",
-        async (_name, modifiers) => {
-          await expect(
-            (await ipx("bliss.jpg", modifiers)).process(),
-          ).rejects.toMatchObject({ statusCode: 400 });
-        },
-      );
     });
 
     // libvips validates some arguments only once it runs, which happens after
@@ -328,7 +256,6 @@ describe("ipx", () => {
       lightness: { lightness: "" },
       opacity: { opacity: "2" },
       "opacity (missing)": { opacity: "" },
-      round: { round: "-1" },
     };
 
     it.each(Object.entries(invalid))(
