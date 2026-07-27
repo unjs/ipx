@@ -265,7 +265,7 @@ export const rotate: Handler = {
 };
 
 // https://sharp.pixelplumbing.com/api-operation#autoorient
-export const autoOrient: Handler = {
+export const autoorient: Handler = {
   args: [],
   apply: (_context, pipe) => {
     return pipe.autoOrient();

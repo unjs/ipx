@@ -30,7 +30,7 @@ import {
   modulate,
   tint,
   grayscale,
-  autoOrient,
+  autoorient,
   dilate,
   erode,
   clahe,
@@ -796,7 +796,7 @@ describe("handler args", () => {
     },
     tint: { handler: tint, args: "00ff00", pipe: ["tint", "#00ff00"] },
     grayscale: { handler: grayscale, args: "", pipe: ["grayscale"] },
-    autoOrient: { handler: autoOrient, args: "", pipe: ["autoOrient"] },
+    autoorient: { handler: autoorient, args: "", pipe: ["autoOrient"] },
   };
 
   for (const [name, { handler, args, pipe, context }] of Object.entries(

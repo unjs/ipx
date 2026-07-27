@@ -66,7 +66,7 @@ describe("ipx", () => {
       rotate: { rotate: "90" },
       "rotate (arbitrary angle)": { rotate: "45", background: "ff0000" },
       "rotate (auto-orient)": { rotate: "" },
-      autoOrient: { autoOrient: "" },
+      autoorient: { autoorient: "" },
       flip: { flip: "" },
       flop: { flop: "" },
       sharpen: { sharpen: "2_1_2" },

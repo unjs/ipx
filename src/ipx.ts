@@ -65,7 +65,7 @@ export interface IPXModifiers {
   extract: string;
   crop: string;
   rotate: number | string;
-  autoOrient: FlagModifier;
+  autoorient: FlagModifier;
   flip: FlagModifier;
   flop: FlagModifier;
   sharpen: number | string;
