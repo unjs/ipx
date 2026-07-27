@@ -9,226 +9,54 @@
 
 High performance, secure and easy-to-use image optimizer powered by [sharp](https://github.com/lovell/sharp) and [svgo](https://github.com/svg/svgo).
 
+Point IPX at a directory or a list of allowed domains, and every image is available in any size, format and quality straight from its URL:
+
+```
+/w_512,f_webp/photos/buffalo.png
+```
+
 Used by [Nuxt Image](https://image.nuxt.com/) and [Netlify](https://www.npmjs.com/package/@netlify/ipx) and open to everyone!
 
-## Migration from v3 to v4
-
 > [!NOTE]
-> This is the active development branch for IPX v4. Check out [v3](https://github.com/unjs/ipx/tree/v3) for v3 docs.
+> This is the active development branch for IPX v4. Check out [v3](https://github.com/unjs/ipx/tree/v3) for v3 docs, and [Migration from v3 to v4](#migration-from-v3-to-v4) if you are upgrading.
 
-- The server creation APIs have changed. See the Programmatic API section for examples.
-- The JSON error format has changed from `{ error: string }` to `{ status, statusText, message }`.
-- The `svgo` option is now `svg.optimize`. SVG images are always sanitized, even when optimization is disabled.
-- SVG optimization now applies SVGO's `preset-default` unless custom `plugins` are configured (previously only the configured plugins ran), so SVG output is restructured more than before. See the SVG Images section.
+## Quick Start
 
-## Using CLI
-
-You can use `ipx` command to start server.
-
-Using `npx`:
+Start a server for the images in the current directory with the `ipx` command:
 
 ```bash
 npx ipx serve --dir ./
 ```
 
-Using `bun`
+Using `bun`:
 
 ```bash
 bunx ipx serve --dir ./
 ```
 
-The default serve directory is the current working directory.
+Then open the printed URL and add modifiers to any image path, for example `http://localhost:3000/w_200/buffalo.png`.
 
-## Programmatic API
+To embed IPX in your own app instead, see the [Programmatic API](#programmatic-api).
 
-You can use IPX as a middleware or directly use IPX interface.
+## Image URLs
 
-**Example:** Using built-in server
+A request URL is a list of modifiers, followed by the id of the source image:
 
-<!-- automd:file code src="./examples/serve.ts" -->
-
-```ts [serve.ts]
-import { serveIPX, createIPX, ipxFSStorage, ipxHttpStorage } from "ipx";
-
-const ipx = createIPX({
-  storage: ipxFSStorage({ dir: "./public" }),
-  httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
-  alias: { "/picsum": "https://picsum.photos" },
-});
-
-// http://localhost:3000/w_512/picsum/1000
-serveIPX(ipx);
+```
+/<modifiers>/<id>
 ```
 
-<!-- /automd -->
+Multiple modifiers are separated by `,` and their arguments by `_`. Use `_` alone when no modifier is needed.
 
-**Example**: Using with [h3](https://h3.dev)
+| URL                                                | Result                                                                                      |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `/_/static/buffalo.png`                            | The original image.                                                                         |
+| `/w_200/static/buffalo.png`                        | Width set to `200`, original format (`png`) kept.                                           |
+| `/f_webp/static/buffalo.png`                       | Format changed to `webp`, everything else kept as in the source.                            |
+| `/f_auto/static/buffalo.png`                       | Best format for the client (avif/webp/jpeg), negotiated from the browser's `accept` header. |
+| `/s_200x200,fit_contain,f_webp/static/buffalo.png` | Resized to fit inside `200x200px` on a background canvas and converted to `webp`.           |
 
-<!-- automd:file code src="./examples/h3.ts" -->
-
-```ts [h3.ts]
-import { H3, serve } from "h3";
-
-import {
-  createIPX,
-  ipxFSStorage,
-  ipxHttpStorage,
-  createIPXFetchHandler,
-} from "ipx";
-
-const ipx = createIPX({
-  storage: ipxFSStorage({ dir: "./public" }),
-  httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
-  alias: { "/picsum": "https://picsum.photos" },
-});
-
-const app = new H3();
-
-app.mount("/ipx", createIPXFetchHandler(ipx));
-
-// http://localhost:3000/ipx/w_512/picsum/1000
-serve(app);
-```
-
-<!-- /automd -->
-
-**Example:** Using with [express](https://expressjs.com)
-
-<!-- automd:file code src="./examples/express.ts" -->
-
-```ts [express.ts]
-import Express from "express";
-
-import {
-  createIPX,
-  ipxFSStorage,
-  ipxHttpStorage,
-  createIPXNodeHandler,
-} from "ipx";
-
-import type { RequestHandler } from "express";
-
-const ipx = createIPX({
-  storage: ipxFSStorage({ dir: "./public" }),
-  httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
-  alias: { "/picsum": "https://picsum.photos" },
-});
-
-const app = Express();
-
-app.use("/ipx", createIPXNodeHandler(ipx) as RequestHandler);
-
-// http://localhost:3000/ipx/w_512/picsum/1000
-app.listen(3000, () => {
-  console.log("Server is running on http://localhost:3000");
-});
-```
-
-<!-- /automd -->
-
-## URL Examples
-
-Get original image:
-
-`/_/static/buffalo.png`
-
-Change format to `webp` and keep other things same as source:
-
-`/f_webp/static/buffalo.png`
-
-Automatically convert to a preferred format (avif/webp/jpeg). Uses the browsers `accept` header to negotiate:
-
-`/f_auto/static/buffalo.png`
-
-Keep original format (`png`) and set width to `200`:
-
-`/w_200/static/buffalo.png`
-
-Resize to `200x200px` using `embed` method and change format to `webp`:
-
-`/embed,f_webp,s_200x200/static/buffalo.png`
-
-## Custom URL Style
-
-The `parseURL` option accepts a function that extracts the resource id and modifiers from the request URL, allowing any URL style you like. It receives the raw (still percent-encoded) request URL, so it is free to decode it however the URL style requires.
-
-**Example:** modifiers in the filename (`/<id>@@<modifiers>.<format>`), which can be preferable when prerendering images for static hosting.
-
-```ts
-import { createIPXFetchHandler, parseIPXURL } from "ipx";
-
-const handler = createIPXFetchHandler(ipx, {
-  parseURL(url) {
-    const path = decodeURIComponent(new URL(url).pathname.slice(1));
-
-    const match = path.match(/^(.+)@@(.+)\.([^.]+)$/);
-    if (!match) {
-      // Not our style, fall back to the default `/<modifiers>/<id>`
-      return parseIPXURL(url);
-    }
-
-    const [, id = "", modifiersString = "", format = ""] = match;
-    const modifiers = Object.fromEntries(
-      modifiersString.split(",").map((m) => {
-        const [key = "", ...values] = m.split("_");
-        return [key, values.join("_")];
-      }),
-    );
-
-    return { id, modifiers: { ...modifiers, format } };
-  },
-});
-
-// http://localhost:3000/static/buffalo.png@@s_200x200.webp
-// http://localhost:3000/static/buffalo.png@@grayscale,w_200.webp
-```
-
-The parser may be async, and can throw an `HTTPError` (re-exported from `ipx`) to reject a request with a specific status code.
-
-Returned values are escaped by IPX, so custom parsers don't need to do it themselves. Note this is not an access check — exactly as with the default URL style, what the resulting id is allowed to resolve to is enforced by the storage layer (`ipxFSStorage`'s directory boundary, `ipxHttpStorage`'s domain allowlist).
-
-## Config
-
-You can universally customize IPX configuration using `IPX_*` environment variables.
-
-- `IPX_ALIAS`
-  - Default: `{}`
-- `IPX_MAX_OUTPUT_DIMENSION`
-  - Default: `8192`
-  - Maximum width and height (in pixels) of the output image (option: `maxOutputDimension`). Requested `width`, `height` and `resize` dimensions are clamped to it, preserving the requested aspect ratio, and `extend` edges are clamped so the extended canvas stays within it. This bounds how much memory a single request can allocate: sharp only limits the _input_ size, so without it `/enlarge,s_20000x20000/image.jpg` (or `/extend_10000_10000_10000_10000/image.jpg`) allocates gigabytes from a small source image. Set to `false` to disable, which is only safe when modifiers come from a trusted source.
-
-### Filesystem Source Options
-
-(enabled by default with CLI only)
-
-#### `IPX_FS_DIR`
-
-- Default: `.` (current working directory)
-
-#### `IPX_FS_MAX_AGE`
-
-- Default: `300`
-
-### HTTP(s) Source Options
-
-(enabled by default with CLI only)
-
-#### `IPX_HTTP_DOMAINS`
-
-- Default: `[]`
-- Allowlist of hostnames images can be fetched from (option: `domains`). Only `http:` and `https:` URLs are allowed (anything else is rejected with `403 IPX_FORBIDDEN_PROTOCOL`), and redirects are followed **only within the allowlist**, up to 3 hops: each redirect target is re-validated and a redirect to a host that is not listed is rejected with `403 IPX_FORBIDDEN_HOST` (`502 IPX_TOO_MANY_REDIRECTS` beyond 3 hops). Previously redirects were followed blindly, which let an allowlisted host with an open redirect bounce IPX to internal addresses such as the cloud metadata service (SSRF). If an allowlisted host redirects to a CDN, add the CDN hostname to the allowlist as well. Redirect re-validation is skipped when `IPX_HTTP_ALLOW_ALL_DOMAINS` is enabled (nothing to validate) or when `redirect` is explicitly set in `IPX_HTTP_FETCH_OPTIONS`.
-
-#### `IPX_HTTP_MAX_AGE`
-
-- Default: `300`
-
-#### `IPX_HTTP_FETCH_OPTIONS`
-
-- Default: `{}`
-
-#### `IPX_HTTP_ALLOW_ALL_DOMAINS`
-
-- Default: `false`
+The URL style is configurable, see [Custom URL Style](#custom-url-style).
 
 ## Modifiers
 
@@ -557,6 +385,130 @@ Rotate and flip the image based on its EXIF <code>Orientation</code> tag, then r
 
 <!-- /automd -->
 
+## Programmatic API
+
+Create an IPX instance with `createIPX()`, then either serve it directly or mount it as a handler in your own app.
+
+**Example:** Using built-in server
+
+<!-- automd:file code src="./examples/serve.ts" -->
+
+```ts [serve.ts]
+import { serveIPX, createIPX, ipxFSStorage, ipxHttpStorage } from "ipx";
+
+const ipx = createIPX({
+  storage: ipxFSStorage({ dir: "./public" }),
+  httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
+  alias: { "/picsum": "https://picsum.photos" },
+});
+
+// http://localhost:3000/w_512/picsum/1000
+serveIPX(ipx);
+```
+
+<!-- /automd -->
+
+**Example**: Using with [h3](https://h3.dev)
+
+<!-- automd:file code src="./examples/h3.ts" -->
+
+```ts [h3.ts]
+import { H3, serve } from "h3";
+
+import {
+  createIPX,
+  ipxFSStorage,
+  ipxHttpStorage,
+  createIPXFetchHandler,
+} from "ipx";
+
+const ipx = createIPX({
+  storage: ipxFSStorage({ dir: "./public" }),
+  httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
+  alias: { "/picsum": "https://picsum.photos" },
+});
+
+const app = new H3();
+
+app.mount("/ipx", createIPXFetchHandler(ipx));
+
+// http://localhost:3000/ipx/w_512/picsum/1000
+serve(app);
+```
+
+<!-- /automd -->
+
+**Example:** Using with [express](https://expressjs.com)
+
+<!-- automd:file code src="./examples/express.ts" -->
+
+```ts [express.ts]
+import Express from "express";
+
+import {
+  createIPX,
+  ipxFSStorage,
+  ipxHttpStorage,
+  createIPXNodeHandler,
+} from "ipx";
+
+import type { RequestHandler } from "express";
+
+const ipx = createIPX({
+  storage: ipxFSStorage({ dir: "./public" }),
+  httpStorage: ipxHttpStorage({ domains: ["picsum.photos"] }),
+  alias: { "/picsum": "https://picsum.photos" },
+});
+
+const app = Express();
+
+app.use("/ipx", createIPXNodeHandler(ipx) as RequestHandler);
+
+// http://localhost:3000/ipx/w_512/picsum/1000
+app.listen(3000, () => {
+  console.log("Server is running on http://localhost:3000");
+});
+```
+
+<!-- /automd -->
+
+## Config
+
+Every option can also be set universally with an `IPX_*` environment variable, which is how the CLI is configured. Explicit options win over the environment.
+
+### General
+
+| Option               | Environment variable       | Default | Description                                               |
+| -------------------- | -------------------------- | ------- | --------------------------------------------------------- |
+| `alias`              | `IPX_ALIAS`                | `{}`    | Map URL prefixes to other prefixes or remote origins.     |
+| `maxOutputDimension` | `IPX_MAX_OUTPUT_DIMENSION` | `8192`  | Maximum width and height (in pixels) of the output image. |
+
+Requested `width`, `height` and `resize` dimensions are clamped to `maxOutputDimension`, preserving the requested aspect ratio, and `extend` edges are clamped so the extended canvas stays within it. This bounds how much memory a single request can allocate: sharp only limits the _input_ size, so without it `/enlarge,s_20000x20000/image.jpg` (or `/extend_10000_10000_10000_10000/image.jpg`) allocates gigabytes from a small source image. Set to `false` to disable, which is only safe when modifiers come from a trusted source.
+
+### Filesystem source (`ipxFSStorage`)
+
+Enabled by default with the CLI only.
+
+| Option   | Environment variable | Default                 |
+| -------- | -------------------- | ----------------------- |
+| `dir`    | `IPX_FS_DIR`         | `.` (current directory) |
+| `maxAge` | `IPX_FS_MAX_AGE`     | `300`                   |
+
+The resolved path always has to stay inside `dir`, so `../` traversal is rejected.
+
+### HTTP(s) source (`ipxHttpStorage`)
+
+Enabled by default with the CLI only.
+
+| Option            | Environment variable         | Default | Description                                        |
+| ----------------- | ---------------------------- | ------- | -------------------------------------------------- |
+| `domains`         | `IPX_HTTP_DOMAINS`           | `[]`    | Allowlist of hostnames images can be fetched from. |
+| `maxAge`          | `IPX_HTTP_MAX_AGE`           | `300`   |                                                    |
+| `fetchOptions`    | `IPX_HTTP_FETCH_OPTIONS`     | `{}`    | Passed to `fetch()`.                               |
+| `allowAllDomains` | `IPX_HTTP_ALLOW_ALL_DOMAINS` | `false` | Disables the allowlist. Unsafe on a public server. |
+
+Only `http:` and `https:` URLs are allowed (anything else is rejected with `403 IPX_FORBIDDEN_PROTOCOL`), and redirects are followed **only within the allowlist**, up to 3 hops: each redirect target is re-validated and a redirect to a host that is not listed is rejected with `403 IPX_FORBIDDEN_HOST` (`502 IPX_TOO_MANY_REDIRECTS` beyond 3 hops). Previously redirects were followed blindly, which let an allowlisted host with an open redirect bounce IPX to internal addresses such as the cloud metadata service (SSRF). If an allowlisted host redirects to a CDN, add the CDN hostname to the allowlist as well. Redirect re-validation is skipped when `allowAllDomains` is enabled (nothing to validate) or when `redirect` is explicitly set in `fetchOptions`.
+
 ## SVG Images
 
 SVG images are not processed by sharp. They are sanitized, optimized with [svgo](https://github.com/svg/svgo) and served as `image/svg+xml`. Input that is not well-formed XML (an unescaped `&` is a common cause) is rejected with a `400 IPX_INVALID_SVG`.
@@ -622,6 +574,52 @@ Removed from every SVG:
 The bundled server sends `content-security-policy: default-src 'none'` with successful responses by default, which blocks both script execution and external references in browsers that honor it. Custom servers built on the programmatic API should send the same header, since sanitization cannot cover every future browser behavior on its own.
 
 Sanitization can be disabled with `svg: { unsafeSkipSanitize: true }`. Only do this when every source is fully trusted: IPX will then serve SVG images with XSS payloads unchanged.
+
+## Custom URL Style
+
+The `parseURL` option accepts a function that extracts the resource id and modifiers from the request URL, allowing any URL style you like. It receives the raw (still percent-encoded) request URL, so it is free to decode it however the URL style requires.
+
+**Example:** modifiers in the filename (`/<id>@@<modifiers>.<format>`), which can be preferable when prerendering images for static hosting.
+
+```ts
+import { createIPXFetchHandler, parseIPXURL } from "ipx";
+
+const handler = createIPXFetchHandler(ipx, {
+  parseURL(url) {
+    const path = decodeURIComponent(new URL(url).pathname.slice(1));
+
+    const match = path.match(/^(.+)@@(.+)\.([^.]+)$/);
+    if (!match) {
+      // Not our style, fall back to the default `/<modifiers>/<id>`
+      return parseIPXURL(url);
+    }
+
+    const [, id = "", modifiersString = "", format = ""] = match;
+    const modifiers = Object.fromEntries(
+      modifiersString.split(",").map((m) => {
+        const [key = "", ...values] = m.split("_");
+        return [key, values.join("_")];
+      }),
+    );
+
+    return { id, modifiers: { ...modifiers, format } };
+  },
+});
+
+// http://localhost:3000/static/buffalo.png@@s_200x200.webp
+// http://localhost:3000/static/buffalo.png@@grayscale,w_200.webp
+```
+
+The parser may be async, and can throw an `HTTPError` (re-exported from `ipx`) to reject a request with a specific status code.
+
+Returned values are escaped by IPX, so custom parsers don't need to do it themselves. Note this is not an access check — exactly as with the default URL style, what the resulting id is allowed to resolve to is enforced by the storage layer (`ipxFSStorage`'s directory boundary, `ipxHttpStorage`'s domain allowlist).
+
+## Migration from v3 to v4
+
+- The server creation APIs have changed. See the [Programmatic API](#programmatic-api) section for examples.
+- The JSON error format has changed from `{ error: string }` to `{ status, statusText, message }`.
+- The `svgo` option is now `svg.optimize`. SVG images are always sanitized, even when optimization is disabled.
+- SVG optimization now applies SVGO's `preset-default` unless custom `plugins` are configured (previously only the configured plugins ran), so SVG output is restructured more than before. See the [SVG Images](#svg-images) section.
 
 ## License
 
