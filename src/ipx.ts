@@ -435,10 +435,18 @@ export function createIPX(userOptions: IPXOptions): IPX {
           args: arguments_,
         }))
         .filter((h) => h.handler)
+        // Handlers run in ascending `order` groups (`0` by default) and
+        // alphabetically by modifier name within a group, so that the order the
+        // modifiers happen to appear in the URL never changes the result.
+        // Handlers reading state another one writes rely on this: the context
+        // modifiers (`fit`, `quality`, ...) are in group `-1`, and `extend` is
+        // in group `1` so it sees the dimensions the resize modifiers record.
         .sort((a, b) => {
-          const aKey = (a.handler.order || a.name || "").toString();
-          const bKey = (b.handler.order || b.name || "").toString();
-          return aKey.localeCompare(bKey);
+          const aOrder = a.handler.order || 0;
+          const bOrder = b.handler.order || 0;
+          return aOrder === bOrder
+            ? (a.name || "").localeCompare(b.name || "")
+            : aOrder - bOrder;
         });
 
       // Apply handlers
