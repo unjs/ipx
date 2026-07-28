@@ -1,5 +1,5 @@
 import { HTTPError } from "h3";
-import { resolve, parse, join } from "pathe";
+import { resolve, parse, join, normalize } from "pathe";
 import { getEnv } from "../utils.ts";
 
 import type { IPXStorage } from "../types.ts";
@@ -16,6 +16,25 @@ export type NodeFSSOptions = {
    * @optional
    */
   maxAge?: number;
+
+  /**
+   * If set to true, a symlink inside {@link NodeFSSOptions.dir} may resolve to a file outside
+   * of it. By default such files are rejected with `403 IPX_FORBIDDEN_SYMLINK`, since the
+   * lexical `../` check alone says nothing about where a path physically ends up.
+   *
+   * Symlinks that stay inside `dir` are always followed, whatever this is set to.
+   *
+   * This is **defense in depth**, not a fix for a remotely reachable hole: planting a symlink
+   * in the served directory already requires a symlink-create or arbitrary-write primitive
+   * there, and the served filesystem is assumed to be trusted. Comparable static file servers
+   * (`express.static`, nginx with `disable_symlinks off`) follow symlinks by default too.
+   *
+   * Enable it for the deployments where symlinking assets into the served directory is
+   * deliberate — monorepo `public/` layouts, CI artifact linking, Docker layer tricks.
+   * @optional
+   * @default false
+   */
+  allowSymlinksOutsideDir?: boolean;
 };
 
 /**
@@ -29,11 +48,36 @@ export type NodeFSSOptions = {
 export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
   const dirs = resolveDirs(_options.dir);
   const maxAge = _options.maxAge || getEnv("IPX_FS_MAX_AGE");
+  const allowSymlinksOutsideDir =
+    _options.allowSymlinksOutsideDir ??
+    getEnv<boolean>("IPX_FS_ALLOW_SYMLINKS_OUTSIDE_DIR") ??
+    false;
 
   const fs = globalThis.process.getBuiltinModule("node:fs/promises");
 
+  /**
+   * Symlink-free form of each configured dir, cached by index.
+   *
+   * Cached instead of resolved per request: the served dirs are near-static and `realpath` is
+   * a syscall per path segment. A dir that cannot be resolved — it does not exist yet, or is
+   * not readable — falls back to its lexical path, which only ever makes the boundary check
+   * stricter, never looser: files under it are an `ENOENT` anyway.
+   *
+   * An entry is dropped and re-resolved before a rejection (see {@link resolveFile}), so a
+   * `dir` that is itself a symlink can be repointed at runtime without serving 403s forever.
+   */
+  const realDirCache: (Promise<string> | undefined)[] = [];
+  const getRealDir = (index: number, dir: string) => {
+    let realDir = realDirCache[index];
+    if (!realDir) {
+      realDir = fs.realpath(dir).then(normalize, () => dir);
+      realDirCache[index] = realDir;
+    }
+    return realDir;
+  };
+
   const resolveFile = async (id: string) => {
-    for (const dir of dirs) {
+    for (const [index, dir] of dirs.entries()) {
       const filePath = join(dir, id);
       if (!isValidPath(filePath) || !filePath.startsWith(dir + "/")) {
         throw new HTTPError({
@@ -42,19 +86,20 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
           message: `Forbidden path: ${id}`,
         });
       }
+      let stats: Awaited<ReturnType<typeof fs.stat>>;
+      let realPath: string | undefined;
       try {
-        const stats = await fs.stat(filePath);
-        if (!stats.isFile()) {
-          // Keep looking in other dirs we are looking for a file!
-          continue;
+        stats = await fs.stat(filePath);
+        if (stats.isFile() && !allowSymlinksOutsideDir) {
+          // The check above is lexical, but `stat`/`readFile` follow symlinks. `realpath`
+          // resolves *every* segment, so a symlinked parent directory (`/etcdir/passwd`) is
+          // caught as well as a symlinked leaf.
+          realPath = normalize(await fs.realpath(filePath));
         }
-        return {
-          stats,
-          read: () => fs.readFile(filePath),
-        };
       } catch (error: any) {
         if (error.code === "ENOENT") {
           // Keep looking in other dirs
+          // (also covers a broken symlink, which `stat` reports as ENOENT)
           continue;
         }
         throw new HTTPError({
@@ -63,6 +108,38 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
           message: `Cannot access file: ${id}`,
         });
       }
+      if (!stats.isFile()) {
+        // Keep looking in other dirs we are looking for a file!
+        continue;
+      }
+      if (realPath !== undefined) {
+        let realDir = await getRealDir(index, dir);
+        if (!isInsideDir(realPath, realDir)) {
+          // The cached `realDir` can be stale: `dir` itself may be a symlink that was
+          // repointed since it was resolved, which is how atomic deploys work
+          // (`current -> releases/N`). Drop it and resolve once more before rejecting, so a
+          // swap costs one extra `realpath` on the rejection path rather than turning every
+          // request into a 403 until the process restarts.
+          realDirCache[index] = undefined;
+          realDir = await getRealDir(index, dir);
+        }
+        if (!isInsideDir(realPath, realDir)) {
+          throw new HTTPError({
+            statusCode: 403,
+            statusText: `IPX_FORBIDDEN_SYMLINK`,
+            message: `Forbidden symlink: ${id}`,
+          });
+        }
+      }
+      return {
+        stats,
+        // Read the resolved physical path so that swapping the symlink after the check does
+        // not change what is read. This narrows the TOCTOU window but does not close it: the
+        // file at `realPath` can still be replaced by a symlink between here and the read.
+        // Closing it needs an fd opened with `O_NOFOLLOW` on every segment, which the
+        // promises API does not expose.
+        read: () => fs.readFile(realPath ?? filePath),
+      };
     }
     throw new HTTPError({
       statusCode: 404,
@@ -100,6 +177,20 @@ function isValidPath(fp: string) {
     return false;
   }
   return true;
+}
+
+/**
+ * Whether `filePath` is `dir` itself or lives below it. Both are expected to be normalized and
+ * symlink-free. Compared case-insensitively on Windows because `realpath` returns the on-disk
+ * casing there, which does not have to match how the dir was configured.
+ */
+function isInsideDir(filePath: string, dir: string) {
+  if (isWindows) {
+    filePath = filePath.toLowerCase();
+    dir = dir.toLowerCase();
+  }
+  const prefix = dir.endsWith("/") ? dir : dir + "/";
+  return filePath === dir || filePath.startsWith(prefix);
 }
 
 function resolveDirs(dirs?: string | string[]) {

@@ -489,12 +489,11 @@ Requested `width`, `height` and `resize` dimensions are clamped to `maxOutputDim
 
 Enabled by default with the CLI only.
 
-| Option   | Environment variable | Default                 |
-| -------- | -------------------- | ----------------------- |
-| `dir`    | `IPX_FS_DIR`         | `.` (current directory) |
-| `maxAge` | `IPX_FS_MAX_AGE`     | `300`                   |
-
-The resolved path always has to stay inside `dir`, so `../` traversal is rejected.
+| Option                    | Environment variable                | Default                 | Description                                            |
+| ------------------------- | ----------------------------------- | ----------------------- | ------------------------------------------------------ |
+| `dir`                     | `IPX_FS_DIR`                        | `.` (current directory) | Directory (or directories) files are served from.      |
+| `maxAge`                  | `IPX_FS_MAX_AGE`                    | `300`                   |                                                        |
+| `allowSymlinksOutsideDir` | `IPX_FS_ALLOW_SYMLINKS_OUTSIDE_DIR` | `false`                 | Allows symlinks inside `dir` to resolve outside of it. |
 
 ### HTTP(s) source (`ipxHttpStorage`)
 
