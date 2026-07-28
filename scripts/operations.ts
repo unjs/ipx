@@ -9,6 +9,15 @@
  * `assets/operations/` and the `automd:ipx-operations` block in `README.md`.
  */
 
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { imageMeta } from "image-meta";
+
+const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
+
 /**
  * Source images the samples are generated from (see `gen-operations.ts`).
  *
@@ -17,19 +26,19 @@
  */
 export const SOURCES = {
   /** Fine detail (a cat in a shaggy blanket), the default for the resampling and sharpness operations. */
-  photo: "sample.jpg",
+  photo: "photo.jpg",
   /** Wide tonal range and clean edges (a husky in snow), for the contrast operations. */
-  edges: "sample-edges.jpg",
+  edges: "edges.jpg",
   /** Saturated colours next to neutral grey (a cat in mirrored sunglasses), for the colour operations. */
-  colour: "sample-colour.jpg",
+  colour: "colour.jpg",
   /** A subject off-centre and facing sideways (a running dalmatian), for the geometry operations. */
-  scene: "sample-scene.jpg",
+  scene: "scene.jpg",
   /** Transparent corners (a kitten on a flat backdrop), for operations that need an alpha channel. */
-  alpha: "sample-alpha.png",
+  alpha: "alpha.png",
   /** Flat graphic on a white background (a cat silhouette), for operations acting on shapes or white pixels. */
-  graphic: "sample-graphic.png",
+  graphic: "graphic.png",
   /** Animated GIF (Muybridge's trotting cat), for the `animated` modifier. */
-  animated: "sample.gif",
+  animated: "animated.gif",
 } as const;
 
 export type SourceName = keyof typeof SOURCES;
@@ -147,7 +156,7 @@ export const OPERATIONS: Operation[] = [
     example: "extend_20_40_20_40_mirror",
     source: "scene",
     notes:
-      "Pad or extrude the edges, as `extend_{top}_{right}_{bottom}_{left}_{extendWith}`. Edges are integers between `0` and `10000`. Optional `extendWith` is `background` (default), `copy`, `repeat` or `mirror`; `background` takes its colour from the `background` / `b` modifier.",
+      "Pad or extrude the edges, as `extend_{top}_{right}_{bottom}_{left}` with an optional `{extendWith}`. Edges are integers between `0` and `10000`. `extendWith` is `background` (default), `copy`, `repeat` or `mirror`; `background` takes its colour from the `background` / `b` modifier.",
   },
   {
     name: "background",
@@ -415,8 +424,24 @@ function sourceFormat(operation: Operation): string {
   return SOURCES[operation.source || "photo"].split(".").pop() as string;
 }
 
-/** Number of operations per row of the grid. */
-const GRID_COLUMNS = 3;
+/**
+ * Number of operations per row of the grid.
+ *
+ * GitHub renders a markdown table as `width: max-content; max-width: 100%;
+ * overflow: auto`, so a row that cannot fit the README column (~830px) gets a
+ * horizontal scrollbar. Neither a sample nor an example URL inside `<code>`
+ * can wrap, so the columns have to be wide enough for both: two of them leave
+ * ~390px per cell, which fits the widest sample and the longest example URL.
+ */
+const GRID_COLUMNS = 2;
+
+/**
+ * Widest a sample is displayed at, in pixels.
+ *
+ * Samples are only ever scaled down by this, never up, so a small sample (or
+ * one made with `kernel_nearest`) keeps its own pixels.
+ */
+const MAX_SAMPLE_WIDTH = 320;
 
 /** Even columns, so that samples of the same size line up across rows. */
 const COLUMN_WIDTH = `${Math.floor(100 / GRID_COLUMNS)}%`;
@@ -445,12 +470,38 @@ function names(operation: Operation): string {
     .join(" / ");
 }
 
+/**
+ * Renders the `<img>` of a sample, sized so that the row fits the README
+ * column and versioned so that a regenerated sample is actually shown.
+ */
+function renderSample(operation: Operation, url: string): string {
+  const file = sampleFile(operation);
+  const path = join(rootDir, OUTPUT_DIR, file);
+
+  let data: Buffer;
+  try {
+    data = readFileSync(path);
+  } catch {
+    throw new Error(`Missing sample \`${file}\`. Run \`pnpm gen:operations\`.`);
+  }
+
+  // GitHub proxies (and caches) images by URL alone, so a sample regenerated
+  // under the same name keeps being served from the previous contents until
+  // the URL changes with it.
+  const version = createHash("sha256").update(data).digest("hex").slice(0, 8);
+  // The intrinsic width, since a sample is not necessarily as wide as its
+  // source (`extract`, `enlarge`, ...) and must not be scaled up to fill.
+  const width = Math.min(imageMeta(data).width || Infinity, MAX_SAMPLE_WIDTH);
+
+  return `<img src="./${OUTPUT_DIR}/${file}?v=${version}" width="${width}" alt="${escapeHTML(url)}">`;
+}
+
 /** Renders one operation: name, sample, example URL and notes. */
 function renderCell(operation: Operation): string {
   const url = `/${operation.example}/${SOURCES[operation.source || "photo"]}`;
   const sample = operation.noSample
     ? `<em>No sample: ${inlineHTML(operation.noSample)}.</em>`
-    : `<img src="./${OUTPUT_DIR}/${sampleFile(operation)}" alt="${escapeHTML(url)}">`;
+    : renderSample(operation, url);
   const description = [
     operation.notes && inlineHTML(operation.notes),
     operation.docs && `(<a href="${operation.docs}">docs</a>)`,
