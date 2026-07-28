@@ -62,5 +62,8 @@
       "optional": true
     }
   },
+  "engines": {
+    "node": "^20.16.0 || >=22.3.0"
+  },
   "packageManager": "pnpm@11.17.0"
 }
