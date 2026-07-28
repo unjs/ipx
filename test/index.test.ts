@@ -277,9 +277,13 @@ describe("ipx", () => {
   // output, `/enlarge,s_20000x20000/bliss.jpg` (or a large `extend`) makes it
   // allocate gigabytes from a source image of any size.
   describe("maxOutputDimension", () => {
-    // bliss.jpg is 3840x2160
-    const size = async (instance: IPX, modifiers: Record<string, string>) => {
-      const { data } = await (await instance("bliss.jpg", modifiers)).process();
+    // bliss.jpg is 3840x2160, giphy.gif is 320x240
+    const size = async (
+      instance: IPX,
+      modifiers: Record<string, string>,
+      id = "bliss.jpg",
+    ) => {
+      const { data } = await (await instance(id, modifiers)).process();
       const { width, height } = imageMeta(data as Uint8Array);
       return `${width}x${height}`;
     };
@@ -309,6 +313,45 @@ describe("ipx", () => {
         }),
       ).toBe("4000x4000");
     });
+
+    // libvips resizes before it extends, whatever order the modifiers appear
+    // in, so budgeting the extend against the source used to let the two
+    // clamps stack: each axis reached twice the limit, 4x the pixel budget.
+    // Only visible against real sharp with both modifiers in one pipeline,
+    // which is exactly what the per-modifier clamp tests cannot cover.
+    it.each([
+      [
+        "resize listed first",
+        { enlarge: "", resize: "1000x1000", extend: "5000_5000_5000_5000" },
+      ],
+      [
+        "extend listed first",
+        { extend: "5000_5000_5000_5000", enlarge: "", resize: "1000x1000" },
+      ],
+      [
+        "`s` alias",
+        { enlarge: "", s: "1000x1000", extend: "5000_5000_5000_5000" },
+      ],
+      // Only `width` is given, so sharp derives the height (750) from the
+      // source aspect ratio: the extend budget has to account for that too.
+      [
+        "single axis",
+        { enlarge: "", width: "1000", extend: "5000_5000_5000_5000" },
+      ],
+    ])(
+      "bounds a resize combined with an extend (%s)",
+      async (_name, modifiers) => {
+        // A source well within the limit, so that both modifiers have room to
+        // grow the canvas. `format` avoids the animated gif pipeline.
+        expect(
+          await size(
+            createLimitedIPX(1000),
+            { ...modifiers, format: "jpeg" },
+            "giphy.gif",
+          ),
+        ).toBe("1000x1000");
+      },
+    );
 
     // Clamping only ever bounds growth: a source larger than the limit is
     // served as-is rather than rejected.
@@ -345,6 +388,9 @@ describe("ipx", () => {
       expect(await size(ipx, { resize: "100x50" })).toBe("100x50");
       expect(await size(ipx, { enlarge: "", resize: "4000x2000" })).toBe(
         "4000x2000",
+      );
+      expect(await size(ipx, { resize: "100x50", extend: "10_20_30_40" })).toBe(
+        "160x90",
       );
     });
   });

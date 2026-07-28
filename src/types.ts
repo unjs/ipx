@@ -48,6 +48,22 @@ export interface HandlerContext {
   maxOutputDimension?: number | false;
 
   /**
+   * Dimensions the image is expected to have once the resize modifiers
+   * (`resize`, `width`, `height`) have been applied, recorded by those
+   * handlers after their own clamping.
+   *
+   * libvips resizes before it extends, whatever order the modifiers appear in
+   * the URL, so `extend` budgets its edges against these rather than against
+   * {@link meta}: budgeting against the source lets the two clamps stack and
+   * the canvas end up at twice `maxOutputDimension` on each axis.
+   *
+   * Undefined when no resize modifier was applied (or when nothing could be
+   * projected from it), in which case `extend` falls back to {@link meta}.
+   * @optional
+   */
+  outputDimensions?: { width?: number; height?: number };
+
+  /**
    * Metadata about the image being processed.
    */
   meta: ImageMeta;

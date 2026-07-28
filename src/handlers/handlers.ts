@@ -11,6 +11,7 @@ import {
   clampExtendEdges,
   clampToMaxDimension,
   opacityOverlay,
+  resizeOutputDimensions,
 } from "./utils.ts";
 
 // Ranges below mirror the ones sharp enforces, so that invalid modifier
@@ -118,6 +119,11 @@ export const kernel: Handler = {
 // `withoutEnlargement` is disabled by the `enlarge` modifier, so the requested
 // dimensions are additionally capped to `maxOutputDimension` (see
 // `clampToMaxDimension`) to bound how much memory the output can take.
+//
+// The resulting size is recorded on the context so that `extend` -- which
+// libvips applies after the resize whatever the URL order -- budgets its edges
+// against it instead of the source dimensions, which would let the two clamps
+// stack past `maxOutputDimension`.
 
 export const width: Handler = {
   args: [VNumber("width", { min: 1, integer: true })],
@@ -127,8 +133,12 @@ export const width: Handler = {
       { width },
       context.meta,
     );
+    const withoutEnlargement = !context.enlarge;
+    context.outputDimensions = resizeOutputDimensions(clamped, context.meta, {
+      withoutEnlargement,
+    });
     return pipe.resize(clamped.width, undefined, {
-      withoutEnlargement: !context.enlarge,
+      withoutEnlargement,
     });
   },
 };
@@ -141,8 +151,12 @@ export const height: Handler = {
       { height },
       context.meta,
     );
+    const withoutEnlargement = !context.enlarge;
+    context.outputDimensions = resizeOutputDimensions(clamped, context.meta, {
+      withoutEnlargement,
+    });
     return pipe.resize(undefined, clamped.height, {
-      withoutEnlargement: !context.enlarge,
+      withoutEnlargement,
     });
   },
 };
@@ -167,6 +181,9 @@ export const resize: Handler = {
     const capped = clampToMaxDimension(context.maxOutputDimension, {
       width,
       height,
+    });
+    context.outputDimensions = resizeOutputDimensions(capped, context.meta, {
+      fit: context.fit,
     });
     return pipe.resize(capped.width, capped.height, {
       fit: context.fit,
@@ -197,15 +214,22 @@ export const extend: Handler = {
     VExtendEdge("extend.left"),
     VEnum("extend.extendWith", EXTEND_WITH),
   ],
+  // Runs after the resize modifiers (which are all in the default `0` group) so
+  // that `context.outputDimensions` is known by the time the edges are capped.
+  // libvips extends after resizing either way, so this only affects the order
+  // the sharp calls are made in, not the resulting image.
+  order: 1,
   // `background` is set by the `background` / `b` modifier and only used when
   // extending with `background` (the sharp default).
   apply: (context, pipe, top, right, bottom, left, extendWith) => {
     // Edges grow the canvas without any input-size relation, so they are capped
-    // to keep the extended canvas within `maxOutputDimension`.
+    // to keep the extended canvas within `maxOutputDimension`. The budget comes
+    // from the resized dimensions when there are any, since that is what
+    // libvips extends -- the source dimensions only apply without a resize.
     const edges = clampExtendEdges(
       context.maxOutputDimension,
       { top, right, bottom, left },
-      context.meta,
+      context.outputDimensions ?? context.meta,
     );
     return pipe.extend({
       top: edges.top,

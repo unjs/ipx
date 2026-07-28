@@ -375,6 +375,71 @@ export function clampToMaxDimension(
 }
 
 /**
+ * Projects the dimensions `sharp.resize()` will produce for a request.
+ *
+ * `extend` budgets its edges against this rather than the source dimensions:
+ * libvips always resizes before extending, so budgeting against the source lets
+ * `/enlarge,s_8192x8192,extend_8000_8000_8000_8000/tiny.png` stack both clamps
+ * and reach twice `maxOutputDimension` on each axis.
+ *
+ * The result is an *upper* bound -- `fit: "inside"` can make sharp produce
+ * something smaller -- since under-estimating would hand `extend` a larger
+ * budget than it is entitled to. `undefined` means nothing could be projected,
+ * and the caller should fall back to the source dimensions.
+ *
+ * @param desired The dimensions requested from sharp, after clamping.
+ * @param source The source dimensions, used to derive an omitted side.
+ * @param options The `fit` in effect and whether sharp is only allowed to
+ * shrink (`withoutEnlargement`), both of which change the resulting size.
+ */
+export function resizeOutputDimensions(
+  desired: { width?: number; height?: number },
+  source?: { width?: number; height?: number },
+  options: { fit?: string; withoutEnlargement?: boolean } = {},
+): { width?: number; height?: number } | undefined {
+  const { width, height } = desired;
+  if (width === undefined && height === undefined) {
+    // Sharp resets both sides, so the output keeps the source dimensions.
+    return undefined;
+  }
+
+  const sourceWidth = source?.width;
+  const sourceHeight = source?.height;
+  if (!sourceWidth || !sourceHeight) {
+    return desired;
+  }
+
+  // Sharp derives an omitted side from the source aspect ratio, never going
+  // below a single pixel.
+  const derive = (value: number) => Math.max(1, Math.round(value));
+  let out = {
+    width: width ?? derive((height! * sourceWidth) / sourceHeight),
+    height: height ?? derive((width! * sourceHeight) / sourceWidth),
+  };
+
+  // `outside` scales until the image *covers* the requested box, so the output
+  // can end up larger than what was asked for on one of the two axes.
+  if (
+    options.fit === "outside" &&
+    width !== undefined &&
+    height !== undefined
+  ) {
+    const scale = Math.max(width / sourceWidth, height / sourceHeight);
+    out = {
+      width: derive(sourceWidth * scale),
+      height: derive(sourceHeight * scale),
+    };
+  }
+
+  return options.withoutEnlargement
+    ? {
+        width: Math.min(out.width, sourceWidth),
+        height: Math.min(out.height, sourceHeight),
+      }
+    : out;
+}
+
+/**
  * Clamps `extend` edges so that the extended canvas cannot exceed `max` in
  * either dimension.
  *
@@ -384,7 +449,9 @@ export function clampToMaxDimension(
  *
  * @param max The limit, or `false`/`undefined` to leave the edges as-is.
  * @param edges The requested per-side extend values.
- * @param source The dimensions of the image being extended.
+ * @param source The dimensions of the image being extended, which are the
+ * resized ones ({@link resizeOutputDimensions}) whenever a resize modifier was
+ * applied -- not the source ones.
  */
 export function clampExtendEdges(
   max: number | false | undefined,

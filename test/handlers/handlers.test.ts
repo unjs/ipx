@@ -517,6 +517,82 @@ describe("maxOutputDimension", () => {
     });
   });
 
+  // libvips resizes before it extends, so budgeting the edges against the
+  // *source* let the two clamps stack: the canvas ended up at twice the limit
+  // on each axis. Clamping each modifier in isolation cannot catch this, hence
+  // the shared context below.
+  it("extend budgets against the resized dimensions, not the source", () => {
+    const pipe = { resize: vi.fn(), extend: vi.fn() };
+    const shared = context(1000);
+
+    applyHandler(shared, pipe as any, resize, "800x800");
+    applyHandler(shared, pipe as any, extend, "5000_5000_5000_5000");
+
+    expect(pipe.resize).toHaveBeenCalledWith(800, 800, expect.anything());
+    // 800 of the 1000 are already taken, so 100 is left for each edge.
+    expect(pipe.extend).toHaveBeenCalledWith(
+      expect.objectContaining({ top: 100, bottom: 100, left: 100, right: 100 }),
+    );
+  });
+
+  // Sharp derives the omitted side from the source aspect ratio, and the budget
+  // has to be taken from that derived size rather than the source one.
+  it("extend budgets against the side derived by a width resize", () => {
+    const pipe = { resize: vi.fn(), extend: vi.fn() };
+    const shared = context(1000);
+
+    applyHandler(shared, pipe as any, width, "800");
+    applyHandler(shared, pipe as any, extend, "5000_5000_5000_5000");
+
+    // The source is 400x200, so a width of 800 gives a derived height of 400.
+    expect(pipe.extend).toHaveBeenCalledWith(
+      expect.objectContaining({ top: 300, bottom: 300, left: 100, right: 100 }),
+    );
+  });
+
+  // `fit: outside` scales until the image covers the requested box, so the
+  // output is larger than what was asked for on one of the two axes.
+  it("extend budgets against what `fit: outside` actually produces", () => {
+    const pipe = { resize: vi.fn(), extend: vi.fn() };
+    const shared = { ...context(1000), fit: "outside" };
+
+    applyHandler(shared, pipe as any, resize, "800x800");
+    applyHandler(shared, pipe as any, extend, "5000_5000_5000_5000");
+
+    // The source is 400x200, so covering an 800x800 box gives 1600x800.
+    expect(pipe.extend).toHaveBeenCalledWith(
+      expect.objectContaining({ top: 100, bottom: 100, left: 0, right: 0 }),
+    );
+  });
+
+  // Without `enlarge` sharp only ever shrinks, so a request larger than the
+  // source must not eat into the extend budget.
+  it("extend budgets against the source when the resize cannot enlarge", () => {
+    const pipe = { resize: vi.fn(), extend: vi.fn() };
+    const shared = { ...context(1000), enlarge: false };
+
+    applyHandler(shared, pipe as any, width, "800");
+    applyHandler(shared, pipe as any, extend, "5000_5000_5000_5000");
+
+    expect(pipe.extend).toHaveBeenCalledWith(
+      expect.objectContaining({ top: 400, bottom: 400, left: 300, right: 300 }),
+    );
+  });
+
+  // Sharp resets both sides when a resize gives neither, so the output keeps
+  // the source dimensions and those stay the budget.
+  it("extend budgets against the source when the resize is a no-op", () => {
+    const pipe = { resize: vi.fn(), extend: vi.fn() };
+    const shared = context(1000);
+
+    applyHandler(shared, pipe as any, width, "");
+    applyHandler(shared, pipe as any, extend, "5000_5000_5000_5000");
+
+    expect(pipe.extend).toHaveBeenCalledWith(
+      expect.objectContaining({ top: 400, bottom: 400, left: 300, right: 300 }),
+    );
+  });
+
   it.each<false | undefined>([false, undefined])(
     "is disabled with `%s`",
     (max) => {
