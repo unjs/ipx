@@ -2,6 +2,72 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v4.0.0-beta.1
+
+[compare changes](https://github.com/unjs/ipx/compare/v4.0.0-alpha.2...v4.0.0-beta.1)
+
+### 🚀 Enhancements
+
+- Add `unflatten` handler ([#248](https://github.com/unjs/ipx/pull/248))
+- **server:** Add `parseURL` option to customize URL parsing ([#320](https://github.com/unjs/ipx/pull/320))
+- **server:** Answer etag revalidation before image processing ([52d0000](https://github.com/unjs/ipx/commit/52d0000))
+- **server:** Send `X-Content-Type-Options: nosniff` header ([85290d9](https://github.com/unjs/ipx/commit/85290d9))
+- **handlers:** Add `opacity` and the missing sharp operation modifiers ([#322](https://github.com/unjs/ipx/pull/322))
+- **http:** Support opt-in `blockPrivateIPs` ([f23c374](https://github.com/unjs/ipx/commit/f23c374))
+- **fs:** ⚠️  Reject symlinks resolving outside the served dir ([488fcf5](https://github.com/unjs/ipx/commit/488fcf5))
+
+### 🩹 Fixes
+
+- **handlers:** Parse all modulate args and add lightness ([#317](https://github.com/unjs/ipx/pull/317))
+- Use svg pass-thru when requested format is svg ([#262](https://github.com/unjs/ipx/pull/262))
+- Add `extendWith` arg to extend modifier ([#315](https://github.com/unjs/ipx/pull/315))
+- ⚠️  Always sanitize svg sources ([#319](https://github.com/unjs/ipx/pull/319))
+- **handlers:** Validate all modifier arguments ([#321](https://github.com/unjs/ipx/pull/321))
+- **handlers:** Clamp output dimensions with `maxOutputDimension` option ([013c144](https://github.com/unjs/ipx/commit/013c144))
+- **storage/http:** Return 400 for unparseable ids instead of 500 ([aeaae5b](https://github.com/unjs/ipx/commit/aeaae5b))
+- **storage/http:** ⚠️  Only follow redirects within the domain allowlist ([97e6eb7](https://github.com/unjs/ipx/commit/97e6eb7))
+- **ipx:** Compare handler `order` numerically when sorting ([9446f68](https://github.com/unjs/ipx/commit/9446f68))
+- **handlers:** Apply `maxOutputDimension` to `extend` after a resize ([5606f0f](https://github.com/unjs/ipx/commit/5606f0f))
+- **fs:** Dir fall-through and `maxAge` handling ([933b0d6](https://github.com/unjs/ipx/commit/933b0d6))
+- **fs:** Accept non-JSON env values and guard `process` access ([725a63c](https://github.com/unjs/ipx/commit/725a63c))
+
+### 💅 Refactors
+
+- Use `node:path` ([c73f3c1](https://github.com/unjs/ipx/commit/c73f3c1))
+
+### 📖 Documentation
+
+- Add samples ([5204d9c](https://github.com/unjs/ipx/commit/5204d9c))
+
+### 📦 Build
+
+- Add `engines` field to `package.json` ([c7227fb](https://github.com/unjs/ipx/commit/c7227fb))
+
+### 🏡 Chore
+
+- Update deps ([ce3c31d](https://github.com/unjs/ipx/commit/ce3c31d))
+- Add agents.md ([b4357f9](https://github.com/unjs/ipx/commit/b4357f9))
+- Update readme ([b30a407](https://github.com/unjs/ipx/commit/b30a407))
+- Prepare for v4 beta ([37c3415](https://github.com/unjs/ipx/commit/37c3415))
+
+### 🤖 CI
+
+- Run tests on macos and windows too ([8ddca9b](https://github.com/unjs/ipx/commit/8ddca9b))
+
+#### ⚠️ Breaking Changes
+
+- **fs:** ⚠️  Reject symlinks resolving outside the served dir ([488fcf5](https://github.com/unjs/ipx/commit/488fcf5))
+- ⚠️  Always sanitize svg sources ([#319](https://github.com/unjs/ipx/pull/319))
+- **storage/http:** ⚠️  Only follow redirects within the domain allowlist ([97e6eb7](https://github.com/unjs/ipx/commit/97e6eb7))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+- Pi0x <x@pi0.io>
+- Damian Głowala ([@DamianGlowala](https://github.com/DamianGlowala))
+- Simon Garner ([@sgarner](https://github.com/sgarner))
+- Nathan Chase ([@nathanchase](https://github.com/nathanchase))
+
 ## v4.0.0-alpha.2
 
 [compare changes](https://github.com/unjs/ipx/compare/v4.0.0-alpha.1...v4.0.0-alpha.2)
