@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { fileURLToPath } from "node:url";
 import {
   mkdtemp,
@@ -97,6 +97,22 @@ describe("dir fall-through", () => {
       });
     } finally {
       await rm(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("env configuration", () => {
+  it("accepts a plain (non-JSON) path in IPX_FS_DIR", async () => {
+    // Regression: `getEnv` JSON.parses values so numbers/booleans come out typed, and a bare
+    // path is not valid JSON — it must fall back to the raw string, not throw at startup.
+    vi.stubEnv("IPX_FS_DIR", fileURLToPath(new URL("assets", import.meta.url)));
+    try {
+      const storage = ipxFSStorage();
+      await expect(storage.getData("/bliss.jpg")).resolves.toBeInstanceOf(
+        Buffer,
+      );
+    } finally {
+      vi.unstubAllEnvs();
     }
   });
 });

@@ -1,19 +1,21 @@
 import { HTTPError } from "h3";
-import { getEnv } from "../utils.ts";
+import { getBuiltinModule, getEnv } from "../utils.ts";
 
 import type { IPXStorage } from "../types.ts";
 
 /**
- * `node:path` is loaded through `getBuiltinModule` instead of a static import so the bundle
- * stays loadable on runtimes without node builtins. `#__PURE__` lets a bundler drop the call
- * entirely when nothing in this module is used.
+ * `node:path` is loaded through the guarded {@link getBuiltinModule} helper instead of a
+ * static import so importing this module never throws, even on runtimes without node builtins
+ * or a `process` global. `#__PURE__` lets a bundler drop the call entirely when nothing in
+ * this module is used.
  *
  * The platform flavour is used throughout, so paths handed to `node:fs` keep the separators
  * the filesystem actually uses. Nothing below compares separators by hand: {@link isInsideDir}
  * is expressed with `relative()`, which is separator-agnostic.
  */
 const { join, parse, resolve, relative, isAbsolute, sep } =
-  /* #__PURE__ */ globalThis.process.getBuiltinModule("node:path") || {};
+  /* #__PURE__ */ getBuiltinModule<typeof import("node:path")>("node:path") ||
+  ({} as typeof import("node:path"));
 
 export type NodeFSSOptions = {
   /**
@@ -75,6 +77,17 @@ const NOT_IN_THIS_DIR = new Set(["ENOENT", "ENOTDIR", "ELOOP", "ENAMETOOLONG"]);
  * @throws {H3Error} If there is a problem accessing the file system module or resolving/reading files. See {@link H3Error}.
  */
 export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
+  // Checked before anything else so a runtime without node builtins fails with one clear
+  // error here, instead of `resolveDirs` below dying on an undefined `resolve` from the
+  // `node:path` fallback above.
+  const fs =
+    getBuiltinModule<typeof import("node:fs/promises")>("node:fs/promises");
+  if (!fs) {
+    throw new Error(
+      "ipxFSStorage requires the `node:fs/promises` builtin, which this runtime does not provide",
+    );
+  }
+
   const dirs = resolveDirs(_options.dir);
   // `??`, not `||`: `maxAge: 0` means "do not cache" and must not fall through to the default.
   const maxAge = _options.maxAge ?? getEnv<number>("IPX_FS_MAX_AGE");
@@ -82,8 +95,6 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
     _options.allowSymlinksOutsideDir ??
     getEnv<boolean>("IPX_FS_ALLOW_SYMLINKS_OUTSIDE_DIR") ??
     false;
-
-  const fs = globalThis.process.getBuiltinModule("node:fs/promises");
 
   /**
    * Symlink-free form of each configured dir, cached by index.
@@ -198,7 +209,7 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
   };
 }
 
-const isWindows = process.platform === "win32";
+const isWindows = globalThis.process?.platform === "win32";
 
 function isValidPath(fp: string) {
   // Invalid windows path chars
