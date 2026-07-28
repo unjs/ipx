@@ -1,8 +1,19 @@
 import { HTTPError } from "h3";
-import { resolve, parse, join, normalize } from "pathe";
 import { getEnv } from "../utils.ts";
 
 import type { IPXStorage } from "../types.ts";
+
+/**
+ * `node:path` is loaded through `getBuiltinModule` instead of a static import so the bundle
+ * stays loadable on runtimes without node builtins. `#__PURE__` lets a bundler drop the call
+ * entirely when nothing in this module is used.
+ *
+ * The platform flavour is used throughout, so paths handed to `node:fs` keep the separators
+ * the filesystem actually uses. Nothing below compares separators by hand: {@link isInsideDir}
+ * is expressed with `relative()`, which is separator-agnostic.
+ */
+const { join, parse, resolve, relative, isAbsolute, sep } =
+  /* #__PURE__ */ globalThis.process.getBuiltinModule("node:path") || {};
 
 export type NodeFSSOptions = {
   /**
@@ -70,7 +81,7 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
   const getRealDir = (index: number, dir: string) => {
     let realDir = realDirCache[index];
     if (!realDir) {
-      realDir = fs.realpath(dir).then(normalize, () => dir);
+      realDir = fs.realpath(dir).catch(() => dir);
       realDirCache[index] = realDir;
     }
     return realDir;
@@ -79,7 +90,7 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
   const resolveFile = async (id: string) => {
     for (const [index, dir] of dirs.entries()) {
       const filePath = join(dir, id);
-      if (!isValidPath(filePath) || !filePath.startsWith(dir + "/")) {
+      if (!isValidPath(filePath) || !isInsideDir(filePath, dir)) {
         throw new HTTPError({
           statusCode: 403,
           statusText: `IPX_FORBIDDEN_PATH`,
@@ -94,7 +105,7 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
           // The check above is lexical, but `stat`/`readFile` follow symlinks. `realpath`
           // resolves *every* segment, so a symlinked parent directory (`/etcdir/passwd`) is
           // caught as well as a symlinked leaf.
-          realPath = normalize(await fs.realpath(filePath));
+          realPath = await fs.realpath(filePath);
         }
       } catch (error: any) {
         if (error.code === "ENOENT") {
@@ -170,7 +181,7 @@ function isValidPath(fp: string) {
   // Invalid windows path chars
   // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file?redirectedfrom=MSDN#Naming_Conventions
   if (isWindows) {
-    // Remove C:/ as next we are validating :
+    // Remove C:\ as next we are validating :
     fp = fp.slice(parse(fp).root.length);
   }
   if (/["*:<>?|]/.test(fp)) {
@@ -180,17 +191,31 @@ function isValidPath(fp: string) {
 }
 
 /**
- * Whether `filePath` is `dir` itself or lives below it. Both are expected to be normalized and
- * symlink-free. Compared case-insensitively on Windows because `realpath` returns the on-disk
- * casing there, which does not have to match how the dir was configured.
+ * Whether `filePath` lives strictly below `dir`. Both are expected to be absolute; the
+ * realpath call site additionally passes symlink-free paths.
+ *
+ * Phrased with `relative()` rather than a string prefix so it holds whatever separator the
+ * platform uses, and so the near-miss cases fall out of one rule instead of hand-rolled
+ * ones: a sibling sharing a prefix (`/srv/public-other` against `/srv/public`) and a
+ * different Windows drive both come back as `..`-prefixed or absolute.
+ *
+ * Compared case-insensitively on Windows because `realpath` returns the on-disk casing
+ * there, which does not have to match how the dir was configured.
  */
 function isInsideDir(filePath: string, dir: string) {
   if (isWindows) {
     filePath = filePath.toLowerCase();
     dir = dir.toLowerCase();
   }
-  const prefix = dir.endsWith("/") ? dir : dir + "/";
-  return filePath === dir || filePath.startsWith(prefix);
+  const rel = relative(dir, filePath);
+  // `rel === ""` is `dir` itself, which is a directory and never a file we may serve.
+  // The `..` cases are checked against `sep` so a real file named `..foo` still passes.
+  return (
+    rel !== "" &&
+    rel !== ".." &&
+    !rel.startsWith(`..${sep}`) &&
+    !isAbsolute(rel)
+  );
 }
 
 function resolveDirs(dirs?: string | string[]) {

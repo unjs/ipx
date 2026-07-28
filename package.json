@@ -30,7 +30,6 @@
     "test:types": "tsc --noEmit"
   },
   "dependencies": {
-    "pathe": "^2.0.3",
     "sharp": "^0.35.3",
     "srvx": "^0.12.4"
   },

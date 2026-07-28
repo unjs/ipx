@@ -66,6 +66,27 @@ describe("isolation", () => {
     const source = await ipx("../assets2/bliss.jpg"); // access file outside ./public dir because of same prefix folder
     await expect(source.process()).rejects.toThrowError("Forbidden path");
   });
+
+  it("should not be able to reach a sibling dir sharing the served dir's prefix", async () => {
+    // `/srv/pub` vs `/srv/pub-other`: a plain `startsWith(dir)` boundary would let this
+    // through, so the check has to be separator-aware.
+    const root = await mkdtemp(join(tmpdir(), "ipx-prefix-"));
+    try {
+      await mkdir(join(root, "pub"));
+      await mkdir(join(root, "pub-other"));
+      await copyFile(
+        fileURLToPath(new URL("assets/bliss.jpg", import.meta.url)),
+        join(root, "pub-other/secret.jpg"),
+      );
+      const ipx = createIPX({
+        storage: ipxFSStorage({ dir: join(root, "pub") }),
+      });
+      const source = await ipx("../pub-other/secret.jpg");
+      await expect(source.process()).rejects.toThrowError("Forbidden path");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
 });
 
 describe("symlinks", () => {
@@ -142,6 +163,28 @@ describe("symlinks", () => {
     expect(data).toBeInstanceOf(Buffer);
     expect(format).toBe("jpeg");
   });
+
+  // A backslash is a legal filename character on POSIX but a separator on Windows.
+  it.skipIf(process.platform === "win32")(
+    "serves a symlink whose target contains a literal backslash",
+    async () => {
+      // Regression: normalizing the realpath with a library that rewrites `\` to `/` turned
+      // the target into a path that does not exist, so `getMeta` passed and the read blew up
+      // with a bare ENOENT (an unhandled 500) instead of serving the file.
+      await copyFile(
+        join(assetsDir, "bliss.jpg"),
+        join(servedDir, String.raw`sub/we\ird.jpg`),
+      );
+      await symlink(
+        join(servedDir, String.raw`sub/we\ird.jpg`),
+        join(servedDir, "weird.jpg"),
+      );
+      const source = await createFSIPX()("weird.jpg");
+      const { data, format } = await source.process();
+      expect(data).toBeInstanceOf(Buffer);
+      expect(format).toBe("jpeg");
+    },
+  );
 
   it("serves an escaping symlink with `allowSymlinksOutsideDir`", async () => {
     const source = await createFSIPX(true)("escape.jpg");

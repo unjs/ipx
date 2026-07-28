@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { resolve } from "pathe";
+import { resolve } from "node:path";
 import { serve } from "srvx";
 import { staticMiddleware } from "srvx/static";
 import { imageMeta } from "image-meta";

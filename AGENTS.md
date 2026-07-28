@@ -36,7 +36,7 @@ pnpm gen:operations   # regenerate assets/operations/ + the Modifiers table in R
 
 - **ESM + TypeScript, relative imports carry the `.ts` extension** (`./utils.ts`). `verbatimModuleSyntax` is on, so type-only imports need `import type`.
 - **Errors are `HTTPError` from h3** with a machine-readable `statusText` code (`IPX_FORBIDDEN_HOST`, `IPX_INVALID_MODIFIER_ARG`, …). Anything derived from user input must surface as a `4xx`, never an unhandled `500`.
-- **Runtime deps are only `sharp`, `srvx`, `pathe`.** `h3`, `svgo`, `image-meta`, `etag`, `ufo`, `@fastify/accept-negotiator` are devDependencies that obuild bundles into `dist/`. Add new imports as devDependencies unless a runtime dep is truly intended.
+- **Runtime deps are only `sharp` and `srvx`.** `h3`, `svgo`, `image-meta`, `etag`, `ufo`, `@fastify/accept-negotiator` are devDependencies that obuild bundles into `dist/`. Add new imports as devDependencies unless a runtime dep is truly intended.
 - **No static `node:` imports in library code** — use `getBuiltinModule()` / `requireModule()` from `src/utils.ts` so the bundle stays loadable on non-Node runtimes.
 - Options follow the pattern `userOption ?? getEnv("IPX_*") ?? default`.
 - Prettier defaults; comments explain _why_ (especially the security rationale), not _what_.

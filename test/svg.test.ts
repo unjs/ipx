@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolve } from "pathe";
+import { resolve } from "node:path";
 
 import {
   type IPXOptions,

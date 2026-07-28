@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 
 import { readFile } from "node:fs/promises";
-import { resolve } from "pathe";
+import { resolve } from "node:path";
 
 import { type IPX, createIPX, unstorageToIPXStorage } from "../src/index.ts";
 

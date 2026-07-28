@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { resolve } from "pathe";
+import { resolve } from "node:path";
 import {
   type IPX,
   type IPXURLParser,
