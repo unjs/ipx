@@ -1,6 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { fileURLToPath } from "node:url";
-import { mkdtemp, mkdir, copyFile, symlink, rm } from "node:fs/promises";
+import {
+  mkdtemp,
+  mkdir,
+  copyFile,
+  symlink,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -53,6 +60,56 @@ describe("ipx: fs with multiple dirs", () => {
     await expect(() => source.process()).rejects.toThrowError(
       "Forbidden path: /*.png",
     );
+  });
+});
+
+describe("dir fall-through", () => {
+  it("falls through to the next dir when a segment is a file, not a dir", async () => {
+    // `stat` reports ENOTDIR here, which means "not in this dir" just as much as ENOENT
+    // does: a stray file named `sub` must not shadow a later dir's `sub/` subtree.
+    const d1 = await mkdtemp(join(tmpdir(), "ipx-notdir-1-"));
+    const d2 = await mkdtemp(join(tmpdir(), "ipx-notdir-2-"));
+    try {
+      await writeFile(join(d1, "sub"), "not a directory");
+      await mkdir(join(d2, "sub"));
+      await copyFile(
+        fileURLToPath(new URL("assets/bliss.jpg", import.meta.url)),
+        join(d2, "sub/bliss.jpg"),
+      );
+      const storage = ipxFSStorage({ dir: [d1, d2] });
+      await expect(storage.getData("/sub/bliss.jpg")).resolves.toBeInstanceOf(
+        Buffer,
+      );
+    } finally {
+      await rm(d1, { recursive: true, force: true });
+      await rm(d2, { recursive: true, force: true });
+    }
+  });
+
+  it("reports a symlink cycle as not found", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "ipx-loop-"));
+    try {
+      await symlink(join(dir, "b.jpg"), join(dir, "a.jpg"));
+      await symlink(join(dir, "a.jpg"), join(dir, "b.jpg"));
+      const storage = ipxFSStorage({ dir });
+      await expect(storage.getData("/a.jpg")).rejects.toMatchObject({
+        statusCode: 404,
+      });
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("maxAge", () => {
+  it("passes an explicit 0 through instead of falling back to the default", async () => {
+    const storage = ipxFSStorage({
+      dir: fileURLToPath(new URL("assets", import.meta.url)),
+      maxAge: 0,
+    });
+    await expect(storage.getMeta("/bliss.jpg")).resolves.toMatchObject({
+      maxAge: 0,
+    });
   });
 });
 

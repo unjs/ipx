@@ -23,7 +23,11 @@ export type NodeFSSOptions = {
   dir?: string | string[];
 
   /**
-   * The directory or list of directories from which to serve files. If not specified, the current directory is used by default.
+   * `max-age`, in seconds, reported for files served from this storage. Used for the
+   * `cache-control` header. Falls back to the IPX-wide `maxAge` (default 60) when unset.
+   *
+   * `0` is meaningful and is passed through as-is — it disables caching rather than
+   * falling back to the default.
    * @optional
    */
   maxAge?: number;
@@ -49,6 +53,20 @@ export type NodeFSSOptions = {
 };
 
 /**
+ * `stat`/`realpath` errors that mean "this dir does not have the file" rather than "the file
+ * is there but unreachable". They let the search fall through to the next configured dir, and
+ * end as a `404` if no dir has it.
+ *
+ * - `ENOENT` — missing, and what a broken symlink reports.
+ * - `ENOTDIR` — an intermediate segment is not a directory. Just as much an absence as
+ *   `ENOENT`: without this, a stray regular file named `sub` in an earlier dir would shadow
+ *   every later dir's `sub/` subtree with a `403`.
+ * - `ELOOP` — a symlink cycle, i.e. another shape of broken link.
+ * - `ENAMETOOLONG` — the name cannot exist on this filesystem.
+ */
+const NOT_IN_THIS_DIR = new Set(["ENOENT", "ENOTDIR", "ELOOP", "ENAMETOOLONG"]);
+
+/**
  * Creates a file system storage handler for IPX that allows images to be served from local directories specified in the options.
  * This handler resolves directories and handles file access, ensuring that files are served safely.
  *
@@ -58,7 +76,8 @@ export type NodeFSSOptions = {
  */
 export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
   const dirs = resolveDirs(_options.dir);
-  const maxAge = _options.maxAge || getEnv("IPX_FS_MAX_AGE");
+  // `??`, not `||`: `maxAge: 0` means "do not cache" and must not fall through to the default.
+  const maxAge = _options.maxAge ?? getEnv<number>("IPX_FS_MAX_AGE");
   const allowSymlinksOutsideDir =
     _options.allowSymlinksOutsideDir ??
     getEnv<boolean>("IPX_FS_ALLOW_SYMLINKS_OUTSIDE_DIR") ??
@@ -71,11 +90,14 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
    *
    * Cached instead of resolved per request: the served dirs are near-static and `realpath` is
    * a syscall per path segment. A dir that cannot be resolved — it does not exist yet, or is
-   * not readable — falls back to its lexical path, which only ever makes the boundary check
-   * stricter, never looser: files under it are an `ENOENT` anyway.
+   * not readable — falls back to its lexical path. That fallback never widens the boundary:
+   * the comparison is against a path no symlink was followed to reach, so anything physically
+   * elsewhere is rejected rather than admitted.
    *
-   * An entry is dropped and re-resolved before a rejection (see {@link resolveFile}), so a
-   * `dir` that is itself a symlink can be repointed at runtime without serving 403s forever.
+   * It can be too narrow, though, when `dir` is itself a symlink: files under it stat fine
+   * through the link but resolve into the link target, outside the lexical fallback. That is
+   * what the drop-and-retry before a rejection covers (see {@link resolveFile}) — it also
+   * lets a `dir` symlink be repointed at runtime without serving 403s forever.
    */
   const realDirCache: (Promise<string> | undefined)[] = [];
   const getRealDir = (index: number, dir: string) => {
@@ -108,11 +130,12 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
           realPath = await fs.realpath(filePath);
         }
       } catch (error: any) {
-        if (error.code === "ENOENT") {
+        if (NOT_IN_THIS_DIR.has(error.code)) {
           // Keep looking in other dirs
-          // (also covers a broken symlink, which `stat` reports as ENOENT)
           continue;
         }
+        // Anything else — EACCES, EPERM, EIO — is a real access failure rather than an
+        // absence, so it stops the search instead of silently falling through.
         throw new HTTPError({
           statusCode: 403,
           statusText: `IPX_FORBIDDEN_FILE`,
