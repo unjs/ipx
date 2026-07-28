@@ -500,14 +500,29 @@ The resolved path always has to stay inside `dir`, so `../` traversal is rejecte
 
 Enabled by default with the CLI only.
 
-| Option            | Environment variable         | Default | Description                                        |
-| ----------------- | ---------------------------- | ------- | -------------------------------------------------- |
-| `domains`         | `IPX_HTTP_DOMAINS`           | `[]`    | Allowlist of hostnames images can be fetched from. |
-| `maxAge`          | `IPX_HTTP_MAX_AGE`           | `300`   |                                                    |
-| `fetchOptions`    | `IPX_HTTP_FETCH_OPTIONS`     | `{}`    | Passed to `fetch()`.                               |
-| `allowAllDomains` | `IPX_HTTP_ALLOW_ALL_DOMAINS` | `false` | Disables the allowlist. Unsafe on a public server. |
+| Option            | Environment variable         | Default | Description                                                     |
+| ----------------- | ---------------------------- | ------- | --------------------------------------------------------------- |
+| `domains`         | `IPX_HTTP_DOMAINS`           | `[]`    | Allowlist of hostnames images can be fetched from.              |
+| `maxAge`          | `IPX_HTTP_MAX_AGE`           | `300`   |                                                                 |
+| `fetchOptions`    | `IPX_HTTP_FETCH_OPTIONS`     | `{}`    | Passed to `fetch()`.                                            |
+| `allowAllDomains` | `IPX_HTTP_ALLOW_ALL_DOMAINS` | `false` | Disables the allowlist. Unsafe on a public server.              |
+| `blockPrivateIPs` | `IPX_HTTP_BLOCK_PRIVATE_IPS` | `false` | Rejects hosts that are, or resolve to, a non-public IP address. |
 
-Only `http:` and `https:` URLs are allowed (anything else is rejected with `403 IPX_FORBIDDEN_PROTOCOL`), and redirects are followed **only within the allowlist**, up to 3 hops: each redirect target is re-validated and a redirect to a host that is not listed is rejected with `403 IPX_FORBIDDEN_HOST` (`502 IPX_TOO_MANY_REDIRECTS` beyond 3 hops). Previously redirects were followed blindly, which let an allowlisted host with an open redirect bounce IPX to internal addresses such as the cloud metadata service (SSRF). If an allowlisted host redirects to a CDN, add the CDN hostname to the allowlist as well. Redirect re-validation is skipped when `allowAllDomains` is enabled (nothing to validate) or when `redirect` is explicitly set in `fetchOptions`.
+Only `http:` and `https:` URLs are allowed (anything else is rejected with `403 IPX_FORBIDDEN_PROTOCOL`), and redirects are followed **only within the allowlist**, up to 3 hops: each redirect target is re-validated and a redirect to a host that is not listed is rejected with `403 IPX_FORBIDDEN_HOST` (`502 IPX_TOO_MANY_REDIRECTS` beyond 3 hops). Previously redirects were followed blindly, which let an allowlisted host with an open redirect bounce IPX to internal addresses such as the cloud metadata service (SSRF). If an allowlisted host redirects to a CDN, add the CDN hostname to the allowlist as well. Redirect re-validation is skipped when `allowAllDomains` is enabled without `blockPrivateIPs` (nothing to validate) or when `redirect` is explicitly set in `fetchOptions`.
+
+#### Blocking private IP addresses
+
+The allowlist matches hostnames, not addresses, so an allowlisted host whose DNS record points at `127.0.0.1`, `169.254.169.254` or an RFC1918 address is fetched like any other. That is intended — allowlisted domains are trusted — but `blockPrivateIPs: true` adds a second line of defense for setups where the allowlist is broad (or `allowAllDomains` is on):
+
+```ts
+ipxHttpStorage({ domains: ["cdn.example.com"], blockPrivateIPs: true });
+```
+
+The host of the requested URL **and of every redirect hop** must be a public address. IP literals are checked directly, hostnames are resolved with the OS resolver (`dns.lookup`, so `/etc/hosts` counts) and _all_ returned addresses must be public. Loopback, `0.0.0.0/8`, RFC1918, CGNAT (`100.64.0.0/10`), link-local (`169.254.0.0/16`, `fe80::/10`), unique-local (`fc00::/7`), multicast, reserved/test ranges and the IPv4-mapped/compatible IPv6 forms of all of them (`::ffff:127.0.0.1` and friends) are rejected with `403 IPX_FORBIDDEN_IP`. A host that cannot be resolved is a `502 IPX_DNS_LOOKUP_FAILED`, and a runtime without `node:net`/`node:dns` a `500 IPX_IP_CHECK_UNAVAILABLE` — the check fails closed rather than quietly turning itself off.
+
+It is **off by default**: many deployments legitimately fetch from in-cluster origins (internal object storage, a sidecar, `localhost` in development), and enabling it by default would break them.
+
+Two limits to be aware of. It does not close the DNS-rebinding window: the name is resolved again when the socket is opened, so a record with a very short TTL can answer with a public address during validation and a private one during the fetch. Closing that requires pinning the validated address on the connection itself, which the plain `fetch` used here does not expose. And it is not a substitute for the allowlist — a public address that happens to be reachable is still fetched.
 
 ## SVG Images
 
