@@ -3,9 +3,10 @@
  * `automd:ipx-operations` table in `README.md`.
  *
  * Everything under `assets/operations/` is generated: the source images are
- * derived from the (committed) test assets and every sample is produced by
- * running the real IPX pipeline over `scripts/operations.ts`, so a documented
- * example that IPX rejects fails this script instead of shipping to the README.
+ * derived from the (committed) originals in `scripts/assets/` and every sample
+ * is produced by running the real IPX pipeline over `scripts/operations.ts`, so
+ * a documented example that IPX rejects fails this script instead of shipping
+ * to the README.
  *
  * Usage: `pnpm gen:operations`
  */
@@ -35,6 +36,19 @@ import {
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outputDir = join(rootDir, OUTPUT_DIR);
 const sourceDir = join(rootDir, SOURCE_DIR);
+
+const original = (file: string) => join(rootDir, "scripts/assets", file);
+
+/** Committed originals the sources are derived from (see `scripts/assets/README.md`). */
+const originals = {
+  photo: original("cat-blanket.jpg"),
+  edges: original("husky-snow.jpg"),
+  colour: original("cat-sunglasses.jpg"),
+  scene: original("dalmatian-field.jpg"),
+  alpha: original("kitten-studio.jpg"),
+  graphic: original("cat-silhouette.svg"),
+  animated: original("cat-trotting.gif"),
+};
 
 // Modifiers applied by `createIPX` itself rather than by a handler.
 const NON_HANDLER_MODIFIERS = new Set(["format", "f", "animated", "a"]);
@@ -77,20 +91,27 @@ function checkCoverage(): void {
  * effect of an operation has to be visible at the size the sample is displayed.
  */
 async function generateSources(): Promise<void> {
-  const photo = await sharp(join(rootDir, "test/assets/bliss.jpg"))
-    .resize(SOURCE_WIDTH)
-    .jpeg({ quality: 80 })
-    .toBuffer();
-  await writeFile(join(sourceDir, SOURCES.photo), photo);
+  // No chroma subsampling: `sharpen`, `median`, `kernel` and the colour
+  // operations act on detail the halved colour resolution would blur away.
+  const photographic = (file: string) =>
+    sharp(file).resize(SOURCE_WIDTH).jpeg({
+      quality: 80,
+      chromaSubsampling: "4:4:4",
+    });
 
-  // Rounded corners cut out of the photo, so that operations working on the
+  for (const name of ["photo", "edges", "colour", "scene"] as const) {
+    await photographic(originals[name]).toFile(join(sourceDir, SOURCES[name]));
+  }
+
+  // Rounded corners cut out of a photo, so that operations working on the
   // alpha channel (`flatten`, ...) have something to show.
+  const opaque = await photographic(originals.alpha).toBuffer();
   const { width = SOURCE_WIDTH, height = SOURCE_WIDTH } =
-    await sharp(photo).metadata();
+    await sharp(opaque).metadata();
   const mask = Buffer.from(
     `<svg width="${width}" height="${height}"><rect width="${width}" height="${height}" rx="48" ry="48"/></svg>`,
   );
-  await sharp(photo)
+  await sharp(opaque)
     .composite([{ input: mask, blend: "dest-in" }])
     // A palette keeps the committed source small; it is only a docs sample.
     .png({ palette: true })
@@ -98,14 +119,14 @@ async function generateSources(): Promise<void> {
 
   // Rasterized (IPX serves SVG sources as SVG, so it cannot be one) on a white
   // background, so that `unflatten` has white pixels to remove.
-  await sharp(join(rootDir, "test/assets/nuxt.svg"), { density: 300 })
+  await sharp(originals.graphic, { density: 300 })
     .resize(SOURCE_WIDTH)
     .flatten({ background: "#ffffff" })
     // No palette: dithering would show up as noise in the `dilate` / `erode` samples.
     .png()
-    .toFile(join(sourceDir, SOURCES.logo));
+    .toFile(join(sourceDir, SOURCES.graphic));
 
-  await sharp(join(rootDir, "test/assets/giphy.gif"), { animated: true })
+  await sharp(originals.animated, { animated: true })
     .resize(SOURCE_WIDTH / 2)
     .gif()
     .toFile(join(sourceDir, SOURCES.animated));

@@ -9,21 +9,32 @@
  * `assets/operations/` and the `automd:ipx-operations` block in `README.md`.
  */
 
-/** Source images the samples are generated from (see `gen-operations.ts`). */
+/**
+ * Source images the samples are generated from (see `gen-operations.ts`).
+ *
+ * Cats and dogs, picked per operation so that each sample is shown on something
+ * its effect is actually legible on.
+ */
 export const SOURCES = {
-  /** Opaque photo, the default for most operations. */
+  /** Fine detail (a cat in a shaggy blanket), the default for the resampling and sharpness operations. */
   photo: "sample.jpg",
-  /** Same photo with transparent corners, for operations that need an alpha channel. */
+  /** Wide tonal range and clean edges (a husky in snow), for the contrast operations. */
+  edges: "sample-edges.jpg",
+  /** Saturated colours next to neutral grey (a cat in mirrored sunglasses), for the colour operations. */
+  colour: "sample-colour.jpg",
+  /** A subject off-centre and facing sideways (a running dalmatian), for the geometry operations. */
+  scene: "sample-scene.jpg",
+  /** Transparent corners (a kitten on a flat backdrop), for operations that need an alpha channel. */
   alpha: "sample-alpha.png",
-  /** Logo on a white background, for operations acting on shapes or white pixels. */
-  logo: "sample-logo.png",
-  /** Animated GIF, for the `animated` modifier. */
+  /** Flat graphic on a white background (a cat silhouette), for operations acting on shapes or white pixels. */
+  graphic: "sample-graphic.png",
+  /** Animated GIF (Muybridge's trotting cat), for the `animated` modifier. */
   animated: "sample.gif",
 } as const;
 
 export type SourceName = keyof typeof SOURCES;
 
-/** Width the `photo` and `alpha` sources are generated at (height follows the aspect ratio). */
+/** Width every source is generated at (height follows the aspect ratio). */
 export const SOURCE_WIDTH = 320;
 
 /** Directory (relative to the repo root) holding the generated samples. */
@@ -76,22 +87,27 @@ export const OPERATIONS: Operation[] = [
     aliases: ["w"],
     docs: RESIZE_DOCS,
     example: "w_160",
-    notes: "Positive integer.",
+    source: "scene",
+    notes:
+      "Resize to a width in pixels, a positive integer. The height follows the aspect ratio.",
   },
   {
     name: "height",
     aliases: ["h"],
     docs: RESIZE_DOCS,
     example: "h_120",
-    notes: "Positive integer.",
+    source: "scene",
+    notes:
+      "Resize to a height in pixels, a positive integer. The width follows the aspect ratio.",
   },
   {
     name: "resize",
     aliases: ["s"],
     docs: RESIZE_DOCS,
     example: "s_200x200",
+    source: "scene",
     notes:
-      "`{width}x{height}` of positive integers. A single value (`s_200`) is a square.",
+      "Resize to `{width}x{height}`, both positive integers. A single value (`s_200`) is a square.",
   },
   {
     name: "kernel",
@@ -103,7 +119,8 @@ export const OPERATIONS: Operation[] = [
   {
     name: "fit",
     docs: RESIZE_DOCS,
-    example: "s_200x200,fit_contain,b_00ff00",
+    example: "s_300x150,fit_contain,b_00ff00",
+    source: "scene",
     notes:
       "Sets `fit` option for `resize`. One of `contain`, `cover` (default), `fill`, `inside` or `outside`.",
   },
@@ -111,39 +128,43 @@ export const OPERATIONS: Operation[] = [
     name: "position",
     aliases: ["pos"],
     docs: RESIZE_DOCS,
-    example: "s_200x200,pos_top",
+    example: "s_150x300,pos_top",
+    source: "scene",
     notes:
-      "Sets `position` option for `resize`. A position (`top`, `right top`, `right`, `right bottom`, `bottom`, `left bottom`, `left`, `left top`), gravity (`north`, `northeast`, ..., `center`) or strategy (`entropy`, `attention`). Since `_` separates arguments, multi-word values use `-` (`pos_right-top`). The numeric gravity (`0`-`8`) and strategy (`16`-`17`) constants are also accepted.",
+      "Sets `position` option for `resize`. A position (`top`, `right top`, ..., `left top`), gravity (`north`, `northeast`, ..., `center`) or strategy (`entropy`, `attention`), also accepted as their numeric constants. Since `_` separates arguments, multi-word values use `-` (`pos_right-top`).",
   },
   {
     name: "trim",
     docs: "https://sharp.pixelplumbing.com/api-resize#trim",
     example: "trim_30",
     notes:
-      "Trim pixels from the edges that are within the threshold of the top-left pixel colour. Threshold is a number `>= 0` (defaults to `10`).",
+      "Trim edge pixels that are within the threshold of the top-left pixel colour. Threshold is a number `>= 0` (defaults to `10`).",
     noSample: "the sample source has no uniform border to trim",
   },
   {
     name: "extend",
     docs: "https://sharp.pixelplumbing.com/api-resize#extend",
     example: "extend_20_40_20_40_mirror",
+    source: "scene",
     notes:
-      "Extend / pad / extrude one or more edges of the image. Format: `extend_{top}_{right}_{bottom}_{left}_{extendWith}`. Edges are integers between `0` and `10000`. Optional `extendWith`: `background` (default), `copy`, `repeat` or `mirror`. When extending with `background`, the colour comes from the `background` / `b` modifier, e.g. `b_00ff00,extend_20_40_20_40`.",
+      "Pad or extrude the edges, as `extend_{top}_{right}_{bottom}_{left}_{extendWith}`. Edges are integers between `0` and `10000`. Optional `extendWith` is `background` (default), `copy`, `repeat` or `mirror`; `background` takes its colour from the `background` / `b` modifier.",
   },
   {
     name: "background",
     aliases: ["b"],
     example: "rotate_45,b_00ff00",
+    source: "scene",
     notes:
-      "Background colour used by `extend`, `rotate`, `flatten`, `opacity` and `resize` (with `fit_contain`).",
+      "Background colour, a hex (`f00`, `ff0000`) or named (`red`) colour. Used by `extend`, `rotate`, `flatten`, `opacity` and `resize` (with `fit_contain`).",
   },
   {
     name: "extract",
     aliases: ["crop"],
     docs: EXTRACT_DOCS,
-    example: "extract_60_20_180_140",
+    example: "extract_150_10_160_120",
+    source: "scene",
     notes:
-      "Extract/crop a region of the image, as `extract_{left}_{top}_{width}_{height}`. All four arguments are required; `width` and `height` must be positive.",
+      "Crop a region, as `extract_{left}_{top}_{width}_{height}`. All four arguments are required; `width` and `height` must be positive.",
   },
   {
     name: "format",
@@ -151,90 +172,98 @@ export const OPERATIONS: Operation[] = [
     docs: "https://sharp.pixelplumbing.com/api-output#toformat",
     example: "f_webp",
     notes:
-      "Supported formats: `jpg`, `jpeg`, `png`, `webp`, `avif`, `gif`, `heif`, `tiff` and `auto` (experimental, only with middleware).",
+      "Output format. One of `jpg`, `jpeg`, `png`, `webp`, `avif`, `gif`, `heif`, `tiff` or `auto` (experimental, only with middleware).",
   },
   {
     name: "quality",
     aliases: ["q"],
     example: "q_10",
-    notes: "Integer between `1` and `100`.",
+    notes:
+      "Encoding quality, an integer between `1` and `100`. A lower value means a smaller file.",
   },
   {
     name: "rotate",
     docs: operationDocs("rotate"),
     example: "rotate_45",
+    source: "scene",
     notes:
-      "Angle in degrees, between `-3600` and `3600`. Angles that are not a multiple of `90` are filled with the `background` / `b` colour. Without an angle (`rotate`) the image is auto-oriented from its EXIF tag.",
+      "Angle in degrees, between `-3600` and `3600`. Angles that are not a multiple of `90` fill the corners with the `background` / `b` colour. Without an angle (`rotate`) the image is auto-oriented from its EXIF tag.",
   },
   {
     name: "enlarge",
     example: "enlarge,s_400x400",
     notes:
-      "Allow the image to be upscaled. By default the returned image will never be larger than the source in any dimension, while preserving the requested aspect ratio.",
+      "Allow the image to be upscaled. Without it, the output is never larger than the source in any dimension, while preserving the requested aspect ratio.",
   },
   {
     name: "autoorient",
     docs: operationDocs("autoorient"),
     example: "autoorient",
     notes:
-      "Rotate and flip the image based on its EXIF `Orientation` tag, then remove the tag.",
+      "Rotate and flip the image according to its EXIF `Orientation` tag, then remove the tag. Also applied by `rotate` without an angle.",
     noSample: "the sample source carries no EXIF `Orientation` tag",
   },
   {
     name: "flip",
     docs: operationDocs("flip"),
     example: "flip",
-    notes: "Mirror the image vertically.",
+    source: "scene",
+    notes:
+      "Mirror the image vertically, about the horizontal axis. Combine with `flop` to turn it upside down.",
   },
   {
     name: "flop",
     docs: operationDocs("flop"),
     example: "flop",
-    notes: "Mirror the image horizontally.",
+    source: "scene",
+    notes:
+      "Mirror the image horizontally, about the vertical axis. Combine with `flip` to turn it upside down.",
   },
   {
     name: "sharpen",
     docs: operationDocs("sharpen"),
     example: "sharpen_5",
     notes:
-      "`{sigma}_{flat}_{jagged}_{x1}_{y2}_{y3}`. `sigma` is between `0.000001` and `10`, the rest between `0` and `1000000`. Without arguments (`sharpen`) a mild sharpen is applied.",
+      "Sharpen the image, as `{sigma}_{flat}_{jagged}_{x1}_{y2}_{y3}`. `sigma` is a number between `0.000001` and `10`, the rest between `0` and `1000000`. Without arguments (`sharpen`) a mild sharpen is applied.",
   },
   {
     name: "median",
     docs: operationDocs("median"),
     example: "median_10",
     notes:
-      "Square mask size, an integer between `1` and `1000` (defaults to `3`).",
+      "Apply a median filter, removing noise while keeping edges. Square mask size, an integer between `1` and `1000` (defaults to `3`).",
   },
   {
     name: "blur",
     docs: operationDocs("blur"),
     example: "blur_5",
+    source: "edges",
     notes:
-      "`{sigma}_{precision}_{minAmplitude}`. `sigma` is a number between `0.3` and `1000`, `precision` one of `integer` (default), `float` or `approximate`, `minAmplitude` a number between `0.001` and `1`. Without arguments (`blur`) a mild blur is applied.",
+      "Gaussian blur, as `{sigma}_{precision}_{minAmplitude}`. `sigma` is a number between `0.3` and `1000`, `precision` one of `integer` (default), `float` or `approximate`, `minAmplitude` between `0.001` and `1`. Without arguments (`blur`) a mild blur is applied.",
   },
   {
     name: "dilate",
     docs: operationDocs("dilate"),
-    example: "dilate_5",
-    source: "logo",
+    example: "dilate_4",
+    source: "graphic",
     notes:
-      "Expand foreground objects. Width in pixels, an integer between `1` and `100` (defaults to `1`). Capped below the sharp maximum, since the cost grows with the width.",
+      "Expand foreground objects. Width in pixels, an integer between `1` and `100` (defaults to `1`), capped below the sharp maximum since the cost grows with the width.",
   },
   {
     name: "erode",
     docs: operationDocs("erode"),
-    example: "erode_5",
-    source: "logo",
+    example: "erode_4",
+    source: "graphic",
     notes:
-      "Shrink foreground objects. Width in pixels, an integer between `1` and `100` (defaults to `1`). Capped below the sharp maximum, since the cost grows with the width.",
+      "Shrink foreground objects. Width in pixels, an integer between `1` and `100` (defaults to `1`), capped below the sharp maximum since the cost grows with the width.",
   },
   {
     name: "clahe",
     docs: operationDocs("clahe"),
     example: "clahe_20_20_5",
+    source: "edges",
     notes:
-      "Contrast limiting adaptive histogram equalization, as `{width}_{height}_{maxSlope}`. `width` is required and `height` defaults to it (a square window); both are integers between `1` and `100`, capped below the sharp maximum since the cost grows with the window, and clamped to the source dimensions. `maxSlope` is an integer between `0` and `100` (defaults to `3`).",
+      "Contrast limiting adaptive histogram equalization, as `{width}_{height}_{maxSlope}`. `width` is required and `height` defaults to it (a square window); both are integers between `1` and `100`, clamped to the source dimensions. `maxSlope` is an integer between `0` and `100` (defaults to `3`).",
   },
   {
     name: "flatten",
@@ -242,13 +271,13 @@ export const OPERATIONS: Operation[] = [
     example: "flatten,b_00ff00,f_jpeg",
     source: "alpha",
     notes:
-      "Remove alpha channel, if any, and replace with the `background` / `b` colour.",
+      "Remove the alpha channel, if any, and replace transparency with the `background` / `b` colour.",
   },
   {
     name: "unflatten",
     docs: operationDocs("unflatten"),
     example: "unflatten,f_webp",
-    source: "logo",
+    source: "graphic",
     notes:
       "Make every fully white pixel transparent, so the output format needs an alpha channel (`png`, `webp`, `avif`).",
   },
@@ -256,92 +285,112 @@ export const OPERATIONS: Operation[] = [
     name: "gamma",
     docs: operationDocs("gamma"),
     example: "gamma_3",
+    source: "colour",
     notes:
-      "`{gamma}_{gammaOut}`, each a number between `1.0` and `3.0` (defaults to `2.2`).",
+      "Gamma correction, as `{gamma}_{gammaOut}`, each a number between `1.0` and `3.0` (defaults to `2.2`).",
   },
   {
     name: "negate",
     docs: operationDocs("negate"),
     example: "negate",
+    source: "colour",
     notes:
-      "Optional `{alpha}` (`true` by default) controls whether the alpha channel is negated too, e.g. `negate_false`.",
+      "Produce the negative of the image. Optional `{alpha}` (`true` by default) controls whether the alpha channel is negated too, e.g. `negate_false`.",
   },
   {
     name: "normalize",
     docs: operationDocs("normalize"),
     example: "normalize_10_90",
+    source: "edges",
     notes:
-      "Stretch the luminance to the full dynamic range, as `{lower}_{upper}` percentiles. `lower` is a number between `0` and `99` (defaults to `1`), `upper` between `1` and `100` (defaults to `99`) and has to be greater than `lower`.",
+      "Stretch the luminance to the full dynamic range, as `{lower}_{upper}` percentiles. `lower` is a number between `0` and `99` (defaults to `1`), `upper` between `1` and `100` (defaults to `99`) and greater than `lower`.",
   },
   {
     name: "threshold",
     docs: operationDocs("threshold"),
     example: "threshold_128",
+    source: "colour",
     notes:
-      "`{threshold}_{grayscale}`. `threshold` is an integer between `0` and `255` (defaults to `128`). Optional `grayscale` (`true` by default) converts to single channel grayscale first, e.g. `threshold_128_false`.",
+      "Map every pixel to black or white, as `{threshold}_{grayscale}`. `threshold` is an integer between `0` and `255` (defaults to `128`). Optional `grayscale` (`true` by default) converts to single channel first, e.g. `threshold_128_false`.",
   },
   {
     name: "linear",
     docs: operationDocs("linear"),
     example: "linear_1.5_-30",
+    source: "colour",
     notes:
-      "Levels adjustment applying `a * input + b`, as `{a}_{b}`. `a` is the multiplier (defaults to `1`), `b` the offset (defaults to `0`).",
+      "Levels adjustment applying `a * input + b`, as `{a}_{b}`. `a` is the multiplier (defaults to `1`) and `b` the offset (defaults to `0`), both numbers.",
   },
   {
     name: "tint",
     docs: colourDocs("tint"),
     example: "tint_00ff00",
-    notes: "Tint colour.",
+    source: "colour",
+    notes:
+      "Tint the image, keeping its luminance. A hex (`f00`, `ff0000`) or named (`red`) colour.",
   },
   {
     name: "grayscale",
     docs: colourDocs("grayscale"),
     example: "grayscale",
-    notes: "Convert to 8-bit greyscale.",
+    source: "colour",
+    notes:
+      "Convert the image to 8-bit greyscale, mapping every pixel to its luminance.",
   },
   {
     name: "modulate",
     docs: operationDocs("modulate"),
     example: "modulate_1.5_2_90_10",
+    source: "colour",
     notes:
-      "Transforms the image using `{brightness}_{saturation}_{hue}_{lightness}`. `brightness` and `saturation` are numbers `>= 0`, `hue` is an integer in degrees. Each is also available on its own (below), which is easier to read when only one is needed.",
+      "Transform the image, as `{brightness}_{saturation}_{hue}_{lightness}`. `brightness` and `saturation` are numbers `>= 0`, `hue` an integer in degrees. Each is also available on its own (below).",
   },
   {
     name: "brightness",
     docs: operationDocs("modulate"),
     example: "brightness_1.5",
-    notes: "Brightness multiplier, a number `>= 0`. Required.",
+    source: "colour",
+    notes:
+      "Brightness multiplier, a number `>= 0` (`1` leaves the image unchanged). Required.",
   },
   {
     name: "saturation",
     docs: operationDocs("modulate"),
     example: "saturation_0.3",
-    notes: "Saturation multiplier, a number `>= 0`. Required.",
+    source: "colour",
+    notes:
+      "Saturation multiplier, a number `>= 0` (`0` is greyscale). Required.",
   },
   {
     name: "hue",
     docs: operationDocs("modulate"),
     example: "hue_90",
-    notes: "Hue rotation, an integer in degrees. Required.",
+    source: "colour",
+    notes:
+      "Hue rotation, an integer in degrees that wraps around at `360`. Required.",
   },
   {
     name: "lightness",
     docs: operationDocs("modulate"),
     example: "lightness_30",
-    notes: "Lightness addend, a number. Required.",
+    source: "colour",
+    notes:
+      "Lightness addend, a number added to the lightness of every pixel. Required.",
   },
   {
     name: "opacity",
     example: "opacity_0.5,f_webp",
+    source: "alpha",
     notes:
-      "Opacity, a number between `0` and `1`. Required. The image is made transparent, so the output format needs an alpha channel (`png`, `webp`, `avif`). Set the `background` / `b` colour to blend into it instead and keep the output opaque, e.g. `opacity_0.5,b_fff,f_jpeg`.",
+      "Opacity, a number between `0` and `1`. Required. The image is made transparent, so the output format needs an alpha channel (`png`, `webp`, `avif`), or set the `background` / `b` colour to blend into it instead, e.g. `opacity_0.5,b_fff,f_jpeg`.",
   },
   {
     name: "animated",
     aliases: ["a"],
     example: "a,w_160",
     source: "animated",
-    notes: "Process every frame of an animated image. Experimental.",
+    notes:
+      "Process every frame of an animated image instead of the first one. Experimental.",
   },
 ];
 
@@ -367,7 +416,10 @@ function sourceFormat(operation: Operation): string {
 }
 
 /** Number of operations per row of the grid. */
-const GRID_COLUMNS = 2;
+const GRID_COLUMNS = 3;
+
+/** Even columns, so that samples of the same size line up across rows. */
+const COLUMN_WIDTH = `${Math.floor(100 / GRID_COLUMNS)}%`;
 
 function escapeHTML(value: string): string {
   return value
@@ -406,10 +458,12 @@ function renderCell(operation: Operation): string {
     .filter(Boolean)
     .join(" ");
 
+  // Text is left aligned so that the notes read as a paragraph, while the sample
+  // stays centred on the cell so samples line up across a row.
   return [
-    `<td valign="top" width="50%">`,
+    `<td valign="top" align="left" width="${COLUMN_WIDTH}">`,
     `<div align="center">${sample}</div>`,
-    `<div align="center"><b>${names(operation)}</b></div>`,
+    `<div><b>${names(operation)}</b></div>`,
     `<code>${escapeHTML(url)}</code>`,
     ...(description ? [`<br>`, description] : []),
     `</td>`,
@@ -429,9 +483,9 @@ export function renderOperations(): string {
     const cells = ordered
       .slice(i, i + GRID_COLUMNS)
       .map((operation) => renderCell(operation));
-    // Keeps the last row aligned when the number of operations is odd.
+    // Keeps the last row aligned when it does not fill the grid.
     while (cells.length < GRID_COLUMNS) {
-      cells.push(`<td valign="top" width="50%"></td>`);
+      cells.push(`<td valign="top" align="left" width="${COLUMN_WIDTH}"></td>`);
     }
     rows.push(`<tr>\n${cells.join("\n")}\n</tr>`);
   }
