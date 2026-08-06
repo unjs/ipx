@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "sharp": "^0.35.3",
-    "srvx": "^0.12.4"
+    "srvx": "^0.12.5"
   },
   "devDependencies": {
     "@fastify/accept-negotiator": "^2.0.1",
@@ -46,10 +46,10 @@
     "h3": "2.0.1-rc.26",
     "image-meta": "^0.2.2",
     "obuild": "^0.4.38",
-    "oxc-minify": ">=0.141.0",
+    "oxc-minify": ">=0.143.0",
     "prettier": "^3.9.6",
     "svgo": "^4.0.2",
-    "typescript": "^6",
+    "typescript": "^6.0.3",
     "ufo": "^1.6.4",
     "unstorage": "^1.17.5",
     "vitest": "^4.1.10"
@@ -65,5 +65,5 @@
   "engines": {
     "node": "^20.16.0 || >=22.3.0"
   },
-  "packageManager": "pnpm@11.17.0"
+  "packageManager": "pnpm@11.20.0"
 }
