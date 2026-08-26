@@ -340,12 +340,22 @@ export function createIPX(userOptions: IPXOptions): IPX {
       let imageMeta: ImageMeta;
       try {
         imageMeta = getImageMeta(sourceData) as ImageMeta;
-      } catch {
-        throw new HTTPError({
-          statusCode: 400,
-          statusText: `IPX_INVALID_IMAGE`,
-          message: `Cannot parse image metadata: ${id}`,
-        });
+      } catch (error) {
+        const textSample = sourceData.subarray(0, 1024).toString("utf8");
+        if (textSample.includes("<svg") || id.endsWith(".svg")) {
+          imageMeta = {
+            type: "svg",
+            width: undefined,
+            height: undefined,
+          } as ImageMeta;
+        } else {
+          throw new HTTPError({
+            statusCode: 400,
+            statusText: `IPX_INVALID_IMAGE`,
+            message: `Cannot parse image metadata: ${id}`,
+            cause: error,
+          });
+        }
       }
 
       // Determine format

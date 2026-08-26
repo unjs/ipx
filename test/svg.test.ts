@@ -202,6 +202,13 @@ describe("optimize svg", () => {
       statusText: "IPX_INVALID_SVG",
     });
   });
+
+  it("processes svg with symbol and use tags without dimensions on root", async () => {
+    const svgWithSymbol = `<svg xmlns="http://www.w3.org/2000/svg"><symbol id="icon-glasses" viewBox="0 0 111.58 77.24" fill="none"><circle cx="50" cy="50" r="40"/></symbol><use href="#icon-glasses"/></svg>`;
+    const output = await processSVG(svgWithSymbol);
+    expect(output).toContain("<symbol id=");
+    expect(output).toContain("<use href=");
+  });
 });
 
 it("svg.unsafeSkipSanitize opts out of sanitization", async () => {
