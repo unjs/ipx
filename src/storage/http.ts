@@ -18,6 +18,9 @@ export type HTTPStorageOptions = {
 
   /**
    * Default maximum age (in seconds) for cache control. If not specified, defaults to the environment setting or 300 seconds.
+   *
+   * `0` is meaningful and is passed through as-is — it disables caching rather than
+   * falling back to the default.
    * @optional
    */
   maxAge?: number;
@@ -264,7 +267,7 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
   let _domains =
     _options.domains || getEnv<string | string[]>("IPX_HTTP_DOMAINS") || [];
   const defaultMaxAge =
-    _options.maxAge || getEnv<string | number>("IPX_HTTP_MAX_AGE") || 300;
+    _options.maxAge ?? getEnv<string | number>("IPX_HTTP_MAX_AGE") ?? 300;
   const fetchOptions: RequestInit =
     _options.fetchOptions ||
     getEnv<RequestInit>("IPX_HTTP_FETCH_OPTIONS") ||

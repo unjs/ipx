@@ -23,6 +23,19 @@ describe("http", () => {
         "Forbidden host: localhost",
       );
     });
+
+    it("preserves an explicit zero maxAge when the response has no cache-control", async () => {
+      const fetch = vi.fn().mockResolvedValue(new Response(null));
+      vi.stubGlobal("fetch", fetch);
+      const storage = ipxHttpStorage({
+        domains: ["example.com"],
+        maxAge: 0,
+      });
+
+      await expect(
+        storage.getMeta("https://example.com/image.png"),
+      ).resolves.toMatchObject({ maxAge: 0 });
+    });
   });
 
   describe("validateId", () => {
