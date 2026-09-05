@@ -30,29 +30,29 @@
     "test:types": "tsc --noEmit"
   },
   "dependencies": {
-    "sharp": "^0.35.3",
-    "srvx": "^0.12.4"
+    "sharp": "^0.35.4",
+    "srvx": "^0.12.8"
   },
   "devDependencies": {
-    "@fastify/accept-negotiator": "^2.0.1",
+    "@fastify/accept-negotiator": "^2.1.0",
     "@types/etag": "^1.8.4",
     "@types/is-valid-path": "^0.1.2",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.11",
     "automd": "^0.4.3",
     "changelogen": "^0.6.2",
-    "eslint": "^10.8.0",
+    "eslint": "^10.9.1",
     "eslint-config-unjs": "^0.6.2",
     "etag": "^1.8.1",
-    "h3": "2.0.1-rc.26",
+    "h3": "2.0.1-rc.30",
     "image-meta": "^0.2.2",
-    "obuild": "^0.4.38",
-    "oxc-minify": ">=0.141.0",
+    "obuild": "^0.4.39",
+    "oxc-minify": ">=0.148.0",
     "prettier": "^3.9.6",
-    "svgo": "^4.0.2",
-    "typescript": "^6",
+    "svgo": "^4.1.0",
+    "typescript": "^6.0.3",
     "ufo": "^1.6.4",
     "unstorage": "^1.17.5",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "peerDependencies": {
     "unstorage": "*"
@@ -65,5 +65,5 @@
   "engines": {
     "node": "^20.16.0 || >=22.3.0"
   },
-  "packageManager": "pnpm@11.17.0"
+  "packageManager": "pnpm@11.25.0"
 }
