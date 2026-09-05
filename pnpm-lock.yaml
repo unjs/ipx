@@ -12,8 +12,8 @@ importers:
         specifier: ^0.35.3
         version: 0.35.3(@types/node@26.1.1)
       srvx:
-        specifier: ^0.12.4
-        version: 0.12.4
+        specifier: ^1.0.0
+        version: 1.0.3
     devDependencies:
       '@fastify/accept-negotiator':
         specifier: ^2.0.1
@@ -2304,6 +2304,11 @@ packages:
 
   srvx@0.9.8:
     resolution: {integrity: sha512-RZaxTKJEE/14HYn8COLuUOJAt0U55N9l1Xf6jj+T0GoA01EUH1Xz5JtSUOI+EHn+AEgPCVn7gk6jHJffrr06fQ==}
+    engines: {node: '>=20.16.0'}
+    hasBin: true
+
+  srvx@1.0.3:
+    resolution: {integrity: sha512-aOuk+yNJA61yA6eJJvQJxpJLIxz090hKMqDGzd35tGsvwaodi1RPuYSFUp5EINaJp7snjVwLkO2RXVMPZBYnnA==}
     engines: {node: '>=20.16.0'}
     hasBin: true
 
@@ -4858,6 +4863,8 @@ snapshots:
   srvx@0.12.4: {}
 
   srvx@0.9.8: {}
+
+  srvx@1.0.3: {}
 
   stackback@0.0.2: {}
 

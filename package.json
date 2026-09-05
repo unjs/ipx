@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "sharp": "^0.35.3",
-    "srvx": "^0.12.4"
+    "srvx": "^1.0.0"
   },
   "devDependencies": {
     "@fastify/accept-negotiator": "^2.0.1",
