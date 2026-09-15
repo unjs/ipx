@@ -37,7 +37,7 @@
     "@fastify/accept-negotiator": "^2.0.1",
     "@types/etag": "^1.8.4",
     "@types/is-valid-path": "^0.1.2",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^5.0.0",
     "automd": "^0.4.3",
     "changelogen": "^0.6.2",
     "eslint": "^10.8.0",
