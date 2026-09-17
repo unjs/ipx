@@ -419,15 +419,23 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
    * checked are the only ones the socket can ever connect to. A record with a
    * short TTL cannot answer differently between the check and the connect.
    *
-   * Falls back to the plain global `fetch` if `undici`'s `Agent` cannot be
-   * loaded (e.g. a non-Node runtime, or `undici` not installed) -- the
-   * existing per-call `validatePublicIP` check still applies in that case,
-   * just without connection-level pinning.
+   * Throws `IPX_IP_CHECK_UNAVAILABLE` if `node:dns` or `undici`'s `Agent`
+   * cannot be loaded (e.g. a non-Node runtime, or `undici` not installed).
+   * The per-call `validatePublicIP` check alone cannot close the TOCTOU
+   * window, so when pinning is unavailable the request fails closed instead
+   * of silently serving with a weaker guarantee.
    */
   function getPinnedFetch(): Promise<typeof fetch> {
     return (pinnedFetchPromise ??= (async () => {
       const dns = getBuiltinModule<typeof import("node:dns")>("node:dns");
       if (!dns?.lookup) {
+        if (blockPrivateIPs) {
+          throw new HTTPError({
+            statusCode: 500,
+            statusText: `IPX_IP_CHECK_UNAVAILABLE`,
+            message: `Cannot pin the connection to a validated address: \`blockPrivateIPs\` requires \`node:dns\`.`,
+          });
+        }
         return fetch;
       }
 
@@ -435,6 +443,13 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
       try {
         ({ Agent } = requireModule<{ Agent: any }>("undici"));
       } catch {
+        if (blockPrivateIPs) {
+          throw new HTTPError({
+            statusCode: 500,
+            statusText: `IPX_IP_CHECK_UNAVAILABLE`,
+            message: `Cannot pin the connection to a validated address: \`blockPrivateIPs\` requires \`undici\`.`,
+          });
+        }
         return fetch;
       }
 
