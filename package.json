@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "sharp": "^0.35.3",
+    "undici": "^7.0.0",
     "srvx": "^0.12.4"
   },
   "devDependencies": {
