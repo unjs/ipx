@@ -1,5 +1,5 @@
 import { HTTPError } from "h3";
-import { getBuiltinModule, getEnv } from "../utils.ts";
+import { getBuiltinModule, getEnv, requireModule } from "../utils.ts";
 import type { IPXStorage } from "../types.ts";
 
 export type HTTPStorageOptions = {
@@ -340,11 +340,12 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
    * DNS record pointing at `127.0.0.1` or `169.254.169.254`. All resolved addresses have
    * to be public, since which one the socket ends up using is not ours to decide.
    *
-   * Limitation: this cannot close the TOCTOU / DNS-rebinding window. The name is resolved
-   * again when `fetch` opens the socket, so a record with a short TTL can answer with a
-   * public address here and a private one there. Closing that gap needs connection-level
-   * pinning (a custom agent/dispatcher that validates the peer address of the socket it
-   * just connected), which is out of reach of the plain `fetch` used here.
+   * This check alone cannot close the TOCTOU / DNS-rebinding window: the name is
+   * resolved again when `fetch` opens the socket, so a record with a short TTL could
+   * in principle answer with a public address here and a private one there. That gap
+   * is closed separately, at connect time, by {@link getPinnedFetch}, which every
+   * caller of this module already goes through when `blockPrivateIPs` is enabled --
+   * see its own doc comment for how.
    */
   async function validatePublicIP(url: URL, id: string) {
     // Strip the brackets of an IPv6 literal (`[::1]`)
@@ -408,6 +409,98 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     }
   }
 
+  let pinnedFetchPromise: Promise<typeof fetch> | undefined;
+
+  /**
+   * Returns a fetch function whose underlying socket connection is pinned to
+   * addresses validated by {@link isPublicIP}, closing the TOCTOU window that
+   * {@link validatePublicIP} alone cannot: resolution and validation happen
+   * inside the connector's own lookup hook, so the same addresses that were
+   * checked are the only ones the socket can ever connect to. A record with a
+   * short TTL cannot answer differently between the check and the connect.
+   *
+   * Throws `IPX_IP_CHECK_UNAVAILABLE` if `node:dns` or `undici`'s `Agent`
+   * cannot be loaded (e.g. a non-Node runtime, or `undici` not installed).
+   * The per-call `validatePublicIP` check alone cannot close the TOCTOU
+   * window, so when pinning is unavailable the request fails closed instead
+   * of silently serving with a weaker guarantee.
+   */
+  function getPinnedFetch(): Promise<typeof fetch> {
+    return (pinnedFetchPromise ??= (async () => {
+      const dns = getBuiltinModule<typeof import("node:dns")>("node:dns");
+      if (!dns?.lookup) {
+        if (blockPrivateIPs) {
+          throw new HTTPError({
+            statusCode: 500,
+            statusText: `IPX_IP_CHECK_UNAVAILABLE`,
+            message: `Cannot pin the connection to a validated address: \`blockPrivateIPs\` requires \`node:dns\`.`,
+          });
+        }
+        return fetch;
+      }
+
+      let Agent: any;
+      try {
+        ({ Agent } = requireModule<{ Agent: any }>("undici"));
+      } catch {
+        if (blockPrivateIPs) {
+          throw new HTTPError({
+            statusCode: 500,
+            statusText: `IPX_IP_CHECK_UNAVAILABLE`,
+            message: `Cannot pin the connection to a validated address: \`blockPrivateIPs\` requires \`undici\`.`,
+          });
+        }
+        return fetch;
+      }
+
+      // A dns.lookup-compatible function: undici's Agent connector calls this
+      // instead of resolving the hostname itself, so whatever address is
+      // handed back here is the only one the connector ever sees.
+
+      const pinnedLookup = (
+        hostname: string,
+        options: any,
+        callback: any,
+      ): void => {
+        dns.lookup(hostname, { ...options, all: true }, (error, addresses) => {
+          if (error) {
+            callback(error);
+            return;
+          }
+          const list = addresses as unknown as {
+            address: string;
+            family: number;
+          }[];
+          for (const { address, family } of list) {
+            if (!isPublicIP(address, family)) {
+              callback(
+                new Error(
+                  `Hostname ${hostname} resolved to a disallowed address: ${address}`,
+                ),
+              );
+              return;
+            }
+          }
+          if (options?.all) {
+            callback(null, list);
+          } else {
+            const [first] = list;
+            callback(null, first!.address, first!.family);
+          }
+        });
+      };
+
+      const dispatcher = new Agent({ connect: { lookup: pinnedLookup } });
+
+      return ((input: RequestInfo | URL, init?: RequestInit) =>
+        fetch(input, {
+          ...init,
+          // @ts-expect-error -- `dispatcher` is a Node-specific fetch() extension, not in lib.dom.d.ts
+          dispatcher,
+        })) as typeof fetch;
+    })());
+  }
+
   /**
    * Fetches `url`, following redirects manually so that every hop is re-validated
    * against the allowlist and, when enabled, the private IP check (see {@link validateURL}).
@@ -420,14 +513,16 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     const _init: RequestInit = { ...fetchOptions, ...init };
 
     if ((allowAllDomains && !blockPrivateIPs) || _init.redirect) {
-      return fetch(url, _init);
+      const fetchFn = blockPrivateIPs ? await getPinnedFetch() : fetch;
+      return fetchFn(url, _init);
     }
 
     let currentURL = url;
     let method = _init.method || "GET";
 
+    const fetchFn = blockPrivateIPs ? await getPinnedFetch() : fetch;
     for (let i = 0; i <= MAX_REDIRECTS; i++) {
-      const response = await fetch(currentURL, {
+      const response = await fetchFn(currentURL, {
         ..._init,
         method,
         redirect: "manual",

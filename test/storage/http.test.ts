@@ -351,7 +351,9 @@ describe("http", () => {
         ).rejects.toMatchObject({
           statusCode: 403,
           statusText: "IPX_FORBIDDEN_IP",
-          message: expect.stringContaining("127.0.0.1"),
+          cause: expect.objectContaining({
+            message: expect.stringContaining("127.0.0.1"),
+          }),
         });
         expect(fetch).not.toHaveBeenCalled();
       });
@@ -410,6 +412,33 @@ describe("http", () => {
         });
 
         expect(fetch).not.toHaveBeenCalled();
+      });
+
+      it("closes the TOCTOU/DNS-rebinding gap: the connection is pinned to the validated address, not re-resolved", async () => {
+        // The pre-check (dns.promises.lookup) sees a PUBLIC address and passes.
+        stubLookup({ address: "93.184.216.34", family: 4 });
+
+        // The raw dns.lookup -- used only by the pinned connector's own lookup
+        // hook, not by the pre-check -- answers with a PRIVATE address instead,
+        // simulating a DNS record that changed between the check and the
+        // connection (or a resolver that genuinely answers differently to two
+        // separate queries for the same name, which is exactly what DNS
+        // rebinding relies on).
+        vi.spyOn(dns, "lookup").mockImplementation(((
+          _hostname: string,
+          _options: unknown,
+          callback: (error: null, addresses: unknown) => void,
+        ) => {
+          callback(null, [{ address: "127.0.0.1", family: 4 }]);
+        }) as unknown as typeof dns.lookup);
+
+        await expect(
+          storage.getData("https://example.com/image.png"),
+        ).rejects.toMatchObject({
+          cause: expect.objectContaining({
+            message: expect.stringContaining("127.0.0.1"),
+          }),
+        });
       });
 
       it("blocks a redirect hop to a private address", async () => {
