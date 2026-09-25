@@ -497,13 +497,13 @@ Enabled by default with the CLI only.
 
 Enabled by default with the CLI only.
 
-| Option            | Environment variable         | Default | Description                                                     |
-| ----------------- | ---------------------------- | ------- | --------------------------------------------------------------- |
-| `domains`         | `IPX_HTTP_DOMAINS`           | `[]`    | Allowlist of hostnames images can be fetched from.              |
-| `maxAge`          | `IPX_HTTP_MAX_AGE`           | `300`   |                                                                 |
-| `fetchOptions`    | `IPX_HTTP_FETCH_OPTIONS`     | `{}`    | Passed to `fetch()`.                                            |
-| `allowAllDomains` | `IPX_HTTP_ALLOW_ALL_DOMAINS` | `false` | Disables the allowlist. Unsafe on a public server.              |
-| `blockPrivateIPs` | `IPX_HTTP_BLOCK_PRIVATE_IPS` | `false` | Rejects hosts that are, or resolve to, a non-public IP address. |
+| Option            | Environment variable         | Default | Description                                                                                   |
+| ----------------- | ---------------------------- | ------- | --------------------------------------------------------------------------------------------- |
+| `domains`         | `IPX_HTTP_DOMAINS`           | `[]`    | Allowlist of hostnames images can be fetched from.                                            |
+| `maxAge`          | `IPX_HTTP_MAX_AGE`           | `300`   |                                                                                               |
+| `fetchOptions`    | `IPX_HTTP_FETCH_OPTIONS`     | `{}`    | Passed to `fetch()`.                                                                          |
+| `allowAllDomains` | `IPX_HTTP_ALLOW_ALL_DOMAINS` | `false` | Disables the allowlist. Unsafe on a public server.                                            |
+| `blockPrivateIPs` | `IPX_HTTP_BLOCK_PRIVATE_IPS` | `false` | Rejects hosts that are, or resolve to, a non-public IP address (best effort, see note below). |
 
 Only `http:` and `https:` URLs are allowed (anything else is rejected with `403 IPX_FORBIDDEN_PROTOCOL`), and redirects are followed **only within the allowlist**, up to 3 hops: each redirect target is re-validated and a redirect to a host that is not listed is rejected with `403 IPX_FORBIDDEN_HOST` (`502 IPX_TOO_MANY_REDIRECTS` beyond 3 hops). Previously redirects were followed blindly, which let an allowlisted host with an open redirect bounce IPX to internal addresses such as the cloud metadata service (SSRF). If an allowlisted host redirects to a CDN, add the CDN hostname to the allowlist as well. Redirect re-validation is skipped when `allowAllDomains` is enabled without `blockPrivateIPs` (nothing to validate) or when `redirect` is explicitly set in `fetchOptions`.
 
@@ -519,7 +519,10 @@ The host of the requested URL **and of every redirect hop** must be a public add
 
 It is **off by default**: many deployments legitimately fetch from in-cluster origins (internal object storage, a sidecar, `localhost` in development), and enabling it by default would break them.
 
-Two limits to be aware of. It does not close the DNS-rebinding window: the name is resolved again when the socket is opened, so a record with a very short TTL can answer with a public address during validation and a private one during the fetch. Closing that requires pinning the validated address on the connection itself, which the plain `fetch` used here does not expose. And it is not a substitute for the allowlist — a public address that happens to be reachable is still fetched.
+> [!WARNING]
+> `blockPrivateIPs` is best effort and does **not** protect against DNS rebinding. The hostname is resolved once to validate it and again when `fetch` opens the socket, so a DNS record the attacker controls (with a very short TTL) can answer with a public address during validation and a private one during the fetch. This matters when the attacker can choose the hostname: with `allowAllDomains`, or an allowlisted domain whose DNS you do not control. If IPX must not reach internal services, enforce it at the network level: run it behind an egress proxy, or a firewall / network policy that blocks private ranges and the cloud metadata service (on AWS, also require IMDSv2).
+
+It is also not a substitute for the allowlist — a public address that happens to be reachable is still fetched.
 
 ## SVG Images
 

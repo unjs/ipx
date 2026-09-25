@@ -55,6 +55,12 @@ export type HTTPStorageOptions = {
    * (`169.254.169.254`, the cloud metadata service), RFC1918, CGNAT, unique-local or
    * otherwise non-public space.
    *
+   * Best effort: it does not protect against DNS rebinding. The hostname is validated, then
+   * resolved again when the socket is opened, so an attacker-controlled record with a short
+   * TTL can answer with a public address first and a private one second. When IPX must not
+   * reach internal services, enforce that at the network level (egress proxy, firewall or
+   * network policy) instead of relying on this option alone.
+   *
    * Disabled by default because many legitimate deployments fetch from in-cluster origins
    * (internal object storage, sidecars, `localhost` during development), which this blocks.
    * @optional
