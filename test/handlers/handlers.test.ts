@@ -157,6 +157,7 @@ describe("handlers", () => {
       position: context.position,
       background: context.background,
       kernel: context.kernel,
+      withoutEnlargement: false,
     });
   });
 
@@ -681,6 +682,16 @@ describe("handler args", () => {
       context: { background: "red" },
     },
     enlarge: { handler: enlarge, args: "", context: { enlarge: true } },
+    "enlarge (true)": {
+      handler: enlarge,
+      args: "true",
+      context: { enlarge: true },
+    },
+    "enlarge (false)": {
+      handler: enlarge,
+      args: "false",
+      context: { enlarge: false },
+    },
     kernel: {
       handler: kernel,
       args: "lanczos3",
@@ -708,6 +719,7 @@ describe("handler args", () => {
           position: undefined,
           background: undefined,
           kernel: undefined,
+          withoutEnlargement: false,
         },
       ],
     },
@@ -723,6 +735,7 @@ describe("handler args", () => {
           position: undefined,
           background: undefined,
           kernel: undefined,
+          withoutEnlargement: false,
         },
       ],
     },
@@ -899,6 +912,7 @@ describe("handler args", () => {
     fit: [fit, ["foo", "COVER", "0"]],
     position: [position, ["foo", "9", "18", "-1", "right top top"]],
     background: [background, ["12345", "not a colour", "#", "0"]],
+    enlarge: [enlarge, ["yes", "2", "null"]],
     kernel: [kernel, ["foo", "LANCZOS3"]],
     width: [width, ["abc", "0", "-1", "1.5", "Infinity"]],
     height: [height, ["abc", "0", "-1", "1.5"]],

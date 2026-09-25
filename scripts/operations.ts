@@ -202,7 +202,7 @@ export const OPERATIONS: Operation[] = [
     name: "enlarge",
     example: "enlarge,s_400x400",
     notes:
-      "Allow the image to be upscaled. Without it, the output is never larger than the source in any dimension, while preserving the requested aspect ratio.",
+      "Allow the image to be upscaled (`enlarge_false` turns it back off). Without it, the source is never upscaled: a requested box that is too large is shrunk, preserving its aspect ratio, so the output is never larger than the source, except along the padded axis of `fit_contain`.",
   },
   {
     name: "autoorient",
