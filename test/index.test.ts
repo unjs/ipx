@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, vi } from "vitest";
 import { resolve } from "node:path";
 import { serve } from "srvx";
 import { staticMiddleware } from "srvx/static";
@@ -6,7 +6,9 @@ import { imageMeta } from "image-meta";
 
 import {
   type IPX,
+  type IPXStorage,
   createIPX,
+  createIPXFetchHandler,
   ipxFSStorage,
   ipxHttpStorage,
 } from "../src/index.ts";
@@ -384,6 +386,20 @@ describe("ipx", () => {
       }
     });
 
+    it("keeps the default limit when `IPX_MAX_OUTPUT_DIMENSION` is empty", async () => {
+      vi.stubEnv("IPX_MAX_OUTPUT_DIMENSION", "");
+      try {
+        const limited = createIPX({
+          storage: ipxFSStorage({ dir: resolve(__dirname, "assets") }),
+        });
+        expect(await size(limited, { enlarge: "", resize: "20000x200" })).toBe(
+          "8192x82",
+        );
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    });
+
     it("does not affect requests within the limit", async () => {
       expect(await size(ipx, { resize: "100x50" })).toBe("100x50");
       expect(await size(ipx, { enlarge: "", resize: "4000x2000" })).toBe(
@@ -392,6 +408,53 @@ describe("ipx", () => {
       expect(await size(ipx, { resize: "100x50", extend: "10_20_30_40" })).toBe(
         "160x90",
       );
+    });
+  });
+
+  describe("maxAge", () => {
+    const sourceMaxAge = async (maxAge: unknown) => {
+      const storage: IPXStorage = {
+        name: "test",
+        getMeta: () => ({ maxAge: maxAge as number }),
+        getData: () => undefined,
+      };
+      const meta = await createIPX({ storage })("test.jpg").getSourceMeta();
+      return meta.maxAge;
+    };
+
+    it.each([
+      [0, 0],
+      [120, 120],
+      ["120", 120],
+      [1.5, 1],
+      [1e21, 2 ** 31],
+    ])("normalizes a storage maxAge of %j to %j", async (maxAge, expected) => {
+      expect(await sourceMaxAge(maxAge)).toBe(expected);
+    });
+
+    it.each([Number.NaN, -1, Infinity, "abc", false])(
+      "falls back to the IPX-wide default for a storage maxAge of %s",
+      async (maxAge) => {
+        expect(await sourceMaxAge(maxAge)).toBe(60);
+      },
+    );
+
+    it("sends a valid cache-control header when `IPX_FS_MAX_AGE` is empty", async () => {
+      vi.stubEnv("IPX_FS_MAX_AGE", "");
+      try {
+        const handler = createIPXFetchHandler(
+          createIPX({
+            storage: ipxFSStorage({ dir: resolve(__dirname, "assets") }),
+          }),
+        );
+        const res = await handler("http://localhost/w_10/bliss.jpg");
+        expect(res.status).toBe(200);
+        expect(res.headers.get("cache-control")).toBe(
+          "max-age=60, public, s-maxage=60",
+        );
+      } finally {
+        vi.unstubAllEnvs();
+      }
     });
   });
 
