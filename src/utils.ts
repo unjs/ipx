@@ -23,11 +23,16 @@ export function getEnv<T>(name: string): T | undefined {
 /**
  * Returns `value` as valid `cache-control` delta-seconds (a non-negative integer, capped at
  * 2^31 per RFC 9111 §1.2.2), or `undefined` when it is not one (`NaN`, negative, `false`,
- * non-numeric string) so callers fall through to their default instead of sending
- * `max-age=NaN`. `0` is valid and kept.
+ * a string that is not all digits) so callers fall through to their default instead of
+ * sending `max-age=NaN`. `0` is valid and kept.
+ *
+ * Strings must be digits only: `parseInt` would read `IPX_HTTP_MAX_AGE=1h` as 1 second.
  */
 export function normalizeMaxAge(value: unknown): number | undefined {
-  const n = typeof value === "string" ? Number.parseInt(value) : value;
+  const n =
+    typeof value === "string" && /^\d+$/.test(value)
+      ? Number.parseInt(value, 10)
+      : value;
   if (typeof n !== "number" || !Number.isFinite(n) || n < 0) {
     return undefined;
   }

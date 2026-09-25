@@ -31,6 +31,7 @@ describe("http", () => {
       { name: "IPX_HTTP_MAX_AGE=0", env: "0", expected: 0 },
       { name: "an empty IPX_HTTP_MAX_AGE", env: "", expected: 300 },
       { name: "IPX_HTTP_MAX_AGE=false", env: "false", expected: 300 },
+      { name: "IPX_HTTP_MAX_AGE=1h", env: "1h", expected: 300 },
       { name: "a negative maxAge", options: { maxAge: -1 }, expected: 300 },
       {
         name: "maxAge: NaN",

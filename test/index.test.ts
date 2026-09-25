@@ -432,7 +432,7 @@ describe("ipx", () => {
       expect(await sourceMaxAge(maxAge)).toBe(expected);
     });
 
-    it.each([Number.NaN, -1, Infinity, "abc", false])(
+    it.each([Number.NaN, -1, Infinity, "abc", "1h", "120px", false])(
       "falls back to the IPX-wide default for a storage maxAge of %s",
       async (maxAge) => {
         expect(await sourceMaxAge(maxAge)).toBe(60);
