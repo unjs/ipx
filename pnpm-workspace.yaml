@@ -3,3 +3,5 @@ packages:
   - examples
 allowBuilds:
   "@parcel/watcher": false
+minimumReleaseAgeExclude:
+  - image-meta

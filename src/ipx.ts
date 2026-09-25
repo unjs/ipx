@@ -57,7 +57,7 @@ export interface IPXModifiers {
   b: string;
   position: string;
   pos: string;
-  enlarge: FlagModifier;
+  enlarge: FlagModifier | false | "false";
   kernel:
     "nearest" | "cubic" | "mitchell" | "lanczos2" | "lanczos3" | (string & {});
   trim: number | string;

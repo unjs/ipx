@@ -229,13 +229,64 @@ describe("utils", () => {
     });
   });
 
-  it("clampDimensionsPreservingAspectRatio", () => {
-    const sourceDimensions = { width: 200, height: 100 };
-    const desiredDimensions = { width: 300, height: 150 };
-    const result = clampDimensionsPreservingAspectRatio(
-      sourceDimensions,
-      desiredDimensions,
+  describe("clampDimensionsPreservingAspectRatio", () => {
+    const wide = { width: 211, height: 40 };
+    it.each<{
+      fit?: string;
+      source: { width?: number; height?: number };
+      desired: [number, number];
+      expected: [number, number];
+    }>([
+      // `cover` (the default) and `fill` have to fit the source on both axes
+      {
+        source: { width: 200, height: 100 },
+        desired: [300, 150],
+        expected: [200, 100],
+      },
+      { source: wide, desired: [170, 170], expected: [40, 40] },
+      { fit: "cover", source: wide, desired: [170, 170], expected: [40, 40] },
+      { fit: "fill", source: wide, desired: [170, 170], expected: [40, 40] },
+      { fit: "fill", source: wide, desired: [300, 20], expected: [211, 14] },
+      // `contain` pads the axis it does not fill, so only the other one is bound
+      {
+        fit: "contain",
+        source: wide,
+        desired: [170, 170],
+        expected: [170, 170],
+      },
+      {
+        fit: "contain",
+        source: wide,
+        desired: [300, 300],
+        expected: [211, 211],
+      },
+      { fit: "contain", source: wide, desired: [400, 80], expected: [211, 42] },
+      {
+        fit: "contain",
+        source: { width: 3840, height: 2160 },
+        desired: [4000, 4000],
+        expected: [3840, 3840],
+      },
+      // Within the source, nothing to clamp
+      { fit: "contain", source: wide, desired: [100, 20], expected: [100, 20] },
+      { source: wide, desired: [100, 20], expected: [100, 20] },
+      // A side is never clamped down to 0
+      {
+        source: { width: 3840, height: 2160 },
+        desired: [1, 5000],
+        expected: [1, 2160],
+      },
+      // Unknown source dimensions
+      { source: {}, desired: [300, 300], expected: [300, 300] },
+      { source: { width: 100 }, desired: [300, 150], expected: [100, 50] },
+    ])(
+      "$desired with fit $fit from $source -> $expected",
+      ({ fit, source, desired, expected }) => {
+        const [width, height] = desired;
+        expect(
+          clampDimensionsPreservingAspectRatio(source, { width, height }, fit),
+        ).toEqual({ width: expected[0], height: expected[1] });
+      },
     );
-    expect(result).toEqual({ width: 200, height: 100 });
   });
 });

@@ -458,6 +458,48 @@ describe("ipx", () => {
     });
   });
 
+  // Without `enlarge` the source is never upscaled. Mocking the pipe would hide
+  // what sharp itself makes of the box and `fit`, so these run for real.
+  describe("resize without enlarge", () => {
+    // bliss.jpg is 3840x2160, giphy.gif is 320x240
+    const size = async (
+      modifiers: Record<string, string>,
+      id = "bliss.jpg",
+    ) => {
+      const { data } = await (await ipx(id, modifiers)).process();
+      const { width, height } = imageMeta(data as Uint8Array);
+      return `${width}x${height}`;
+    };
+
+    it.each([
+      // `cover` (the default) and `fill` fit the source on both axes
+      [{ s: "4000x4000" }, "2160x2160"],
+      [{ s: "4000x4000", fit: "cover" }, "2160x2160"],
+      [{ s: "5000x1000", fit: "fill" }, "3840x768"],
+      // `contain` pads its other axis, so the box can exceed the source there
+      [{ s: "4000x4000", fit: "contain" }, "3840x3840"],
+      [{ s: "3000x5000", fit: "contain" }, "3000x5000"],
+      // `inside` and `outside` keep the source aspect ratio
+      [{ s: "4000x4000", fit: "inside" }, "3840x2160"],
+      [{ s: "1920x5000", fit: "inside" }, "1920x1080"],
+      [{ s: "5000x1000", fit: "outside" }, "3840x2160"],
+      [{ s: "1000x1000", fit: "outside" }, "1778x1000"],
+      // Within the source, nothing to clamp
+      [{ s: "1920x1080", fit: "contain" }, "1920x1080"],
+    ])("%o -> %s", async (modifiers, expected) => {
+      expect(await size(modifiers)).toBe(expected);
+    });
+
+    it("`enlarge_false` keeps enlargement off", async () => {
+      expect(await size({ enlarge: "", s: "640x640" }, "giphy.gif")).toBe(
+        "640x640",
+      );
+      expect(await size({ enlarge: "false", s: "640x640" }, "giphy.gif")).toBe(
+        "240x240",
+      );
+    });
+  });
+
   describe("svg", () => {
     it("passes through when no format is specified", async () => {
       const { data, format } = await (await ipx("nuxt.svg")).process();

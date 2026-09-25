@@ -1,6 +1,5 @@
 import { HTTPError } from "h3";
 import type { Sharp } from "sharp";
-import type { ImageMeta } from "image-meta";
 import type { Handler, HandlerContext } from "../types.ts";
 import * as Handlers from "./handlers.ts";
 
@@ -490,20 +489,45 @@ function clampEdges(
   return [clamp(a), clamp(b)];
 }
 
+/**
+ * Shrinks a requested `resize` box, preserving its aspect ratio, so that sharp
+ * does not have to upscale the source to produce it.
+ *
+ * sharp's own `withoutEnlargement` falls back to the source dimensions for
+ * `cover` and `fill`, losing the requested aspect ratio, so the box is clamped
+ * here instead. `inside` and `outside` never pad nor crop, so they should use
+ * `withoutEnlargement` rather than this.
+ *
+ * `cover` and `fill` scale the image to fill the box on both axes, so the box
+ * has to fit within the source. `contain` only scales the image until it fits
+ * the box on one axis and pads the other, so the box may exceed the source on
+ * the padded axis (`s_170x170,fit_contain` of a 211x40 image stays 170x170).
+ *
+ * @param sourceDimensions The source dimensions.
+ * @param desiredDimensions The requested box.
+ * @param fit The `fit` in effect, `cover` (the sharp default) when omitted.
+ */
 export function clampDimensionsPreservingAspectRatio(
-  sourceDimensions: ImageMeta,
+  sourceDimensions: { width?: number; height?: number },
   desiredDimensions: { width: number; height: number },
+  fit?: string,
 ) {
-  const desiredAspectRatio = desiredDimensions.width / desiredDimensions.height;
-  let { width, height } = desiredDimensions;
-  if (sourceDimensions.width && width > sourceDimensions.width) {
-    width = sourceDimensions.width;
-    height = Math.round(sourceDimensions.width / desiredAspectRatio);
-  }
-  if (sourceDimensions.height && height > sourceDimensions.height) {
-    height = sourceDimensions.height;
-    width = Math.round(sourceDimensions.height * desiredAspectRatio);
+  const { width, height } = desiredDimensions;
+  // How much each axis of the source would have to be scaled to reach the box.
+  const scales = [
+    sourceDimensions.width ? width / sourceDimensions.width : undefined,
+    sourceDimensions.height ? height / sourceDimensions.height : undefined,
+  ].filter((scale) => scale !== undefined);
+  if (scales.length === 0) {
+    return { width, height };
   }
 
-  return { width, height };
+  const scale = fit === "contain" ? Math.min(...scales) : Math.max(...scales);
+  if (scale <= 1) {
+    return { width, height };
+  }
+  return {
+    width: Math.max(1, Math.round(width / scale)),
+    height: Math.max(1, Math.round(height / scale)),
+  };
 }

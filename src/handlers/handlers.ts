@@ -92,10 +92,12 @@ export const background: Handler = {
 
 // --------- Resize ---------
 
+// `enlarge_false` (or `{ enlarge: false }`) turns it back off rather than being
+// read as the flag being present.
 export const enlarge: Handler = {
-  args: [],
-  apply: (context) => {
-    context.enlarge = true;
+  args: [VBoolean("enlarge")],
+  apply: (context, _pipe, enabled) => {
+    context.enlarge = enabled !== false;
   },
 };
 
@@ -168,12 +170,18 @@ export const resize: Handler = {
       return;
     }
     let { width, height } = size;
-    // sharp's `withoutEnlargement` doesn't respect the requested aspect ratio, so we need to do it ourselves
-    if (!context.enlarge) {
-      const clamped = clampDimensionsPreservingAspectRatio(context.meta, {
-        width,
-        height,
-      });
+    // `inside` and `outside` keep the source aspect ratio, which sharp's own
+    // `withoutEnlargement` already preserves. The other fits lose the requested
+    // aspect ratio with it, so their box is clamped here instead.
+    const keepsSourceAspectRatio =
+      context.fit === "inside" || context.fit === "outside";
+    const withoutEnlargement = !context.enlarge && keepsSourceAspectRatio;
+    if (!context.enlarge && !keepsSourceAspectRatio) {
+      const clamped = clampDimensionsPreservingAspectRatio(
+        context.meta,
+        { width, height },
+        context.fit,
+      );
       width = clamped.width;
       height = clamped.height;
     }
@@ -184,12 +192,14 @@ export const resize: Handler = {
     });
     context.outputDimensions = resizeOutputDimensions(capped, context.meta, {
       fit: context.fit,
+      withoutEnlargement,
     });
     return pipe.resize(capped.width, capped.height, {
       fit: context.fit,
       position: context.position,
       background: context.background,
       kernel: context.kernel,
+      withoutEnlargement,
     });
   },
 };
