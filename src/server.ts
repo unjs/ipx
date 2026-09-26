@@ -3,7 +3,7 @@ import { negotiate } from "@fastify/accept-negotiator";
 import { defineEventHandler, HTTPError } from "h3";
 import { getBuiltinModule, getEnv, requireModule } from "./utils.ts";
 
-import type { IPX } from "./ipx.ts";
+import { SUPPORTED_FORMATS, type IPX } from "./ipx.ts";
 import type { H3Event, EventHandlerWithFetch } from "h3";
 import type { NodeHttpHandler, Server, ServerOptions } from "srvx";
 
@@ -31,21 +31,30 @@ export interface IPXHandlerOptions {
   parseURL?: IPXURLParser;
 
   /**
-   * Output formats `f_auto` can pick from, in order of preference. The first one
-   * the client accepts (per its `Accept` header) is used.
+   * Output formats `f_auto` can pick from, in order of preference.
    *
    * Useful to leave out formats that are slow to encode, such as `avif`.
    *
+   * The format the client's `Accept` header lists with the highest q-value wins,
+   * and equal q-values go to the earlier entry. Wildcards such as `image/*` do
+   * not match a format, so browsers only negotiate the formats they list
+   * explicitly (in practice `avif`, `webp` and `png`).
+   *
    * Animated images only consider `webp` and `gif` from this list. When nothing
    * matches, `jpeg` (or `gif` for animated images) is used.
+   *
+   * Unknown formats throw when the handler is created.
    *
    * Can also be set with the `IPX_AUTO_FORMATS` environment variable (JSON array
    * or comma separated list).
    *
    * @default ["avif", "webp", "jpeg", "png", "tiff", "heif", "gif"]
    */
-  autoFormats?: string[];
+  autoFormats?: IPXAutoFormat[];
 }
+
+export type IPXAutoFormat =
+  "avif" | "webp" | "jpeg" | "jpg" | "png" | "tiff" | "heif" | "heic" | "gif";
 
 export function createIPXFetchHandler(
   ipx: IPX,
@@ -142,7 +151,7 @@ function createIPXHandler(
 ): EventHandlerWithFetch {
   const parseURL = opts.parseURL || parseIPXURL;
   const autoFormats = resolveAutoFormats(
-    opts.autoFormats || getEnv<string[] | string>("IPX_AUTO_FORMATS"),
+    opts.autoFormats || getEnv<unknown>("IPX_AUTO_FORMATS"),
   );
 
   return defineEventHandler(async (event: H3Event) => {
@@ -345,12 +354,30 @@ interface AutoFormats {
   animatedMimes: string[];
 }
 
-function resolveAutoFormats(input: string[] | string | undefined): AutoFormats {
-  const list = typeof input === "string" ? input.split(",") : input;
-  const formats = (list?.length ? list : DEFAULT_AUTO_FORMATS)
-    .map((f) => String(f).trim().toLowerCase())
-    .map((f) => (f === "jpg" ? "jpeg" : f))
-    .filter(Boolean);
+function resolveAutoFormats(input: unknown): AutoFormats {
+  let list: unknown[] = [];
+  if (typeof input === "string") {
+    list = input.split(",");
+  } else if (Array.isArray(input)) {
+    list = input;
+  }
+  const formats = list
+    .map((f) =>
+      String(f ?? "")
+        .trim()
+        .toLowerCase(),
+    )
+    .filter(Boolean)
+    .map((f) => (f === "jpg" ? "jpeg" : f));
+  const invalid = formats.filter((f) => !SUPPORTED_FORMATS.has(f));
+  if (invalid.length > 0) {
+    throw new TypeError(
+      `[ipx] Unsupported \`autoFormats\`: ${invalid.join(", ")} (supported: ${[...SUPPORTED_FORMATS].join(", ")})`,
+    );
+  }
+  if (formats.length === 0) {
+    formats.push(...DEFAULT_AUTO_FORMATS);
+  }
   return {
     mimes: formats.map((f) => `image/${f}`),
     animatedMimes: formats

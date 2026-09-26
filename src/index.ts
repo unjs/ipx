@@ -9,6 +9,7 @@ export {
 export { HTTPError } from "h3";
 
 export {
+  type IPXAutoFormat,
   type IPXHandlerOptions,
   type IPXParsedURL,
   type IPXURLParser,

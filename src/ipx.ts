@@ -217,7 +217,7 @@ const DEFAULT_MAX_OUTPUT_DIMENSION = 8192;
 
 // https://sharp.pixelplumbing.com/#formats
 // (gif and svg are not supported as output)
-const SUPPORTED_FORMATS = new Set([
+export const SUPPORTED_FORMATS: ReadonlySet<string> = new Set([
   "jpeg",
   "png",
   "webp",

@@ -1,12 +1,17 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { type RequestListener, createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import { resolve } from "node:path";
 import {
   type IPX,
+  type IPXAutoFormat,
   type IPXURLParser,
   createIPX,
   createIPXFetchHandler,
+  createIPXNodeHandler,
   ipxFSStorage,
   parseIPXURL,
+  serveIPX,
 } from "../src/index.ts";
 
 describe("server", () => {
@@ -416,7 +421,7 @@ describe("server", () => {
     });
 
     it("autoFormats limits and orders the candidates", async () => {
-      const opts = { autoFormats: ["webp", "jpg"] };
+      const opts = { autoFormats: ["webp", "jpg"] as IPXAutoFormat[] };
       expect(
         (await detect("http://example.com/f_auto/test.jpg", chrome, opts))
           .format,
@@ -441,16 +446,116 @@ describe("server", () => {
       expect(format).toEqual("gif");
     });
 
-    it("reads IPX_AUTO_FORMATS", async () => {
-      process.env.IPX_AUTO_FORMATS = "webp, jpeg";
-      try {
+    it("prefers the highest q-value over the list order", async () => {
+      const { format } = await detect(
+        "http://example.com/f_auto/test.jpg",
+        "image/webp;q=0.5,image/avif",
+        { autoFormats: ["webp", "avif"] },
+      );
+      expect(format).toEqual("avif");
+    });
+
+    it("does not match wildcards", async () => {
+      for (const accept of ["image/*", "*/*"]) {
+        const { format } = await detect(
+          "http://example.com/f_auto/test.jpg",
+          accept,
+          { autoFormats: ["png"] },
+        );
+        expect(format).toEqual("jpeg");
+      }
+    });
+
+    it("falls back to jpeg even when autoFormats excludes it", async () => {
+      const { format } = await detect(
+        "http://example.com/f_auto/test.jpg",
+        "",
+        { autoFormats: ["webp", "png"] },
+      );
+      expect(format).toEqual("jpeg");
+    });
+
+    it("throws on unsupported autoFormats", () => {
+      for (const autoFormats of [["image/webp"], ["svg"], ["foo", "webp"]]) {
+        expect(() =>
+          createIPXFetchHandler(ipx, { autoFormats: autoFormats as any }),
+        ).toThrow(/Unsupported `autoFormats`/);
+      }
+    });
+
+    describe("IPX_AUTO_FORMATS", () => {
+      afterEach(() => {
+        vi.unstubAllEnvs();
+      });
+
+      it.each(["webp, jpeg", '["webp", "jpeg"]'])("reads %s", async (env) => {
+        vi.stubEnv("IPX_AUTO_FORMATS", env);
         const { format } = await detect(
           "http://example.com/f_auto/test.jpg",
           chrome,
         );
         expect(format).toEqual("webp");
+      });
+
+      it.each([",", " ", "5", '{"a":1}'])(
+        "uses the defaults for %j",
+        async (env) => {
+          vi.stubEnv("IPX_AUTO_FORMATS", env);
+          const { format } = await detect(
+            "http://example.com/f_auto/test.jpg",
+            chrome,
+          );
+          expect(format).toEqual("avif");
+        },
+      );
+
+      it("throws on unsupported formats", () => {
+        vi.stubEnv("IPX_AUTO_FORMATS", "webp,foo");
+        expect(() => createIPXFetchHandler(ipx)).toThrow(/foo/);
+      });
+
+      it("is overridden by the option", async () => {
+        vi.stubEnv("IPX_AUTO_FORMATS", "avif");
+        const { format } = await detect(
+          "http://example.com/f_auto/test.jpg",
+          chrome,
+          { autoFormats: ["webp"] },
+        );
+        expect(format).toEqual("webp");
+      });
+    });
+
+    it("createIPXNodeHandler and serveIPX pass autoFormats through", async () => {
+      const accept = { accept: chrome };
+
+      const nodeServer = createServer(
+        createIPXNodeHandler(ipx, { autoFormats: ["webp"] }) as RequestListener,
+      );
+      await new Promise<void>((r) => nodeServer.listen(0, "127.0.0.1", r));
+      try {
+        const { port } = nodeServer.address() as AddressInfo;
+        await fetch(`http://127.0.0.1:${port}/f_auto/test.jpg`, {
+          headers: accept,
+        });
+        expect(lastRequest.modifiers?.format).toEqual("webp");
       } finally {
-        delete process.env.IPX_AUTO_FORMATS;
+        nodeServer.close();
+      }
+
+      const server = serveIPX(ipx, {
+        port: 0,
+        hostname: "127.0.0.1",
+        silent: true,
+        autoFormats: ["png"],
+      });
+      try {
+        await server.ready();
+        await fetch(new URL("/f_auto/test.jpg", server.url), {
+          headers: { accept: "image/avif,image/png" },
+        });
+        expect(lastRequest.modifiers?.format).toEqual("png");
+      } finally {
+        await server.close(true);
       }
     });
   });
