@@ -1,5 +1,5 @@
 import { HTTPError } from "h3";
-import { getBuiltinModule, getEnv } from "../utils.ts";
+import { getBuiltinModule, getEnv, normalizeMaxAge } from "../utils.ts";
 import type { IPXStorage } from "../types.ts";
 
 export type HTTPStorageOptions = {
@@ -17,7 +17,13 @@ export type HTTPStorageOptions = {
   fetchOptions?: RequestInit;
 
   /**
-   * Default maximum age (in seconds) for cache control. If not specified, defaults to the environment setting or 300 seconds.
+   * Fallback `cache-control` max-age (in seconds), used when the upstream response has no
+   * `max-age` directive or {@link HTTPStorageOptions.ignoreCacheControl} is set. If not
+   * specified, defaults to `IPX_HTTP_MAX_AGE` or 300 seconds.
+   *
+   * `0` is kept rather than replaced by the default: caches may still store the response but
+   * must revalidate it on every request. It does not override an upstream `max-age` unless
+   * `ignoreCacheControl` is set. Invalid values (negative, `NaN`, non-numeric) count as unset.
    * @optional
    */
   maxAge?: number;
@@ -269,8 +275,11 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     _options.allowAllDomains ?? getEnv("IPX_HTTP_ALLOW_ALL_DOMAINS") ?? false;
   let _domains =
     _options.domains || getEnv<string | string[]>("IPX_HTTP_DOMAINS") || [];
+  // `??`, not `||`: `maxAge: 0` (or `IPX_HTTP_MAX_AGE=0`) must not fall through to 300.
   const defaultMaxAge =
-    _options.maxAge || getEnv<string | number>("IPX_HTTP_MAX_AGE") || 300;
+    normalizeMaxAge(_options.maxAge) ??
+    normalizeMaxAge(getEnv("IPX_HTTP_MAX_AGE")) ??
+    300;
   const fetchOptions: RequestInit =
     _options.fetchOptions ||
     getEnv<RequestInit>("IPX_HTTP_FETCH_OPTIONS") ||

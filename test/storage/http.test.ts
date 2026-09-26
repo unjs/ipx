@@ -23,6 +23,37 @@ describe("http", () => {
         "Forbidden host: localhost",
       );
     });
+
+    // Only valid delta-seconds count as set: `0` is kept, anything else falls through to the
+    // next source instead of ending up as `max-age=NaN` (or no header at all).
+    it.each([
+      { name: "maxAge: 0", options: { maxAge: 0 }, expected: 0 },
+      { name: "IPX_HTTP_MAX_AGE=0", env: "0", expected: 0 },
+      { name: "an empty IPX_HTTP_MAX_AGE", env: "", expected: 300 },
+      { name: "IPX_HTTP_MAX_AGE=false", env: "false", expected: 300 },
+      { name: "IPX_HTTP_MAX_AGE=1h", env: "1h", expected: 300 },
+      { name: "a negative maxAge", options: { maxAge: -1 }, expected: 300 },
+      {
+        name: "maxAge: NaN",
+        options: { maxAge: Number.NaN },
+        env: "120",
+        expected: 120,
+      },
+    ])(
+      "falls back to $expected with $name when the response has no max-age",
+      async ({ options, env, expected }) => {
+        vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(null)));
+        if (env !== undefined) {
+          vi.stubEnv("IPX_HTTP_MAX_AGE", env);
+        }
+
+        await expect(
+          ipxHttpStorage({ domains: ["example.com"], ...options }).getMeta(
+            "https://example.com/image.png",
+          ),
+        ).resolves.toMatchObject({ maxAge: expected });
+      },
+    );
   });
 
   describe("validateId", () => {

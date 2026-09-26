@@ -1,5 +1,5 @@
 import { HTTPError } from "h3";
-import { getBuiltinModule, getEnv } from "../utils.ts";
+import { getBuiltinModule, getEnv, normalizeMaxAge } from "../utils.ts";
 
 import type { IPXStorage } from "../types.ts";
 
@@ -90,7 +90,9 @@ export function ipxFSStorage(_options: NodeFSSOptions = {}): IPXStorage {
 
   const dirs = resolveDirs(_options.dir);
   // `??`, not `||`: `maxAge: 0` means "do not cache" and must not fall through to the default.
-  const maxAge = _options.maxAge ?? getEnv<number>("IPX_FS_MAX_AGE");
+  const maxAge =
+    normalizeMaxAge(_options.maxAge) ??
+    normalizeMaxAge(getEnv("IPX_FS_MAX_AGE"));
   const allowSymlinksOutsideDir =
     _options.allowSymlinksOutsideDir ??
     getEnv<boolean>("IPX_FS_ALLOW_SYMLINKS_OUTSIDE_DIR") ??

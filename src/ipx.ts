@@ -3,7 +3,7 @@ import { HTTPError } from "h3";
 import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
 import { applyHandler, asModifierError, getHandler } from "./handlers/index.ts";
 import { sanitizeSVGPlugin } from "./svg.ts";
-import { cachedPromise, getEnv } from "./utils.ts";
+import { cachedPromise, getEnv, normalizeMaxAge } from "./utils.ts";
 
 import type { HandlerName } from "./handlers/index.ts";
 import type { SharpOptions } from "sharp";
@@ -240,7 +240,9 @@ export function createIPX(userOptions: IPXOptions): IPX {
     alias:
       userOptions.alias || getEnv<Record<string, string>>("IPX_ALIAS") || {},
     maxAge:
-      userOptions.maxAge ?? getEnv<number>("IPX_MAX_AGE") ?? 60 /* 1 minute */,
+      normalizeMaxAge(userOptions.maxAge) ??
+      normalizeMaxAge(getEnv("IPX_MAX_AGE")) ??
+      60 /* 1 minute */,
     maxOutputDimension:
       userOptions.maxOutputDimension ??
       getEnv<number | false>("IPX_MAX_OUTPUT_DIMENSION") ??
@@ -313,10 +315,10 @@ export function createIPX(userOptions: IPXOptions): IPX {
           message: `Resource not found: ${id}`,
         });
       }
-      const _maxAge = sourceMeta.maxAge ?? options.maxAge;
       return {
-        maxAge:
-          typeof _maxAge === "string" ? Number.parseInt(_maxAge) : _maxAge,
+        // Storages (including custom ones) may return anything here; it ends up verbatim in
+        // the `cache-control` header, so an invalid value falls back to the IPX-wide default.
+        maxAge: normalizeMaxAge(sourceMeta.maxAge) ?? options.maxAge,
         mtime: sourceMeta.mtime ? new Date(sourceMeta.mtime) : undefined,
       } satisfies IPXSourceMeta;
     });

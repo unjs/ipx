@@ -500,7 +500,7 @@ Enabled by default with the CLI only.
 | Option            | Environment variable         | Default | Description                                                                                   |
 | ----------------- | ---------------------------- | ------- | --------------------------------------------------------------------------------------------- |
 | `domains`         | `IPX_HTTP_DOMAINS`           | `[]`    | Allowlist of hostnames images can be fetched from.                                            |
-| `maxAge`          | `IPX_HTTP_MAX_AGE`           | `300`   |                                                                                               |
+| `maxAge`          | `IPX_HTTP_MAX_AGE`           | `300`   | `cache-control` max-age, in seconds, when upstream sends none.                                |
 | `fetchOptions`    | `IPX_HTTP_FETCH_OPTIONS`     | `{}`    | Passed to `fetch()`.                                                                          |
 | `allowAllDomains` | `IPX_HTTP_ALLOW_ALL_DOMAINS` | `false` | Disables the allowlist. Unsafe on a public server.                                            |
 | `blockPrivateIPs` | `IPX_HTTP_BLOCK_PRIVATE_IPS` | `false` | Rejects hosts that are, or resolve to, a non-public IP address (best effort, see note below). |
