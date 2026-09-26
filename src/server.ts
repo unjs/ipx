@@ -1,9 +1,9 @@
 import getEtag from "etag";
 import { negotiate } from "@fastify/accept-negotiator";
 import { defineEventHandler, HTTPError } from "h3";
-import { getBuiltinModule, requireModule } from "./utils.ts";
+import { getBuiltinModule, getEnv, requireModule } from "./utils.ts";
 
-import type { IPX } from "./ipx.ts";
+import { SUPPORTED_FORMATS, type IPX } from "./ipx.ts";
 import type { H3Event, EventHandlerWithFetch } from "h3";
 import type { NodeHttpHandler, Server, ServerOptions } from "srvx";
 
@@ -29,7 +29,32 @@ export interface IPXHandlerOptions {
    * @optional
    */
   parseURL?: IPXURLParser;
+
+  /**
+   * Output formats `f_auto` can pick from, in order of preference.
+   *
+   * Useful to leave out formats that are slow to encode, such as `avif`.
+   *
+   * The format the client's `Accept` header lists with the highest q-value wins,
+   * and equal q-values go to the earlier entry. Wildcards such as `image/*` do
+   * not match a format, so browsers only negotiate the formats they list
+   * explicitly (in practice `avif`, `webp` and `png`).
+   *
+   * Animated images only consider `webp` and `gif` from this list. When nothing
+   * matches, `jpeg` (or `gif` for animated images) is used.
+   *
+   * Unknown formats throw when the handler is created.
+   *
+   * Can also be set with the `IPX_AUTO_FORMATS` environment variable (JSON array
+   * or comma separated list).
+   *
+   * @default ["avif", "webp", "jpeg", "png", "tiff", "heif", "gif"]
+   */
+  autoFormats?: IPXAutoFormat[];
 }
+
+export type IPXAutoFormat =
+  "avif" | "webp" | "jpeg" | "jpg" | "png" | "tiff" | "heif" | "heic" | "gif";
 
 export function createIPXFetchHandler(
   ipx: IPX,
@@ -53,8 +78,8 @@ export function serveIPX(
   opts?: Omit<ServerOptions, "fetch"> & IPXHandlerOptions,
 ): Server {
   const { serve } = requireModule<typeof import("srvx")>("srvx");
-  const { parseURL, ...serverOptions } = opts || {};
-  const fetch = createIPXFetchHandler(ipx, { parseURL });
+  const { parseURL, autoFormats, ...serverOptions } = opts || {};
+  const fetch = createIPXFetchHandler(ipx, { parseURL, autoFormats });
   return serve({ ...serverOptions, fetch });
 }
 
@@ -125,6 +150,9 @@ function createIPXHandler(
   opts: IPXHandlerOptions = {},
 ): EventHandlerWithFetch {
   const parseURL = opts.parseURL || parseIPXURL;
+  const autoFormats = resolveAutoFormats(
+    opts.autoFormats || getEnv<unknown>("IPX_AUTO_FORMATS"),
+  );
 
   return defineEventHandler(async (event: H3Event) => {
     // Parse URL (never trust the parser output: it can be user provided)
@@ -155,6 +183,7 @@ function createIPXHandler(
       const animated = modifiers.animated ?? modifiers.a;
       const autoFormat = autoDetectFormat(
         acceptHeader,
+        autoFormats,
         // #234 "animated" param adds {animated: ''} to the modifiers
         // TODO: fix modifiers to normalized to boolean
         !!animated || animated === "",
@@ -308,20 +337,65 @@ function opaqueTag(tag: string): string {
   return tag.startsWith("W/") ? tag.slice(2) : tag;
 }
 
-function autoDetectFormat(acceptHeader: string, animated: boolean): string {
+const DEFAULT_AUTO_FORMATS = [
+  "avif",
+  "webp",
+  "jpeg",
+  "png",
+  "tiff",
+  "heif",
+  "gif",
+];
+
+const ANIMATED_FORMATS = new Set(["webp", "gif"]);
+
+interface AutoFormats {
+  mimes: string[];
+  animatedMimes: string[];
+}
+
+function resolveAutoFormats(input: unknown): AutoFormats {
+  let list: unknown[] = [];
+  if (typeof input === "string") {
+    list = input.split(",");
+  } else if (Array.isArray(input)) {
+    list = input;
+  }
+  const formats = list
+    .map((f) =>
+      String(f ?? "")
+        .trim()
+        .toLowerCase(),
+    )
+    .filter(Boolean)
+    .map((f) => (f === "jpg" ? "jpeg" : f));
+  const invalid = formats.filter((f) => !SUPPORTED_FORMATS.has(f));
+  if (invalid.length > 0) {
+    throw new TypeError(
+      `[ipx] Unsupported \`autoFormats\`: ${invalid.join(", ")} (supported: ${[...SUPPORTED_FORMATS].join(", ")})`,
+    );
+  }
+  if (formats.length === 0) {
+    formats.push(...DEFAULT_AUTO_FORMATS);
+  }
+  return {
+    mimes: formats.map((f) => `image/${f}`),
+    animatedMimes: formats
+      .filter((f) => ANIMATED_FORMATS.has(f))
+      .map((f) => `image/${f}`),
+  };
+}
+
+function autoDetectFormat(
+  acceptHeader: string,
+  autoFormats: AutoFormats,
+  animated: boolean,
+): string {
   if (animated) {
-    const acceptMime = negotiate(acceptHeader, ["image/webp", "image/gif"]);
+    const acceptMime = negotiate(acceptHeader, autoFormats.animatedMimes);
     return acceptMime?.split("/")[1] || "gif";
   }
-  const acceptMime = negotiate(acceptHeader, [
-    "image/avif",
-    "image/webp",
-    "image/jpeg",
-    "image/png",
-    "image/tiff",
-    "image/heif",
-    "image/gif",
-  ]);
+  const acceptMime = negotiate(acceptHeader, autoFormats.mimes);
   return acceptMime?.split("/")[1] || "jpeg";
 }
 

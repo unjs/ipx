@@ -483,6 +483,22 @@ Every option can also be set universally with an `IPX_*` environment variable, w
 
 Requested `width`, `height` and `resize` dimensions are clamped to `maxOutputDimension`, preserving the requested aspect ratio, and `extend` edges are clamped so the extended canvas stays within it. This bounds how much memory a single request can allocate: sharp only limits the _input_ size, so without it `/enlarge,s_20000x20000/image.jpg` (or `/extend_10000_10000_10000_10000/image.jpg`) allocates gigabytes from a small source image. Set to `false` to disable, which is only safe when modifiers come from a trusted source.
 
+### Server (`createIPXFetchHandler`, `createIPXNodeHandler`, `serveIPX`)
+
+| Option        | Environment variable | Default                                              | Description                                             |
+| ------------- | -------------------- | ---------------------------------------------------- | ------------------------------------------------------- |
+| `autoFormats` | `IPX_AUTO_FORMATS`   | `avif`, `webp`, `jpeg`, `png`, `tiff`, `heif`, `gif` | Formats `f_auto` can pick from, in order of preference. |
+
+`f_auto` serves the format that the client's `accept` header lists with the highest q-value, and equal q-values go to the earlier entry in `autoFormats`. Wildcards such as `image/*` and `*/*` do not match a format, so browsers only negotiate the formats they list explicitly (in practice `avif`, `webp` and `png`). When nothing matches, `jpeg` is served, even if it is not in the list. Animated images only consider `webp` and `gif`, and fall back to `gif`.
+
+AVIF compresses best but is much slower to encode, so leave it out when encoding time matters more than size:
+
+```ts
+createIPXFetchHandler(ipx, { autoFormats: ["webp", "jpeg"] });
+```
+
+With the CLI: `IPX_AUTO_FORMATS=webp,jpeg ipx serve`. Unknown formats throw when the handler is created.
+
 ### Filesystem source (`ipxFSStorage`)
 
 Enabled by default with the CLI only.
