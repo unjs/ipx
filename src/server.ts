@@ -1,7 +1,7 @@
 import getEtag from "etag";
 import { negotiate } from "@fastify/accept-negotiator";
 import { defineEventHandler, HTTPError } from "h3";
-import { getBuiltinModule, requireModule } from "./utils.ts";
+import { getBuiltinModule, getEnv, requireModule } from "./utils.ts";
 
 import type { IPX } from "./ipx.ts";
 import type { H3Event, EventHandlerWithFetch } from "h3";
@@ -29,6 +29,22 @@ export interface IPXHandlerOptions {
    * @optional
    */
   parseURL?: IPXURLParser;
+
+  /**
+   * Output formats `f_auto` can pick from, in order of preference. The first one
+   * the client accepts (per its `Accept` header) is used.
+   *
+   * Useful to leave out formats that are slow to encode, such as `avif`.
+   *
+   * Animated images only consider `webp` and `gif` from this list. When nothing
+   * matches, `jpeg` (or `gif` for animated images) is used.
+   *
+   * Can also be set with the `IPX_AUTO_FORMATS` environment variable (JSON array
+   * or comma separated list).
+   *
+   * @default ["avif", "webp", "jpeg", "png", "tiff", "heif", "gif"]
+   */
+  autoFormats?: string[];
 }
 
 export function createIPXFetchHandler(
@@ -53,8 +69,8 @@ export function serveIPX(
   opts?: Omit<ServerOptions, "fetch"> & IPXHandlerOptions,
 ): Server {
   const { serve } = requireModule<typeof import("srvx")>("srvx");
-  const { parseURL, ...serverOptions } = opts || {};
-  const fetch = createIPXFetchHandler(ipx, { parseURL });
+  const { parseURL, autoFormats, ...serverOptions } = opts || {};
+  const fetch = createIPXFetchHandler(ipx, { parseURL, autoFormats });
   return serve({ ...serverOptions, fetch });
 }
 
@@ -125,6 +141,9 @@ function createIPXHandler(
   opts: IPXHandlerOptions = {},
 ): EventHandlerWithFetch {
   const parseURL = opts.parseURL || parseIPXURL;
+  const autoFormats = resolveAutoFormats(
+    opts.autoFormats || getEnv<string[] | string>("IPX_AUTO_FORMATS"),
+  );
 
   return defineEventHandler(async (event: H3Event) => {
     // Parse URL (never trust the parser output: it can be user provided)
@@ -155,6 +174,7 @@ function createIPXHandler(
       const animated = modifiers.animated ?? modifiers.a;
       const autoFormat = autoDetectFormat(
         acceptHeader,
+        autoFormats,
         // #234 "animated" param adds {animated: ''} to the modifiers
         // TODO: fix modifiers to normalized to boolean
         !!animated || animated === "",
@@ -308,20 +328,47 @@ function opaqueTag(tag: string): string {
   return tag.startsWith("W/") ? tag.slice(2) : tag;
 }
 
-function autoDetectFormat(acceptHeader: string, animated: boolean): string {
+const DEFAULT_AUTO_FORMATS = [
+  "avif",
+  "webp",
+  "jpeg",
+  "png",
+  "tiff",
+  "heif",
+  "gif",
+];
+
+const ANIMATED_FORMATS = new Set(["webp", "gif"]);
+
+interface AutoFormats {
+  mimes: string[];
+  animatedMimes: string[];
+}
+
+function resolveAutoFormats(input: string[] | string | undefined): AutoFormats {
+  const list = typeof input === "string" ? input.split(",") : input;
+  const formats = (list?.length ? list : DEFAULT_AUTO_FORMATS)
+    .map((f) => String(f).trim().toLowerCase())
+    .map((f) => (f === "jpg" ? "jpeg" : f))
+    .filter(Boolean);
+  return {
+    mimes: formats.map((f) => `image/${f}`),
+    animatedMimes: formats
+      .filter((f) => ANIMATED_FORMATS.has(f))
+      .map((f) => `image/${f}`),
+  };
+}
+
+function autoDetectFormat(
+  acceptHeader: string,
+  autoFormats: AutoFormats,
+  animated: boolean,
+): string {
   if (animated) {
-    const acceptMime = negotiate(acceptHeader, ["image/webp", "image/gif"]);
+    const acceptMime = negotiate(acceptHeader, autoFormats.animatedMimes);
     return acceptMime?.split("/")[1] || "gif";
   }
-  const acceptMime = negotiate(acceptHeader, [
-    "image/avif",
-    "image/webp",
-    "image/jpeg",
-    "image/png",
-    "image/tiff",
-    "image/heif",
-    "image/gif",
-  ]);
+  const acceptMime = negotiate(acceptHeader, autoFormats.mimes);
   return acceptMime?.split("/")[1] || "jpeg";
 }
 

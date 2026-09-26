@@ -381,6 +381,80 @@ describe("server", () => {
     });
   });
 
+  describe("f_auto", () => {
+    const chrome = "image/avif,image/webp,image/apng,image/*,*/*;q=0.8";
+
+    const detect = async (
+      url: string,
+      accept: string,
+      opts?: Parameters<typeof createIPXFetchHandler>[1],
+    ) => {
+      const handler = createIPXFetchHandler(ipx, opts);
+      const res = await handler(new Request(url, { headers: { accept } }));
+      return { format: lastRequest.modifiers?.format, res };
+    };
+
+    it("negotiates the best format by default", async () => {
+      const { format, res } = await detect(
+        "http://example.com/f_auto/test.jpg",
+        chrome,
+      );
+      expect(format).toEqual("avif");
+      expect(res.headers.get("vary")).toEqual("Accept");
+      expect(lastRequest.modifiers).not.toHaveProperty("f");
+    });
+
+    it("falls back to jpeg (or gif when animated)", async () => {
+      expect(
+        (await detect("http://example.com/f_auto/test.jpg", "text/html"))
+          .format,
+      ).toEqual("jpeg");
+      expect(
+        (await detect("http://example.com/f_auto,a/test.gif", "text/html"))
+          .format,
+      ).toEqual("gif");
+    });
+
+    it("autoFormats limits and orders the candidates", async () => {
+      const opts = { autoFormats: ["webp", "jpg"] };
+      expect(
+        (await detect("http://example.com/f_auto/test.jpg", chrome, opts))
+          .format,
+      ).toEqual("webp");
+      expect(
+        (
+          await detect(
+            "http://example.com/f_auto/test.jpg",
+            "image/avif,image/jpeg",
+            opts,
+          )
+        ).format,
+      ).toEqual("jpeg");
+    });
+
+    it("autoFormats only uses animated capable formats when animated", async () => {
+      const { format } = await detect(
+        "http://example.com/f_auto,animated/test.gif",
+        chrome,
+        { autoFormats: ["avif", "gif"] },
+      );
+      expect(format).toEqual("gif");
+    });
+
+    it("reads IPX_AUTO_FORMATS", async () => {
+      process.env.IPX_AUTO_FORMATS = "webp, jpeg";
+      try {
+        const { format } = await detect(
+          "http://example.com/f_auto/test.jpg",
+          chrome,
+        );
+        expect(format).toEqual("webp");
+      } finally {
+        delete process.env.IPX_AUTO_FORMATS;
+      }
+    });
+  });
+
   describe("error handling", () => {
     it("IPX_MISSING_MODIFIERS", async () => {
       const handler = createIPXFetchHandler(ipx);

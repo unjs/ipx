@@ -483,6 +483,20 @@ Every option can also be set universally with an `IPX_*` environment variable, w
 
 Requested `width`, `height` and `resize` dimensions are clamped to `maxOutputDimension`, preserving the requested aspect ratio, and `extend` edges are clamped so the extended canvas stays within it. This bounds how much memory a single request can allocate: sharp only limits the _input_ size, so without it `/enlarge,s_20000x20000/image.jpg` (or `/extend_10000_10000_10000_10000/image.jpg`) allocates gigabytes from a small source image. Set to `false` to disable, which is only safe when modifiers come from a trusted source.
 
+### Server (`createIPXFetchHandler`, `serveIPX`)
+
+| Option        | Environment variable | Default                                              | Description                                             |
+| ------------- | -------------------- | ---------------------------------------------------- | ------------------------------------------------------- |
+| `autoFormats` | `IPX_AUTO_FORMATS`   | `avif`, `webp`, `jpeg`, `png`, `tiff`, `heif`, `gif` | Formats `f_auto` can pick from, in order of preference. |
+
+`f_auto` serves the first format in `autoFormats` that the client's `accept` header allows, falling back to `jpeg` (`gif` for animated images, which only consider `webp` and `gif`). AVIF compresses best but is much slower to encode, so leave it out when encoding time matters more than size:
+
+```ts
+createIPXFetchHandler(ipx, { autoFormats: ["webp", "jpeg"] });
+```
+
+With the CLI: `IPX_AUTO_FORMATS=webp,jpeg ipx serve`.
+
 ### Filesystem source (`ipxFSStorage`)
 
 Enabled by default with the CLI only.
