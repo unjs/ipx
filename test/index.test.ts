@@ -6,6 +6,7 @@ import { imageMeta } from "image-meta";
 
 import {
   type IPX,
+  type IPXOptions,
   type IPXStorage,
   createIPX,
   createIPXFetchHandler,
@@ -408,6 +409,99 @@ describe("ipx", () => {
       expect(await size(ipx, { resize: "100x50", extend: "10_20_30_40" })).toBe(
         "160x90",
       );
+    });
+  });
+
+  describe("allowedModifiers", () => {
+    const createRestrictedIPX = (
+      allowedModifiers?: IPXOptions["allowedModifiers"],
+    ) =>
+      createIPX({
+        storage: ipxFSStorage({ dir: resolve(__dirname, "assets") }),
+        allowedModifiers,
+      });
+
+    const forbidden = { statusCode: 400, statusText: "IPX_FORBIDDEN_MODIFIER" };
+
+    it("allows listed modifiers and their aliases", async () => {
+      const restricted = createRestrictedIPX(["width", "format"]);
+      for (const modifiers of [
+        { width: "100", format: "png" },
+        { w: "100", f: "png" },
+      ]) {
+        const { data, format } = await restricted(
+          "bliss.jpg",
+          modifiers,
+        ).process();
+        expect(format).toBe("png");
+        expect(imageMeta(data as Uint8Array).width).toBe(100);
+      }
+    });
+
+    it("allows a modifier listed by its alias", async () => {
+      const restricted = createRestrictedIPX(["w"]);
+      await expect(
+        restricted("bliss.jpg", { width: "100" }).process(),
+      ).resolves.toBeDefined();
+    });
+
+    it.each<[string, Record<string, any>]>([
+      ["another modifier", { width: "100", blur: "5" }],
+      ["another modifier's alias", { w: "100", h: "100" }],
+      ["`animated` alias", { a: "" }],
+      ["an unknown modifier", { width: "100", cachebust: "1" }],
+    ])("rejects %s", (_name, modifiers) => {
+      const restricted = createRestrictedIPX(["width", "format"]);
+      expect(() => restricted("bliss.jpg", modifiers)).toThrow(
+        expect.objectContaining(forbidden),
+      );
+    });
+
+    // Rejected up front, so the source is never fetched (or found missing).
+    it("rejects before resolving the source", () => {
+      const restricted = createRestrictedIPX(["width"]);
+      expect(() => restricted("missing.jpg", { blur: "5" })).toThrow(
+        expect.objectContaining(forbidden),
+      );
+    });
+
+    it("allows no modifiers when empty", async () => {
+      const restricted = createRestrictedIPX([]);
+      expect(() => restricted("bliss.jpg", { width: "100" })).toThrow(
+        expect.objectContaining(forbidden),
+      );
+      await expect(restricted("bliss.jpg").process()).resolves.toBeDefined();
+    });
+
+    it("throws on an unknown modifier name", () => {
+      expect(() => createRestrictedIPX(["widht" as any])).toThrow(
+        "Unknown modifier in allowedModifiers: widht",
+      );
+    });
+
+    it("can be set with `IPX_ALLOWED_MODIFIERS`", () => {
+      vi.stubEnv("IPX_ALLOWED_MODIFIERS", "width, format");
+      try {
+        const restricted = createRestrictedIPX();
+        expect(() =>
+          restricted("bliss.jpg", { w: "100", f: "png" }),
+        ).not.toThrow();
+        expect(() => restricted("bliss.jpg", { blur: "5" })).toThrow(
+          expect.objectContaining(forbidden),
+        );
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    });
+
+    it("responds with a 400 from the server", async () => {
+      const handler = createIPXFetchHandler(createRestrictedIPX(["width"]));
+      expect((await handler("http://localhost/w_100/bliss.jpg")).status).toBe(
+        200,
+      );
+      expect(
+        (await handler("http://localhost/w_100,blur_5/bliss.jpg")).status,
+      ).toBe(400);
     });
   });
 

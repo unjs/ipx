@@ -48,6 +48,7 @@ Both the resource `id` and every modifier are attacker-controlled. Existing prot
 - `ipxHttpStorage`: domain allowlist, `http(s)` only, redirects followed manually one hop at a time and re-validated (SSRF).
 - `ipxFSStorage`: resolved path must stay inside the configured dir (traversal).
 - `maxOutputDimension` (default 8192) clamps `width`/`height`/`resize`/`extend` so a tiny source cannot force a multi-GB allocation.
+- `allowedModifiers` (opt-in) rejects any modifier not listed (aliases follow their modifier) with a `400` before the source is fetched.
 - SVG is always sanitized (`src/svg.ts`), even with optimization disabled.
 - Server sends `content-security-policy: default-src 'none'` and `x-content-type-options: nosniff`.
 - `safeString()` in `server.ts` escapes parser output — custom `parseURL` results are never trusted.

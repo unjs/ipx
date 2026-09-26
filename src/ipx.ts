@@ -163,6 +163,22 @@ export type IPXOptions = {
   maxOutputDimension?: number | false;
 
   /**
+   * Modifiers that requests are allowed to use. Any other modifier (including
+   * an unknown one) is rejected with a `400` before the source is fetched.
+   *
+   * Every modifier is allowed by default. Restricting them to the ones a site
+   * actually uses (for example `["width", "height", "format", "quality"]`)
+   * shrinks the attack surface of the public endpoint: expensive operations
+   * such as `blur`, `median` or an `avif` re-encode cannot be triggered, and
+   * junk modifiers cannot be used to bypass a CDN cache.
+   *
+   * Aliases follow their modifier: allowing `width` also allows `w`.
+   *
+   * @optional
+   */
+  allowedModifiers?: (keyof IPXModifiers)[];
+
+  /**
    * A mapping of URL aliases to their corresponding URLs, used to simplify resource identifiers.
    * @optional
    */
@@ -215,6 +231,45 @@ export type IPXOptions = {
 // which bounds what a single request can allocate.
 const DEFAULT_MAX_OUTPUT_DIMENSION = 8192;
 
+// `format` and `animated` are read directly by `createIPX` rather than through
+// a handler, so their aliases are spelled out here.
+const NON_HANDLER_MODIFIERS = new Map([
+  ["format", "format"],
+  ["f", "format"],
+  ["animated", "animated"],
+  ["a", "animated"],
+]);
+
+// Handler aliases share the handler object (`w === width`), so comparing by
+// handler makes an allowed modifier cover all of its aliases.
+function getModifierKey(name: string): unknown {
+  return NON_HANDLER_MODIFIERS.get(name) ?? getHandler(name as HandlerName);
+}
+
+function resolveAllowedModifiers(
+  names: string | string[] | undefined,
+): Set<unknown> | undefined {
+  if (names === undefined) {
+    return undefined;
+  }
+  if (typeof names === "string") {
+    names = names
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  return new Set(
+    names.map((name) => {
+      const key = getModifierKey(name);
+      // Fail loudly on a typo rather than rejecting every request using it.
+      if (!key) {
+        throw new Error(`[ipx] Unknown modifier in allowedModifiers: ${name}`);
+      }
+      return key;
+    }),
+  );
+}
+
 // https://sharp.pixelplumbing.com/#formats
 // (gif and svg are not supported as output)
 const SUPPORTED_FORMATS = new Set([
@@ -253,6 +308,11 @@ export function createIPX(userOptions: IPXOptions): IPX {
     } as SharpOptions,
   } satisfies Omit<IPXOptions, "storage">;
 
+  const allowedModifiers = resolveAllowedModifiers(
+    userOptions.allowedModifiers ??
+      getEnv<string | string[]>("IPX_ALLOWED_MODIFIERS"),
+  );
+
   // Normalize alias to start with leading slash
   options.alias = Object.fromEntries(
     Object.entries(options.alias || {}).map((e) => [
@@ -281,6 +341,19 @@ export function createIPX(userOptions: IPXOptions): IPX {
         statusText: `IPX_MISSING_ID`,
         message: `Resource id is missing`,
       });
+    }
+
+    // Validate modifiers (before any source is fetched or processed)
+    if (allowedModifiers) {
+      for (const name of Object.keys(modifiers)) {
+        if (!allowedModifiers.has(getModifierKey(name))) {
+          throw new HTTPError({
+            statusCode: 400,
+            statusText: `IPX_FORBIDDEN_MODIFIER`,
+            message: `Modifier is not allowed: ${name}`,
+          });
+        }
+      }
     }
 
     // Enforce leading slash for non absolute urls
