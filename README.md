@@ -480,8 +480,11 @@ Every option can also be set universally with an `IPX_*` environment variable, w
 | -------------------- | -------------------------- | ------- | --------------------------------------------------------- |
 | `alias`              | `IPX_ALIAS`                | `{}`    | Map URL prefixes to other prefixes or remote origins.     |
 | `maxOutputDimension` | `IPX_MAX_OUTPUT_DIMENSION` | `8192`  | Maximum width and height (in pixels) of the output image. |
+| `allowedModifiers`   | `IPX_ALLOWED_MODIFIERS`    | (all)   | Modifiers that requests are allowed to use.               |
 
 Requested `width`, `height` and `resize` dimensions are clamped to `maxOutputDimension`, preserving the requested aspect ratio, and `extend` edges are clamped so the extended canvas stays within it. This bounds how much memory a single request can allocate: sharp only limits the _input_ size, so without it `/enlarge,s_20000x20000/image.jpg` (or `/extend_10000_10000_10000_10000/image.jpg`) allocates gigabytes from a small source image. Set to `false` to disable, which is only safe when modifiers come from a trusted source.
+
+`allowedModifiers` restricts a public endpoint to the modifiers a site actually uses, for example `allowedModifiers: ["width", "height", "format", "quality"]` or `IPX_ALLOWED_MODIFIERS=width,height,format,quality`. Aliases follow their modifier (allowing `width` also allows `w`). Any other modifier, including an unknown one, is rejected with a `400` before the source is fetched, so expensive operations (`blur`, `median`, an `avif` re-encode, ...) cannot be triggered and junk modifiers cannot be used to bypass a CDN cache.
 
 ### Filesystem source (`ipxFSStorage`)
 
