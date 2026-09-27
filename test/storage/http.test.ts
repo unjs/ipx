@@ -27,6 +27,9 @@ describe("http", () => {
     it.each([
       ["public, Max-Age=42", 42],
       ["public, s-maxage=42", 300],
+      ['private="foo, max-age=0"', 300],
+      ['max-age="0"', 0],
+      [String.raw`private="escaped\", max-age=0", MAX-AGE="42"`, 42],
     ])("parses Cache-Control %s with maxAge %s", async (header, expected) => {
       vi.stubGlobal(
         "fetch",

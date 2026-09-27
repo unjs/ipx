@@ -490,9 +490,29 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     if (_options.ignoreCacheControl !== true) {
       const _cacheControl = response.headers.get("cache-control");
       if (_cacheControl) {
-        const m = _cacheControl.match(/(?:^|,)\s*max-age=(\d+)/i);
-        if (m && m[1]) {
-          maxAge = Number.parseInt(m[1]);
+        let start = 0;
+        let quoted = false;
+        for (let i = 0; i <= _cacheControl.length; i++) {
+          const char = _cacheControl[i];
+          if (quoted && char === "\\") {
+            i++;
+            continue;
+          }
+          if (char === '"') {
+            quoted = !quoted;
+          }
+          if (!quoted && (char === "," || i === _cacheControl.length)) {
+            const m = _cacheControl
+              .slice(start, i)
+              .trim()
+              .match(/^max-age=(?:"(\d+)"|(\d+))$/i);
+            const age = m?.[1] ?? m?.[2];
+            if (age !== undefined) {
+              maxAge = Number.parseInt(age);
+              break;
+            }
+            start = i + 1;
+          }
         }
       }
     }
