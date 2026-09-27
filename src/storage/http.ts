@@ -490,7 +490,7 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     if (_options.ignoreCacheControl !== true) {
       const _cacheControl = response.headers.get("cache-control");
       if (_cacheControl) {
-        const m = _cacheControl.match(/max-age=(\d+)/);
+        const m = _cacheControl.match(/(?:^|,)\s*max-age=(\d+)/i);
         if (m && m[1]) {
           maxAge = Number.parseInt(m[1]);
         }
