@@ -24,6 +24,29 @@ describe("http", () => {
       );
     });
 
+    it.each([
+      ["public, Max-Age=42", 42],
+      ["public, s-maxage=42", 300],
+      ['private="foo, max-age=0"', 300],
+      ['max-age="0"', 0],
+      [String.raw`private="escaped\", max-age=0", MAX-AGE="42"`, 42],
+    ])("parses Cache-Control %s with maxAge %s", async (header, expected) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          new Response(null, {
+            headers: { "cache-control": header },
+          }),
+        ),
+      );
+
+      await expect(
+        ipxHttpStorage({ domains: ["example.com"] }).getMeta(
+          "https://example.com/image.png",
+        ),
+      ).resolves.toMatchObject({ maxAge: expected });
+    });
+
     // Only valid delta-seconds count as set: `0` is kept, anything else falls through to the
     // next source instead of ending up as `max-age=NaN` (or no header at all).
     it.each([
