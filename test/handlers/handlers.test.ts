@@ -227,9 +227,9 @@ describe("handlers", () => {
       sharpen: vi.fn(),
     };
 
-    sharpen.apply({} as any, sharpMock as any, 100, 200, 300);
+    sharpen.apply({} as any, sharpMock as any, 2, 0, 3);
 
-    expect(sharpMock.sharpen).toHaveBeenCalledWith(100, 200, 300);
+    expect(sharpMock.sharpen).toHaveBeenCalledWith({ sigma: 2, m1: 0, m2: 3 });
   });
 
   it("median.apply() returns expected values", () => {

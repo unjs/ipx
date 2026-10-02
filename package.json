@@ -47,7 +47,7 @@
     "listhen": "^1.9.0",
     "ofetch": "^1.5.0",
     "pathe": "^2.0.3",
-    "sharp": "^0.34.4",
+    "sharp": "^0.35.4",
     "svgo": "^4.0.0",
     "ufo": "^1.6.1",
     "unstorage": "^1.17.1",
@@ -66,6 +66,9 @@
     "typescript": "^5.9.3",
     "unbuild": "^3.6.1",
     "vitest": "^4.0.5"
+  },
+  "engines": {
+    "node": ">=20.10.0"
   },
   "packageManager": "pnpm@10.20.0"
 }

@@ -131,7 +131,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
   const getSharp = cachedPromise(async () => {
     return (await import("sharp").then(
       (r) => r.default || r,
-    )) as typeof import("sharp");
+    )) as typeof import("sharp").default;
   });
 
   const getSVGO = cachedPromise(async () => {
