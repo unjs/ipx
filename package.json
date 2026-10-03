@@ -30,14 +30,14 @@
     "test:types": "tsc --noEmit"
   },
   "dependencies": {
-    "sharp": "^0.35.4",
+    "sharp": "^0.35.5",
     "srvx": "^1.0.5"
   },
   "devDependencies": {
     "@fastify/accept-negotiator": "^2.1.0",
     "@types/etag": "^1.8.4",
     "@types/is-valid-path": "^0.1.2",
-    "@vitest/coverage-v8": "^5.0.1",
+    "@vitest/coverage-v8": "^5.0.3",
     "automd": "^0.4.3",
     "changelogen": "^0.6.2",
     "eslint": "^10.11.0",
@@ -45,14 +45,14 @@
     "etag": "^1.8.1",
     "h3": "2.0.1-rc.32",
     "image-meta": "^0.3.0",
-    "obuild": "^0.4.40",
-    "oxc-minify": "^0.151.0",
+    "obuild": "^0.4.43",
+    "oxc-minify": "^0.152.0",
     "prettier": "^3.9.9",
     "svgo": "^4.1.0",
     "typescript": "^6.0.3",
     "ufo": "^1.6.4",
     "unstorage": "^1.17.5",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.3"
   },
   "peerDependencies": {
     "unstorage": "*"
@@ -65,5 +65,5 @@
   "engines": {
     "node": "^20.16.0 || >=22.3.0"
   },
-  "packageManager": "pnpm@11.27.1"
+  "packageManager": "pnpm@11.28.3"
 }
