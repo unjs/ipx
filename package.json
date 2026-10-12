@@ -34,7 +34,7 @@
     "srvx": "^1.0.5"
   },
   "devDependencies": {
-    "@fastify/accept-negotiator": "^2.1.0",
+    "@fastify/accept-negotiator": "^2.1.1",
     "@types/etag": "^1.8.4",
     "@types/is-valid-path": "^0.1.2",
     "@vitest/coverage-v8": "^5.0.3",
@@ -43,11 +43,11 @@
     "eslint": "^10.12.0",
     "eslint-config-unjs": "^0.6.2",
     "etag": "^1.8.1",
-    "h3": "2.0.2",
+    "h3": "^2.0.2",
     "image-meta": "^0.3.0",
     "obuild": "^0.4.44",
-    "oxc-minify": "^0.153.0",
-    "prettier": "^3.9.9",
+    "oxc-minify": ">=0.153.0",
+    "prettier": "^3.9.10",
     "svgo": "^4.1.0",
     "typescript": "^6.0.3",
     "ufo": "^1.6.4",
