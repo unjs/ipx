@@ -30,6 +30,8 @@ describe("http", () => {
       ['private="foo, max-age=0"', 300],
       ['max-age="0"', 0],
       [String.raw`private="escaped\", max-age=0", MAX-AGE="42"`, 42],
+      [`max-age=${"9".repeat(400)}`, 300],
+      ["max-age=99999999999", 2 ** 31],
     ])("parses Cache-Control %s with maxAge %s", async (header, expected) => {
       vi.stubGlobal(
         "fetch",

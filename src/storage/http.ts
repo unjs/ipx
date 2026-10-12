@@ -262,6 +262,36 @@ function decode(input: string) {
   }
 }
 
+// RFC 9111 §5.2: directives are split on commas *outside* quoted strings, so `max-age=`
+// inside an extension value (`private="foo, max-age=0"`) must not count, and names are
+// case-insensitive. The first `max-age` wins (§4.2.1).
+function parseCacheControlMaxAge(header: string): number | undefined {
+  let start = 0;
+  let quoted = false;
+  for (let i = 0; i <= header.length; i++) {
+    const char = header[i];
+    if (quoted && char === "\\") {
+      i++;
+      continue;
+    }
+    if (char === '"') {
+      quoted = !quoted;
+    }
+    if (!quoted && (char === "," || i === header.length)) {
+      const m = header
+        .slice(start, i)
+        .trim()
+        .match(/^max-age=(?:"(\d+)"|(\d+))$/i);
+      const age = m?.[1] ?? m?.[2];
+      if (age !== undefined) {
+        // Out-of-range values (e.g. 400 digits -> `Infinity`) fall back to the default.
+        return normalizeMaxAge(age);
+      }
+      start = i + 1;
+    }
+  }
+}
+
 /**
  * Creates an HTTP storage handler for IPX that fetches image data from external URLs.
  * This handler allows configuration to specify allowed domains, caching behaviour and custom fetch options.
@@ -490,30 +520,7 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     if (_options.ignoreCacheControl !== true) {
       const _cacheControl = response.headers.get("cache-control");
       if (_cacheControl) {
-        let start = 0;
-        let quoted = false;
-        for (let i = 0; i <= _cacheControl.length; i++) {
-          const char = _cacheControl[i];
-          if (quoted && char === "\\") {
-            i++;
-            continue;
-          }
-          if (char === '"') {
-            quoted = !quoted;
-          }
-          if (!quoted && (char === "," || i === _cacheControl.length)) {
-            const m = _cacheControl
-              .slice(start, i)
-              .trim()
-              .match(/^max-age=(?:"(\d+)"|(\d+))$/i);
-            const age = m?.[1] ?? m?.[2];
-            if (age !== undefined) {
-              maxAge = Number.parseInt(age);
-              break;
-            }
-            start = i + 1;
-          }
-        }
+        maxAge = parseCacheControlMaxAge(_cacheControl) ?? defaultMaxAge;
       }
     }
 
