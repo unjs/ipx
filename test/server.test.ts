@@ -389,6 +389,14 @@ describe("server", () => {
   describe("f_auto", () => {
     const chrome = "image/avif,image/webp,image/apng,image/*,*/*;q=0.8";
 
+    // Defaults must not depend on the shell running the tests
+    beforeEach(() => {
+      vi.stubEnv("IPX_AUTO_FORMATS", "");
+    });
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
     const detect = async (
       url: string,
       accept: string,
@@ -484,10 +492,6 @@ describe("server", () => {
     });
 
     describe("IPX_AUTO_FORMATS", () => {
-      afterEach(() => {
-        vi.unstubAllEnvs();
-      });
-
       it.each(["webp, jpeg", '["webp", "jpeg"]'])("reads %s", async (env) => {
         vi.stubEnv("IPX_AUTO_FORMATS", env);
         const { format } = await detect(
