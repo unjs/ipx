@@ -246,9 +246,7 @@ function getModifierKey(name: string): unknown {
   return NON_HANDLER_MODIFIERS.get(name) ?? getHandler(name as HandlerName);
 }
 
-function resolveAllowedModifiers(
-  names: string | string[] | undefined,
-): Set<unknown> | undefined {
+function resolveAllowedModifiers(names: unknown): Set<unknown> | undefined {
   if (names === undefined) {
     return undefined;
   }
@@ -257,6 +255,12 @@ function resolveAllowedModifiers(
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
+  }
+  // `IPX_ALLOWED_MODIFIERS` is JSON-parsed, so it can hold any JSON value.
+  if (!Array.isArray(names)) {
+    throw new TypeError(
+      `[ipx] allowedModifiers must be an array or a comma-separated string, got: ${JSON.stringify(names)}`,
+    );
   }
   return new Set(
     names.map((name) => {
@@ -309,8 +313,7 @@ export function createIPX(userOptions: IPXOptions): IPX {
   } satisfies Omit<IPXOptions, "storage">;
 
   const allowedModifiers = resolveAllowedModifiers(
-    userOptions.allowedModifiers ??
-      getEnv<string | string[]>("IPX_ALLOWED_MODIFIERS"),
+    userOptions.allowedModifiers ?? getEnv("IPX_ALLOWED_MODIFIERS"),
   );
 
   // Normalize alias to start with leading slash

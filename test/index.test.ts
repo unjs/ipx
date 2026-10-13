@@ -494,6 +494,33 @@ describe("ipx", () => {
       }
     });
 
+    it("accepts a JSON array in `IPX_ALLOWED_MODIFIERS`", () => {
+      vi.stubEnv("IPX_ALLOWED_MODIFIERS", '["width"]');
+      try {
+        const restricted = createRestrictedIPX();
+        expect(() => restricted("bliss.jpg", { w: "100" })).not.toThrow();
+        expect(() => restricted("bliss.jpg", { blur: "5" })).toThrow(
+          expect.objectContaining(forbidden),
+        );
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    });
+
+    it.each(["null", "1", "true", '{"width":true}'])(
+      "throws on a non-list `IPX_ALLOWED_MODIFIERS=%s`",
+      (value) => {
+        vi.stubEnv("IPX_ALLOWED_MODIFIERS", value);
+        try {
+          expect(() => createRestrictedIPX()).toThrow(
+            "allowedModifiers must be an array or a comma-separated string",
+          );
+        } finally {
+          vi.unstubAllEnvs();
+        }
+      },
+    );
+
     it("responds with a 400 from the server", async () => {
       const handler = createIPXFetchHandler(createRestrictedIPX(["width"]));
       expect((await handler("http://localhost/w_100/bliss.jpg")).status).toBe(
