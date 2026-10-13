@@ -36,11 +36,16 @@ export type HTTPStorageOptions = {
    *   `a.b.example.com`), but not `example.com` itself: list it separately if needed.
    * - `example.com/images` restricts access to `/images` and paths below it
    *   (`/images/a.png`, but not `/images-private/a.png`). Rejected with `403 IPX_FORBIDDEN_PATH`.
+   *   Prefixes are case-sensitive and compared after percent-decoding; paths with encoded
+   *   dot segments (`..%2F`, `..;`) are rejected.
+   *
+   * The scheme and port of an entry are ignored. Invalid entries (`**.example.com`,
+   * `foo.*.com`, `example.com/images/..`) throw when the storage is created.
    *
    * Only `http:` and `https:` URLs are allowed. Redirects are followed only within this
    * allowlist (up to 3 hops): a redirect to a host that is not listed is rejected with
-   * `403 IPX_FORBIDDEN_HOST`, so an allowlisted host cannot bounce IPX to an internal
-   * address. Hosts that redirect to a CDN must have the CDN hostname listed here too.
+   * `403 IPX_FORBIDDEN_HOST` (`403 IPX_FORBIDDEN_PATH` outside of the allowed paths), so
+   * an allowlisted host cannot bounce IPX to an internal address. Hosts that redirect to a CDN must have the CDN hostname listed here too.
    * @optional
    */
   domains?: string | string[];
@@ -80,8 +85,6 @@ export type HTTPStorageOptions = {
    */
   blockPrivateIPs?: boolean;
 };
-
-const HTTP_RE = /^https?:\/\//;
 
 const REDIRECT_STATUS = new Set([301, 302, 303, 307, 308]);
 
@@ -268,55 +271,112 @@ type DomainRule = {
   pathname: string;
 };
 
+/** Leading `http://`, `https://` or `//` of an allowlist entry (the scheme is not matched). */
+const SCHEME_RE = /^(?:https?:)?\/\//i;
+
 /**
  * Parses an allowlist entry such as `example.com`, `*.example.com` or
  * `https://example.com/images/`.
  *
  * Matching is done on parsed URL parts (not with a regex built from the entry), so dots
  * are literal, `example.com` never matches `example.com.evil.com`, and paths are compared
- * on segment boundaries.
+ * on segment boundaries. Entries that cannot match what they look like they match throw,
+ * rather than being silently ignored.
  */
-function parseDomainRule(input: string): DomainRule | undefined {
-  let d = input.trim();
-  if (!d) {
+function parseDomainRule(input: unknown): DomainRule | undefined {
+  // `String()`: entries from a JSON `IPX_HTTP_DOMAINS` are not necessarily strings.
+  const entry = String(input).trim();
+  if (!entry) {
     return;
   }
-  if (!HTTP_RE.test(d)) {
-    d = "http://" + d;
+  const invalid = (reason: string) =>
+    new TypeError(`Invalid \`domains\` entry \`${entry}\`: ${reason}`);
+
+  let rest = entry.replace(SCHEME_RE, "");
+  if (/^[a-z][\d+.a-z-]*:\/\//i.test(rest)) {
+    throw invalid("only http and https URLs are supported");
   }
-  const wildcard = /^https?:\/\/\*\./.test(d);
+  const wildcard = rest.startsWith("*.");
   if (wildcard) {
-    d = d.replace("*.", "");
+    rest = rest.slice(2);
   }
+
+  // Decoded like request ids are (see `validateId`), so both sides normalize the same way.
+  rest = decode(rest);
+  const pathStart = rest.search(/[/\\]/);
+  if (
+    pathStart !== -1 &&
+    hasDotSegment(rest.slice(pathStart).split(/[?#]/)[0]!)
+  ) {
+    throw invalid("the path must not contain `.` or `..` segments");
+  }
+
   let url: URL;
   try {
-    url = new URL(d);
+    url = new URL("http://" + rest);
   } catch {
-    return;
+    throw invalid("not a valid hostname");
   }
-  if (!url.hostname) {
-    return;
+  const { hostname } = url;
+  if (!hostname || hostname.startsWith(".") || hostname.includes("..")) {
+    throw invalid("not a valid hostname");
+  }
+  if (hostname.includes("*")) {
+    throw invalid("wildcards are only supported as a leading `*.`");
   }
   return {
-    hostname: url.hostname,
+    hostname,
     wildcard,
     pathname: url.pathname.replace(/\/+$/, ""),
   };
 }
 
 function matchHostname(rule: DomainRule, hostname: string): boolean {
-  if (rule.wildcard) {
-    return hostname.endsWith("." + rule.hostname);
+  if (!rule.wildcard) {
+    return hostname === rule.hostname;
   }
-  return hostname === rule.hostname;
+  if (!hostname.endsWith("." + rule.hostname)) {
+    return false;
+  }
+  // `.example.com` and `a..example.com` (e.g. from `%2Eexample.com`) are not subdomains.
+  const subdomain = hostname.slice(0, -rule.hostname.length - 1);
+  return subdomain !== "" && !subdomain.split(".").includes("");
 }
 
 function matchPathname(rule: DomainRule, pathname: string): boolean {
-  return (
-    !rule.pathname ||
-    pathname === rule.pathname ||
-    pathname.startsWith(rule.pathname + "/")
-  );
+  if (!rule.pathname) {
+    return true;
+  }
+  if (pathname !== rule.pathname && !pathname.startsWith(rule.pathname + "/")) {
+    return false;
+  }
+  // The URL parser already resolved literal dot segments, so any left after decoding were
+  // encoded (`..%2F`, `..%5C`, `..;`). An upstream that decodes before normalizing would
+  // resolve them and serve a file outside of the allowed prefix.
+  return !hasDotSegment(pathname);
+}
+
+/**
+ * Whether `path` contains a `.` or `..` segment once fully percent-decoded, splitting on
+ * both `/` and `\\` and ignoring `;` parameters (`..;` is `..` for Tomcat and Spring).
+ * Paths that are still not stable after a few decoding rounds count as containing one.
+ */
+function hasDotSegment(path: string): boolean {
+  let decoded = path;
+  for (let i = 0; ; i++) {
+    const next = decode(decoded);
+    if (next === decoded) {
+      break;
+    }
+    if (i === 4) {
+      return true;
+    }
+    decoded = next;
+  }
+  return decoded.split(/[/\\]/).some((segment) => {
+    const name = segment.split(";")[0];
+    return name === "." || name === "..";
+  });
 }
 
 function decode(input: string) {
@@ -390,7 +450,7 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
   }
 
   const domains = _domains
-    .map((d) => parseDomainRule(d))
+    .map((d: unknown) => parseDomainRule(d))
     .filter((rule): rule is DomainRule => !!rule);
 
   /** Returns the matching status of `url` against the allowlist. */

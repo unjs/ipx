@@ -527,13 +527,15 @@ Each `domains` entry is matched against the parsed URL, not as a regex:
 - `*.example.com` matches any subdomain (`cdn.example.com`, `a.b.example.com`) but **not** `example.com` itself, list it separately if needed.
 - `example.com/images` only allows `/images` and paths below it (`/images/a.png`, not `/images-private/a.png`). Other paths on an allowed host are rejected with `403 IPX_FORBIDDEN_PATH`.
 
+The scheme and port of an entry are ignored (`https://example.com:8080` is the same as `example.com`). Path prefixes are case-sensitive and compared after percent-decoding, so `example.com/caf%C3%A9` and `example.com/café` are the same rule. Under a path rule, request paths that still contain a `.` or `..` segment once decoded (`/images/..%252Fsecret.png`, `/images/..;/secret.png`) are rejected too, since an upstream server that decodes before resolving them would serve a file outside of the prefix. Entries that cannot work as written (`**.example.com`, `foo.*.com`, `ftp://example.com`, `example.com/images/..`) throw when the storage is created.
+
 ```ts
 ipxHttpStorage({
   domains: ["example.com", "*.example.com", "cdn.other.com/images"],
 });
 ```
 
-Only `http:` and `https:` URLs are allowed (anything else is rejected with `403 IPX_FORBIDDEN_PROTOCOL`), and redirects are followed **only within the allowlist**, up to 3 hops: each redirect target is re-validated and a redirect to a host that is not listed is rejected with `403 IPX_FORBIDDEN_HOST` (`502 IPX_TOO_MANY_REDIRECTS` beyond 3 hops). Previously redirects were followed blindly, which let an allowlisted host with an open redirect bounce IPX to internal addresses such as the cloud metadata service (SSRF). If an allowlisted host redirects to a CDN, add the CDN hostname to the allowlist as well. Redirect re-validation is skipped when `allowAllDomains` is enabled without `blockPrivateIPs` (nothing to validate) or when `redirect` is explicitly set in `fetchOptions`.
+Only `http:` and `https:` URLs are allowed (anything else is rejected with `403 IPX_FORBIDDEN_PROTOCOL`), and redirects are followed **only within the allowlist**, up to 3 hops: each redirect target is re-validated and a redirect to a host that is not listed is rejected with `403 IPX_FORBIDDEN_HOST` (`403 IPX_FORBIDDEN_PATH` for a path outside of the allowed prefixes, `502 IPX_TOO_MANY_REDIRECTS` beyond 3 hops). Previously redirects were followed blindly, which let an allowlisted host with an open redirect bounce IPX to internal addresses such as the cloud metadata service (SSRF). If an allowlisted host redirects to a CDN, add the CDN hostname to the allowlist as well. Redirect re-validation is skipped when `allowAllDomains` is enabled without `blockPrivateIPs` (nothing to validate) or when `redirect` is explicitly set in `fetchOptions`.
 
 #### Blocking private IP addresses
 
