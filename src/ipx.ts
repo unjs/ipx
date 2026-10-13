@@ -510,12 +510,10 @@ export function createIPX(userOptions: IPXOptions): IPX {
 
       // Resolve modifiers to handlers and sort
       const handlers = Object.entries(modifiers)
-        .map(([name, arguments_]) => ({
-          handler: getHandler(name as HandlerName),
-          name,
-          args: arguments_,
-        }))
-        .filter((h) => h.handler)
+        .flatMap(([name, arguments_]) => {
+          const handler = getHandler(name as HandlerName);
+          return handler ? [{ handler, name, args: arguments_ }] : [];
+        })
         // Handlers run in ascending `order` groups (`0` by default) and
         // alphabetically by modifier name within a group, so that the order the
         // modifiers happen to appear in the URL never changes the result.
