@@ -169,13 +169,14 @@ export type IPXOptions = {
    * Every modifier is allowed by default. Restricting them to the ones a site
    * actually uses (for example `["width", "height", "format", "quality"]`)
    * shrinks the attack surface of the public endpoint: expensive operations
-   * such as `blur` or `median` cannot be triggered, and junk modifiers cannot
-   * be used to bypass a CDN cache.
+   * such as `blur` or `median` cannot be triggered.
    *
    * Aliases follow their modifier: allowing `width` also allows `w`.
    *
    * Only modifier names are checked, not their values: allowing `format`
    * allows every supported output format, including the slow-to-encode `avif`.
+   * The same image also stays reachable under many URLs (`?cb=1`, `w_10` vs
+   * `w_1e1`, ...), so this does not prevent busting a CDN cache.
    *
    * @optional
    */
@@ -348,6 +349,15 @@ export function createIPX(userOptions: IPXOptions): IPX {
         message: `Resource id is missing`,
       });
     }
+
+    // Snapshot own keys into a null-prototype object so the allowlist check
+    // and the pipeline see the same modifiers: `format`/`animated` are read by
+    // property access, which would otherwise pick up inherited values, and the
+    // caller could mutate the object between `ipx()` and `process()`.
+    modifiers = Object.assign(
+      Object.create(null) as Partial<IPXModifiers>,
+      modifiers,
+    );
 
     // Validate modifiers (before any source is fetched or processed)
     if (allowedModifiers) {

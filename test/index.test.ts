@@ -465,6 +465,24 @@ describe("ipx", () => {
       );
     });
 
+    it("ignores inherited modifiers", async () => {
+      const restricted = createRestrictedIPX(["width"]);
+      const modifiers = Object.assign(Object.create({ f: "png", a: "" }), {
+        w: "100",
+      });
+      const { format } = await restricted("bliss.jpg", modifiers).process();
+      expect(format).toBe("jpeg");
+    });
+
+    it("ignores modifiers added after the check", async () => {
+      const restricted = createRestrictedIPX(["width"]);
+      const modifiers: Record<string, string> = { w: "100" };
+      const img = restricted("bliss.jpg", modifiers);
+      modifiers.format = "png";
+      const { format } = await img.process();
+      expect(format).toBe("jpeg");
+    });
+
     it("allows no modifiers when empty", async () => {
       const restricted = createRestrictedIPX([]);
       expect(() => restricted("bliss.jpg", { width: "100" })).toThrow(
