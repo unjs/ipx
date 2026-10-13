@@ -243,8 +243,11 @@ export function parseArgs(
 
 export type HandlerName = keyof typeof Handlers;
 
-export function getHandler(key: HandlerName): Handler {
-  return Handlers[key];
+export function getHandler(key: HandlerName): Handler | undefined {
+  // `key` is attacker-controlled. Once bundled, `Handlers` is a plain object
+  // (not a null-prototype module namespace), so `constructor`, `toString`, ...
+  // would otherwise resolve from `Object.prototype` and crash the pipeline.
+  return Object.hasOwn(Handlers, key) ? Handlers[key] : undefined;
 }
 
 export function applyHandler(
