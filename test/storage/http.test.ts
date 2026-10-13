@@ -178,6 +178,79 @@ describe("http", () => {
     });
   });
 
+  describe("domains", () => {
+    const check = (domains: string | string[], url: string) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(new Response(new Uint8Array([1]))),
+      );
+      return ipxHttpStorage({ domains }).getData(url);
+    };
+
+    it.each([
+      ["example.com", "https://example.com/a.png"],
+      ["https://Example.COM", "https://example.com/a.png"],
+      ["*.example.com", "https://cdn.example.com/a.png"],
+      ["*.example.com", "https://a.b.example.com/a.png"],
+      ["https://*.example.com", "https://cdn.example.com/a.png"],
+      ["example.com/images", "https://example.com/images/a.png"],
+      ["example.com/images/", "https://example.com/images/a.png"],
+      ["example.com/images", "https://example.com/images"],
+      ["*.example.com/images", "https://cdn.example.com/images/a.png"],
+      ["other.com, *.example.com", "https://cdn.example.com/a.png"],
+      [["example.com/a", "example.com/b"], "https://example.com/b/c.png"],
+    ])("%j allows %s", async (domains, url) => {
+      await expect(check(domains, url)).resolves.toBeInstanceOf(ArrayBuffer);
+    });
+
+    it.each([
+      ["example.com", "https://cdn.example.com/a.png"],
+      ["example.com", "https://example.com.evil.com/a.png"],
+      ["example.com", "https://exampleXcom/a.png"],
+      ["*.example.com", "https://example.com/a.png"],
+      ["*.example.com", "https://evilexample.com/a.png"],
+      ["*.example.com", "https://cdn.example.com.evil.com/a.png"],
+    ])("%j forbids host of %s", async (domains, url) => {
+      await expect(check(domains, url)).rejects.toMatchObject({
+        statusCode: 403,
+        statusText: "IPX_FORBIDDEN_HOST",
+      });
+    });
+
+    it.each([
+      ["example.com/images", "https://example.com/a.png"],
+      ["example.com/images", "https://example.com/images-private/a.png"],
+      ["example.com/images", "https://example.com/images/../secret.png"],
+      ["example.com/images", "https://example.com/images/%2e%2e/secret.png"],
+      ["*.example.com/images", "https://cdn.example.com/other/a.png"],
+    ])("%j forbids path of %s", async (domains, url) => {
+      await expect(check(domains, url)).rejects.toMatchObject({
+        statusCode: 403,
+        statusText: "IPX_FORBIDDEN_PATH",
+      });
+    });
+
+    it("re-validates the path of redirect targets", async () => {
+      const fetch = vi.fn().mockResolvedValueOnce(
+        new Response(null, {
+          status: 302,
+          headers: { location: "/private/a.png" },
+        }),
+      );
+      vi.stubGlobal("fetch", fetch);
+
+      await expect(
+        ipxHttpStorage({ domains: ["example.com/images"] }).getData(
+          "https://example.com/images/a.png",
+        ),
+      ).rejects.toMatchObject({
+        statusCode: 403,
+        statusText: "IPX_FORBIDDEN_PATH",
+      });
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe("redirects", () => {
     const storage = ipxHttpStorage({
       domains: ["example.com", "cdn.example.com"],

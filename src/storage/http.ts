@@ -31,6 +31,12 @@ export type HTTPStorageOptions = {
   /**
    * Whitelist of domains from which resource fetching is allowed. Can be a single string or an array of strings.
    *
+   * - `example.com` allows any path on `example.com` (exact hostname match).
+   * - `*.example.com` allows any subdomain of `example.com` (`cdn.example.com`,
+   *   `a.b.example.com`), but not `example.com` itself: list it separately if needed.
+   * - `example.com/images` restricts access to `/images` and paths below it
+   *   (`/images/a.png`, but not `/images-private/a.png`). Rejected with `403 IPX_FORBIDDEN_PATH`.
+   *
    * Only `http:` and `https:` URLs are allowed. Redirects are followed only within this
    * allowlist (up to 3 hops): a redirect to a host that is not listed is rejected with
    * `403 IPX_FORBIDDEN_HOST`, so an allowlisted host cannot bounce IPX to an internal
@@ -253,6 +259,66 @@ function isPublicIP(address: string, family: number): boolean {
   return false;
 }
 
+type DomainRule = {
+  /** Normalized hostname (lowercase, punycode), without the `*.` wildcard prefix. */
+  hostname: string;
+  /** `*.example.com`: matches any subdomain of `hostname`, but not `hostname` itself. */
+  wildcard: boolean;
+  /** Path prefix without trailing slash (`""` matches any path). */
+  pathname: string;
+};
+
+/**
+ * Parses an allowlist entry such as `example.com`, `*.example.com` or
+ * `https://example.com/images/`.
+ *
+ * Matching is done on parsed URL parts (not with a regex built from the entry), so dots
+ * are literal, `example.com` never matches `example.com.evil.com`, and paths are compared
+ * on segment boundaries.
+ */
+function parseDomainRule(input: string): DomainRule | undefined {
+  let d = input.trim();
+  if (!d) {
+    return;
+  }
+  if (!HTTP_RE.test(d)) {
+    d = "http://" + d;
+  }
+  const wildcard = /^https?:\/\/\*\./.test(d);
+  if (wildcard) {
+    d = d.replace("*.", "");
+  }
+  let url: URL;
+  try {
+    url = new URL(d);
+  } catch {
+    return;
+  }
+  if (!url.hostname) {
+    return;
+  }
+  return {
+    hostname: url.hostname,
+    wildcard,
+    pathname: url.pathname.replace(/\/+$/, ""),
+  };
+}
+
+function matchHostname(rule: DomainRule, hostname: string): boolean {
+  if (rule.wildcard) {
+    return hostname.endsWith("." + rule.hostname);
+  }
+  return hostname === rule.hostname;
+}
+
+function matchPathname(rule: DomainRule, pathname: string): boolean {
+  return (
+    !rule.pathname ||
+    pathname === rule.pathname ||
+    pathname.startsWith(rule.pathname + "/")
+  );
+}
+
 function decode(input: string) {
   try {
     return decodeURIComponent(input);
@@ -323,16 +389,24 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     _domains = _domains.split(",").map((s) => s.trim());
   }
 
-  const domains = new Set(
-    _domains
-      .map((d) => {
-        if (!HTTP_RE.test(d)) {
-          d = "http://" + d;
-        }
-        return new URL(d).hostname;
-      })
-      .filter(Boolean),
-  );
+  const domains = _domains
+    .map((d) => parseDomainRule(d))
+    .filter((rule): rule is DomainRule => !!rule);
+
+  /** Returns the matching status of `url` against the allowlist. */
+  function matchDomains(url: URL): "match" | "host" | false {
+    let hostMatched = false;
+    for (const rule of domains) {
+      if (!matchHostname(rule, url.hostname)) {
+        continue;
+      }
+      if (matchPathname(rule, url.pathname)) {
+        return "match";
+      }
+      hostMatched = true;
+    }
+    return hostMatched ? "host" : false;
+  }
 
   async function validateId(id: string) {
     let url: URL;
@@ -366,12 +440,22 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
         message: `Forbidden protocol: ${url.protocol}`,
       });
     }
-    if (!allowAllDomains && !domains.has(url.hostname)) {
-      throw new HTTPError({
-        statusCode: 403,
-        statusText: `IPX_FORBIDDEN_HOST`,
-        message: `Forbidden host: ${url.hostname}`,
-      });
+    if (!allowAllDomains) {
+      const match = matchDomains(url);
+      if (!match) {
+        throw new HTTPError({
+          statusCode: 403,
+          statusText: `IPX_FORBIDDEN_HOST`,
+          message: `Forbidden host: ${url.hostname}`,
+        });
+      }
+      if (match === "host") {
+        throw new HTTPError({
+          statusCode: 403,
+          statusText: `IPX_FORBIDDEN_PATH`,
+          message: `Forbidden path: ${url.hostname}${url.pathname}`,
+        });
+      }
     }
     if (blockPrivateIPs) {
       await validatePublicIP(url, id);
