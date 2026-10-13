@@ -276,7 +276,7 @@ function resolveAllowedModifiers(names: unknown): Set<unknown> | undefined {
 
 // https://sharp.pixelplumbing.com/#formats
 // (gif and svg are not supported as output)
-const SUPPORTED_FORMATS = new Set([
+export const SUPPORTED_FORMATS: ReadonlySet<string> = new Set([
   "jpeg",
   "png",
   "webp",

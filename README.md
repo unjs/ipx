@@ -486,6 +486,22 @@ Requested `width`, `height` and `resize` dimensions are clamped to `maxOutputDim
 
 `allowedModifiers` restricts a public endpoint to the modifiers a site actually uses, for example `allowedModifiers: ["width", "height", "format", "quality"]` or `IPX_ALLOWED_MODIFIERS=width,height,format,quality`. Aliases follow their modifier (allowing `width` also allows `w`). Any other modifier, including an unknown one, is rejected with a `400` before the source is fetched, so expensive operations (`blur`, `median`, an `avif` re-encode, ...) cannot be triggered and junk modifiers cannot be used to bypass a CDN cache.
 
+### Server (`createIPXFetchHandler`, `createIPXNodeHandler`, `serveIPX`)
+
+| Option        | Environment variable | Default                                              | Description                                             |
+| ------------- | -------------------- | ---------------------------------------------------- | ------------------------------------------------------- |
+| `autoFormats` | `IPX_AUTO_FORMATS`   | `avif`, `webp`, `jpeg`, `png`, `tiff`, `heif`, `gif` | Formats `f_auto` can pick from, in order of preference. |
+
+`f_auto` serves the format that the client's `accept` header lists with the highest q-value, and equal q-values go to the earlier entry in `autoFormats`. Wildcards such as `image/*` and `*/*` do not match a format, so browsers only negotiate the formats they list explicitly (in practice `avif`, `webp` and `png`). When nothing matches, `jpeg` is served, even if it is not in the list. Animated images only consider `webp` and `gif`, and fall back to `gif`.
+
+AVIF compresses best but is much slower to encode, so leave it out when encoding time matters more than size:
+
+```ts
+createIPXFetchHandler(ipx, { autoFormats: ["webp", "jpeg"] });
+```
+
+With the CLI: `IPX_AUTO_FORMATS=webp,jpeg ipx serve`. Unknown formats throw when the handler is created.
+
 ### Filesystem source (`ipxFSStorage`)
 
 Enabled by default with the CLI only.
