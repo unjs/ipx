@@ -169,10 +169,13 @@ export type IPXOptions = {
    * Every modifier is allowed by default. Restricting them to the ones a site
    * actually uses (for example `["width", "height", "format", "quality"]`)
    * shrinks the attack surface of the public endpoint: expensive operations
-   * such as `blur`, `median` or an `avif` re-encode cannot be triggered, and
-   * junk modifiers cannot be used to bypass a CDN cache.
+   * such as `blur` or `median` cannot be triggered, and junk modifiers cannot
+   * be used to bypass a CDN cache.
    *
    * Aliases follow their modifier: allowing `width` also allows `w`.
+   *
+   * Only modifier names are checked, not their values: allowing `format`
+   * allows every supported output format, including the slow-to-encode `avif`.
    *
    * @optional
    */
