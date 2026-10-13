@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v4.0.0
+
+[compare changes](https://github.com/unjs/ipx/compare/v4.0.0-beta.1...v4.0.0)
+
+### 🚀 Enhancements
+
+- **server:** Add `autoFormats` option to limit `f_auto` formats ([#141](https://github.com/unjs/ipx/pull/141))
+- Add `allowedModifiers` option to restrict usable modifiers ([#152](https://github.com/unjs/ipx/pull/152))
+
+### 🩹 Fixes
+
+- **resize:** Clamp the box per `fit` and support `enlarge_false` ([613eca3](https://github.com/unjs/ipx/commit/613eca3))
+- **storage/http:** Preserve explicit zero maxAge ([#329](https://github.com/unjs/ipx/pull/329))
+- **storage/http:** Recognize Cache-Control directive names ([#340](https://github.com/unjs/ipx/pull/340))
+- **handlers:** Don't resolve modifiers from `Object.prototype` ([937f55e](https://github.com/unjs/ipx/commit/937f55e))
+
+### 📖 Documentation
+
+- **http:** Document DNS-rebinding limitation of `blockPrivateIPs` ([f413eda](https://github.com/unjs/ipx/commit/f413eda))
+
+### 🏡 Chore
+
+- Update readme samples ([25cd8aa](https://github.com/unjs/ipx/commit/25cd8aa))
+- Fix readme grid ([de8b0ab](https://github.com/unjs/ipx/commit/de8b0ab))
+- Update deps ([8ae6ce8](https://github.com/unjs/ipx/commit/8ae6ce8))
+- Update deps ([52bba3a](https://github.com/unjs/ipx/commit/52bba3a))
+- Update deps ([7f2dead](https://github.com/unjs/ipx/commit/7f2dead))
+- Update release script ([28f6634](https://github.com/unjs/ipx/commit/28f6634))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+- Ausir Lo ([@ausir0726](https://github.com/ausir0726))
+- Haruaki OTAKE <aaharu@hotmail.com>
+- Alperen ([@lprnmns](https://github.com/lprnmns))
+
 ## v4.0.0-beta.1
 
 [compare changes](https://github.com/unjs/ipx/compare/v4.0.0-alpha.2...v4.0.0-beta.1)
