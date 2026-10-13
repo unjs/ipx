@@ -31,10 +31,21 @@ export type HTTPStorageOptions = {
   /**
    * Whitelist of domains from which resource fetching is allowed. Can be a single string or an array of strings.
    *
+   * - `example.com` allows any path on `example.com` (exact hostname match).
+   * - `*.example.com` allows any subdomain of `example.com` (`cdn.example.com`,
+   *   `a.b.example.com`), but not `example.com` itself: list it separately if needed.
+   * - `example.com/images` restricts access to `/images` and paths below it
+   *   (`/images/a.png`, but not `/images-private/a.png`). Rejected with `403 IPX_FORBIDDEN_PATH`.
+   *   Prefixes are case-sensitive and compared after percent-decoding; paths with encoded
+   *   dot segments (`..%2F`, `..;`) are rejected.
+   *
+   * The scheme and port of an entry are ignored. Invalid entries (`**.example.com`,
+   * `foo.*.com`, `example.com/images/..`) throw when the storage is created.
+   *
    * Only `http:` and `https:` URLs are allowed. Redirects are followed only within this
    * allowlist (up to 3 hops): a redirect to a host that is not listed is rejected with
-   * `403 IPX_FORBIDDEN_HOST`, so an allowlisted host cannot bounce IPX to an internal
-   * address. Hosts that redirect to a CDN must have the CDN hostname listed here too.
+   * `403 IPX_FORBIDDEN_HOST` (`403 IPX_FORBIDDEN_PATH` outside of the allowed paths), so
+   * an allowlisted host cannot bounce IPX to an internal address. Hosts that redirect to a CDN must have the CDN hostname listed here too.
    * @optional
    */
   domains?: string | string[];
@@ -74,8 +85,6 @@ export type HTTPStorageOptions = {
    */
   blockPrivateIPs?: boolean;
 };
-
-const HTTP_RE = /^https?:\/\//;
 
 const REDIRECT_STATUS = new Set([301, 302, 303, 307, 308]);
 
@@ -253,6 +262,123 @@ function isPublicIP(address: string, family: number): boolean {
   return false;
 }
 
+type DomainRule = {
+  /** Normalized hostname (lowercase, punycode), without the `*.` wildcard prefix. */
+  hostname: string;
+  /** `*.example.com`: matches any subdomain of `hostname`, but not `hostname` itself. */
+  wildcard: boolean;
+  /** Path prefix without trailing slash (`""` matches any path). */
+  pathname: string;
+};
+
+/** Leading `http://`, `https://` or `//` of an allowlist entry (the scheme is not matched). */
+const SCHEME_RE = /^(?:https?:)?\/\//i;
+
+/**
+ * Parses an allowlist entry such as `example.com`, `*.example.com` or
+ * `https://example.com/images/`.
+ *
+ * Matching is done on parsed URL parts (not with a regex built from the entry), so dots
+ * are literal, `example.com` never matches `example.com.evil.com`, and paths are compared
+ * on segment boundaries. Entries that cannot match what they look like they match throw,
+ * rather than being silently ignored.
+ */
+function parseDomainRule(input: unknown): DomainRule | undefined {
+  // `String()`: entries from a JSON `IPX_HTTP_DOMAINS` are not necessarily strings.
+  const entry = String(input).trim();
+  if (!entry) {
+    return;
+  }
+  const invalid = (reason: string) =>
+    new TypeError(`Invalid \`domains\` entry \`${entry}\`: ${reason}`);
+
+  let rest = entry.replace(SCHEME_RE, "");
+  if (/^[a-z][\d+.a-z-]*:\/\//i.test(rest)) {
+    throw invalid("only http and https URLs are supported");
+  }
+  const wildcard = rest.startsWith("*.");
+  if (wildcard) {
+    rest = rest.slice(2);
+  }
+
+  // Decoded like request ids are (see `validateId`), so both sides normalize the same way.
+  rest = decode(rest);
+  const pathStart = rest.search(/[/\\]/);
+  if (
+    pathStart !== -1 &&
+    hasDotSegment(rest.slice(pathStart).split(/[?#]/)[0]!)
+  ) {
+    throw invalid("the path must not contain `.` or `..` segments");
+  }
+
+  let url: URL;
+  try {
+    url = new URL("http://" + rest);
+  } catch {
+    throw invalid("not a valid hostname");
+  }
+  const { hostname } = url;
+  if (!hostname || hostname.startsWith(".") || hostname.includes("..")) {
+    throw invalid("not a valid hostname");
+  }
+  if (hostname.includes("*")) {
+    throw invalid("wildcards are only supported as a leading `*.`");
+  }
+  return {
+    hostname,
+    wildcard,
+    pathname: url.pathname.replace(/\/+$/, ""),
+  };
+}
+
+function matchHostname(rule: DomainRule, hostname: string): boolean {
+  if (!rule.wildcard) {
+    return hostname === rule.hostname;
+  }
+  if (!hostname.endsWith("." + rule.hostname)) {
+    return false;
+  }
+  // `.example.com` and `a..example.com` (e.g. from `%2Eexample.com`) are not subdomains.
+  const subdomain = hostname.slice(0, -rule.hostname.length - 1);
+  return subdomain !== "" && !subdomain.split(".").includes("");
+}
+
+function matchPathname(rule: DomainRule, pathname: string): boolean {
+  if (!rule.pathname) {
+    return true;
+  }
+  if (pathname !== rule.pathname && !pathname.startsWith(rule.pathname + "/")) {
+    return false;
+  }
+  // The URL parser already resolved literal dot segments, so any left after decoding were
+  // encoded (`..%2F`, `..%5C`, `..;`). An upstream that decodes before normalizing would
+  // resolve them and serve a file outside of the allowed prefix.
+  return !hasDotSegment(pathname);
+}
+
+/**
+ * Whether `path` contains a `.` or `..` segment once fully percent-decoded, splitting on
+ * both `/` and `\\` and ignoring `;` parameters (`..;` is `..` for Tomcat and Spring).
+ * Paths that are still not stable after a few decoding rounds count as containing one.
+ */
+function hasDotSegment(path: string): boolean {
+  let decoded = path;
+  for (let i = 0; ; i++) {
+    const next = decode(decoded);
+    if (next === decoded) {
+      break;
+    }
+    if (i === 4) {
+      return true;
+    }
+    decoded = next;
+  }
+  return decoded.split(/[/\\]/).some((segment) => {
+    const name = segment.split(";")[0];
+    return name === "." || name === "..";
+  });
+}
+
 function decode(input: string) {
   try {
     return decodeURIComponent(input);
@@ -323,16 +449,24 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
     _domains = _domains.split(",").map((s) => s.trim());
   }
 
-  const domains = new Set(
-    _domains
-      .map((d) => {
-        if (!HTTP_RE.test(d)) {
-          d = "http://" + d;
-        }
-        return new URL(d).hostname;
-      })
-      .filter(Boolean),
-  );
+  const domains = _domains
+    .map((d: unknown) => parseDomainRule(d))
+    .filter((rule): rule is DomainRule => !!rule);
+
+  /** Returns the matching status of `url` against the allowlist. */
+  function matchDomains(url: URL): "match" | "host" | false {
+    let hostMatched = false;
+    for (const rule of domains) {
+      if (!matchHostname(rule, url.hostname)) {
+        continue;
+      }
+      if (matchPathname(rule, url.pathname)) {
+        return "match";
+      }
+      hostMatched = true;
+    }
+    return hostMatched ? "host" : false;
+  }
 
   async function validateId(id: string) {
     let url: URL;
@@ -366,12 +500,22 @@ export function ipxHttpStorage(_options: HTTPStorageOptions = {}): IPXStorage {
         message: `Forbidden protocol: ${url.protocol}`,
       });
     }
-    if (!allowAllDomains && !domains.has(url.hostname)) {
-      throw new HTTPError({
-        statusCode: 403,
-        statusText: `IPX_FORBIDDEN_HOST`,
-        message: `Forbidden host: ${url.hostname}`,
-      });
+    if (!allowAllDomains) {
+      const match = matchDomains(url);
+      if (!match) {
+        throw new HTTPError({
+          statusCode: 403,
+          statusText: `IPX_FORBIDDEN_HOST`,
+          message: `Forbidden host: ${url.hostname}`,
+        });
+      }
+      if (match === "host") {
+        throw new HTTPError({
+          statusCode: 403,
+          statusText: `IPX_FORBIDDEN_PATH`,
+          message: `Forbidden path: ${url.hostname}${url.pathname}`,
+        });
+      }
     }
     if (blockPrivateIPs) {
       await validatePublicIP(url, id);
