@@ -49,7 +49,7 @@
     "sharp": "^0.34.4",
     "svgo": "^4.0.0",
     "ufo": "^1.6.1",
-    "unstorage": "^1.17.1",
+    "unstorage": "^1.17.6",
     "xss": "^1.0.15"
   },
   "devDependencies": {
