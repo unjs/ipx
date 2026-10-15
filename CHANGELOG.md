@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v3.1.2
+
+[compare changes](https://github.com/unjs/ipx/compare/v3.1.1...v3.1.2)
+
+### 📦 Build
+
+- Update image-meta to 0.3 ([2bdebf1](https://github.com/unjs/ipx/commit/2bdebf1))
+
+### 🏡 Chore
+
+- Update ci ([63fc728](https://github.com/unjs/ipx/commit/63fc728))
+- Update deps ([49efbb2](https://github.com/unjs/ipx/commit/49efbb2))
+- Update ci ([bb0985e](https://github.com/unjs/ipx/commit/bb0985e))
+- Update ci ([7a526e7](https://github.com/unjs/ipx/commit/7a526e7))
+- Update pnpm ([b1a9c58](https://github.com/unjs/ipx/commit/b1a9c58))
+- Update release script ([241fceb](https://github.com/unjs/ipx/commit/241fceb))
+- Update unstorage to ^1.17.6 ([8933a30](https://github.com/unjs/ipx/commit/8933a30))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+
 ## v3.1.1
 
 [compare changes](https://github.com/unjs/ipx/compare/v3.1.0...v3.1.1)
