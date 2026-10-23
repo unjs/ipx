@@ -227,6 +227,33 @@ describe("server", () => {
       expect(res3.status).toEqual(200);
       expect(processed).toEqual(2);
     });
+
+    it("compares if-modified-since at second precision", async () => {
+      const mtime = new Date("2024-01-01T00:00:00.500Z");
+      const handler = createTestIPX({ mtime });
+
+      const res = await handler("http://example.com/w_200/test.jpg");
+      const lastModified = res.headers.get("last-modified")!;
+
+      const res2 = await handler(
+        request({ "if-modified-since": lastModified }),
+      );
+      expect(res2.status).toEqual(304);
+      expect(processed).toEqual(1);
+    });
+
+    it("ignores if-modified-since when if-none-match is present", async () => {
+      const handler = createTestIPX({ mtime });
+
+      const res = await handler(
+        request({
+          "if-none-match": '"other"',
+          "if-modified-since": mtime.toUTCString(),
+        }),
+      );
+      expect(res.status).toEqual(200);
+      expect(await res.text()).toEqual("data");
+    });
   });
 
   describe("parseIPXURL", () => {
