@@ -111,6 +111,11 @@ You can universally customize IPX configuration using `IPX_*` environment variab
 
   - Default: `{}`
 
+- `VIPS_MAX_COORD`
+
+  - Default: `100000000`
+  - Maximum total height (page height × number of pages) when all pages of a multi-page image are decoded (`animated`, GIF output, or `animated` / `pages` in `sharpOptions`). Larger images are rejected with `400 IPX_INVALID_IMAGE` before any page is decoded. Setting it to a smaller number lowers the limit; it cannot raise it.
+
 ### Filesystem Source Options
 
 (enabled by default with CLI only)
