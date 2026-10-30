@@ -47,7 +47,7 @@
     "h3": "^2.0.8",
     "image-meta": "^0.3.1",
     "obuild": "^0.4.45",
-    "oxc-minify": ">=0.153.0",
+    "oxc-minify": ">=0.156.0",
     "prettier": "^3.9.10",
     "svgo": "^4.1.0",
     "typescript": "^6.0.3",
@@ -66,5 +66,5 @@
   "engines": {
     "node": "^20.16.0 || >=22.3.0"
   },
-  "packageManager": "pnpm@11.28.5"
+  "packageManager": "pnpm@11.28.9"
 }

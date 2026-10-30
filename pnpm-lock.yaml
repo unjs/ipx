@@ -55,7 +55,7 @@ importers:
         specifier: ^0.4.45
         version: 0.4.45(dotenv@17.4.2)(giget@3.3.1)(jiti@2.7.0)(magicast@0.5.5)(typescript@6.0.3)
       oxc-minify:
-        specifier: '>=0.153.0'
+        specifier: '>=0.156.0'
         version: 0.156.0
       prettier:
         specifier: ^3.9.10
