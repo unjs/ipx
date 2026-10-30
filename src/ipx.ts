@@ -183,6 +183,56 @@ export type IPXOptions = {
   allowedModifiers?: (keyof IPXModifiers)[];
 
   /**
+   * Source image formats that are allowed to be processed. A source of any
+   * other format is rejected with a `403` after it is fetched, before any of
+   * its bytes reach sharp or SVGO.
+   *
+   * The source bytes are as untrusted as the URL, and every decoder libvips
+   * ships is reachable through them. Limiting the input to the formats a site
+   * actually serves (for example {@link WEB_INPUT_FORMATS}) keeps
+   * rarely-used decoders out of reach.
+   *
+   * The format is the one detected from the source bytes (`jpeg`/`jpg`,
+   * `heif`/`heic` are interchangeable), not the file extension. Detection
+   * looks at the first bytes only, so a file can be crafted to be detected as
+   * an allowed format; `restrictDecoders` covers that case.
+   *
+   * Every format is allowed by default, unless `restrictDecoders` is enabled,
+   * in which case it defaults to {@link WEB_INPUT_FORMATS}.
+   *
+   * @optional
+   */
+  allowedInputFormats?: IPXInputFormat[] | readonly IPXInputFormat[];
+
+  /**
+   * Also block the libvips decoders of every format that is not in
+   * `allowedInputFormats`, using `sharp.block()`.
+   *
+   * The `allowedInputFormats` check relies on the format ipx detects from the
+   * source bytes, while libvips picks its decoder from the same bytes on its
+   * own. Blocking the decoders closes the gap for a file that the two read
+   * differently, since a blocked decoder never parses a single byte.
+   *
+   * **This changes process-wide libvips state.** It affects every user of
+   * sharp in the same process, not only this IPX instance: in a host app
+   * (Nuxt, ...), the app's own sharp code can no longer decode the blocked
+   * formats either, and the decoders this instance re-enables override any the
+   * app blocked on purpose. The block is applied once, when this instance first
+   * hands an image to sharp: nothing is blocked before that. The decoders left
+   * enabled are the union of every such instance's formats, so a later
+   * instance can widen the set for the whole process but never narrows it.
+   * Each instance's own `allowedInputFormats` check still applies. An allowed
+   * SVG can still embed PNG or JPEG images, which the SVG renderer decodes on
+   * its own.
+   * Only enable it when IPX owns the process (such as the `ipx` CLI with
+   * `IPX_RESTRICT_DECODERS=true`) or the whole app agrees with the policy.
+   *
+   * @default false
+   * @optional
+   */
+  restrictDecoders?: boolean;
+
+  /**
    * A mapping of URL aliases to their corresponding URLs, used to simplify resource identifiers.
    * @optional
    */
@@ -285,6 +335,166 @@ function resolveAllowedModifiers(names: unknown): Set<unknown> | undefined {
   );
 }
 
+/**
+ * A source image format, as detected from its bytes.
+ */
+export type IPXInputFormat =
+  | "jpeg"
+  | "jpg"
+  | "png"
+  | "webp"
+  | "gif"
+  | "svg"
+  | "avif"
+  | "heic"
+  | "heif"
+  | "tiff"
+  | "jxl"
+  | "jp2"
+  | "j2c"
+  | "pnm"
+  | "bmp"
+  | "cur"
+  | "dds"
+  | "icns"
+  | "ico"
+  | "ktx"
+  | "psd"
+  | "tga";
+
+/**
+ * The common web image formats, a good value for `allowedInputFormats`.
+ */
+export const WEB_INPUT_FORMATS: readonly IPXInputFormat[] = Object.freeze([
+  "jpeg",
+  "jpg",
+  "png",
+  "webp",
+  "gif",
+  "svg",
+  "avif",
+  "heic",
+  "heif",
+]);
+
+// What `allowedInputFormats` falls back to when neither the option nor the
+// environment sets it and `restrictDecoders` is off. `undefined` allows every
+// format.
+const DEFAULT_ALLOWED_INPUT_FORMATS: readonly IPXInputFormat[] | undefined =
+  undefined;
+
+// `image-meta` reports `jpg` for JPEG and `heic` for every HEIF brand that is
+// not AVIF, so the other spellings are folded into those.
+const INPUT_FORMAT_ALIASES = new Map([
+  ["jpeg", "jpg"],
+  ["heif", "heic"],
+]);
+
+// The libvips loaders (by class name, matching subclasses) that decode each
+// detected format, for `restrictDecoders`. Formats missing here are only read
+// by libvips' ImageMagick fallback in custom builds, so they stay blocked.
+//
+// The UltraHDR JPEG loader (`VipsForeignLoadUhdr`) is left blocked on purpose:
+// such a file is still a valid JPEG and decodes through the plain JPEG loader,
+// and ipx drops the gain map either way.
+const LOADERS_BY_INPUT_FORMAT: Record<string, string[]> = {
+  jpg: ["VipsForeignLoadJpeg"],
+  png: ["VipsForeignLoadPng"],
+  webp: ["VipsForeignLoadWebp"],
+  // Current libvips decodes GIF with libnsgif; older builds used giflib.
+  gif: ["VipsForeignLoadNsgif", "VipsForeignLoadGif"],
+  svg: ["VipsForeignLoadSvg"],
+  avif: ["VipsForeignLoadHeif"],
+  heic: ["VipsForeignLoadHeif"],
+  tiff: ["VipsForeignLoadTiff"],
+  jxl: ["VipsForeignLoadJxl"],
+  jp2: ["VipsForeignLoadJp2k"],
+  j2c: ["VipsForeignLoadJp2k"],
+  pnm: ["VipsForeignLoadPpm"],
+};
+
+// Loaders re-enabled so far by any instance with `restrictDecoders`, since the
+// block is process-wide. `undefined` until the first such instance blocks.
+let restrictedLoaders: Set<string> | undefined;
+
+// Every type `image-meta` can detect, so a typo fails loudly at startup rather
+// than rejecting every request for that format.
+const KNOWN_INPUT_FORMATS: ReadonlySet<string> = new Set([
+  "jpg",
+  "png",
+  "webp",
+  "gif",
+  "svg",
+  "avif",
+  "heic",
+  "tiff",
+  "jxl",
+  "jp2",
+  "j2c",
+  "pnm",
+  "bmp",
+  "cur",
+  "dds",
+  "icns",
+  "ico",
+  "ktx",
+  "psd",
+  "tga",
+]);
+
+// `IPX_RESTRICT_DECODERS` is JSON-parsed, so `true`/`false`/`1`/`0` arrive as
+// booleans or numbers. Anything else (`False`, `off`, ...) is a typo that
+// should fail at startup instead of silently changing process-wide state.
+function resolveRestrictDecoders(value: unknown): boolean {
+  if (value === undefined || value === false || value === 0) {
+    return false;
+  }
+  if (value === true || value === 1) {
+    return true;
+  }
+  throw new TypeError(
+    `[ipx] restrictDecoders must be true or false (or 1 / 0), got: ${JSON.stringify(value)}`,
+  );
+}
+
+// Only `undefined` falls back to the default: a `null` from the environment is
+// a misconfiguration and throws below rather than allowing every format.
+function resolveAllowedInputFormats(
+  formats: unknown,
+  fallback: readonly string[] | undefined,
+): Set<string> | undefined {
+  if (formats === undefined) {
+    formats = fallback;
+  }
+  if (formats === undefined) {
+    return undefined;
+  }
+  if (typeof formats === "string") {
+    formats = formats
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  // `IPX_ALLOWED_INPUT_FORMATS` is JSON-parsed, so it can hold any JSON value.
+  if (!Array.isArray(formats)) {
+    throw new TypeError(
+      `[ipx] allowedInputFormats must be an array or a comma-separated string, got: ${JSON.stringify(formats)}`,
+    );
+  }
+  return new Set(
+    formats.map((format) => {
+      const name = String(format).toLowerCase();
+      const type = INPUT_FORMAT_ALIASES.get(name) ?? name;
+      if (!KNOWN_INPUT_FORMATS.has(type)) {
+        throw new Error(
+          `[ipx] Unknown input format in allowedInputFormats: ${format}`,
+        );
+      }
+      return type;
+    }),
+  );
+}
+
 // https://sharp.pixelplumbing.com/#formats
 // (gif and svg are not supported as output)
 export const SUPPORTED_FORMATS: ReadonlySet<string> = new Set([
@@ -327,6 +537,30 @@ export function createIPX(userOptions: IPXOptions): IPX {
     userOptions.allowedModifiers ?? getEnv("IPX_ALLOWED_MODIFIERS"),
   );
 
+  const restrictDecoders = resolveRestrictDecoders(
+    userOptions.restrictDecoders ?? getEnv("IPX_RESTRICT_DECODERS"),
+  );
+
+  // `restrictDecoders` needs a list of formats whose decoders stay enabled.
+  // Without an explicit one it keeps the web formats, and the early `403`
+  // checks the same set so the two layers agree.
+  const allowedInputFormats = resolveAllowedInputFormats(
+    userOptions.allowedInputFormats ?? getEnv("IPX_ALLOWED_INPUT_FORMATS"),
+    restrictDecoders ? WEB_INPUT_FORMATS : DEFAULT_ALLOWED_INPUT_FORMATS,
+  );
+
+  // libvips loaders left enabled by `restrictDecoders`.
+  const allowedLoaders =
+    restrictDecoders && allowedInputFormats
+      ? [
+          ...new Set(
+            [...allowedInputFormats].flatMap(
+              (type) => LOADERS_BY_INPUT_FORMAT[type] || [],
+            ),
+          ),
+        ]
+      : undefined;
+
   // Largest decoded image height (`pageHeight * nPages` in all-pages mode) the
   // multi-page limit will allow. A numeric `VIPS_MAX_COORD` can lower it but
   // never raise it above the default; any other value is ignored (see
@@ -349,9 +583,38 @@ export function createIPX(userOptions: IPXOptions): IPX {
 
   // Sharp loader
   const getSharp = cachedPromise(async () => {
-    return (await import("sharp").then(
+    const Sharp = (await import("sharp").then(
       (r) => (r as any).default || r,
     )) as typeof import("sharp").default;
+
+    // Deny every libvips loader, then re-enable the allowed ones. Both match
+    // a class and its subclasses (`VipsForeignLoad` is the base of all of
+    // them), and libvips skips a blocked loader while sniffing the input, so a
+    // blocked format is refused as unsupported without being parsed. Savers
+    // are untouched, so every output format keeps working.
+    //
+    // This is process-wide (see `restrictDecoders`) and runs once per
+    // instance, on its first image. Only the first instance blocks; each one
+    // then re-enables the union of every instance's loaders, so a later
+    // instance can widen the set for the whole process but never takes away
+    // a loader an earlier one relies on. Each instance's own format check
+    // still rejects formats it does not allow. An instance without
+    // `restrictDecoders` never calls `block`/`unblock`, so it leaves the host
+    // app's own policy alone.
+    if (allowedLoaders) {
+      if (!restrictedLoaders) {
+        Sharp.block({ operation: ["VipsForeignLoad"] });
+        restrictedLoaders = new Set();
+      }
+      for (const loader of allowedLoaders) {
+        restrictedLoaders.add(loader);
+      }
+      if (restrictedLoaders.size > 0) {
+        Sharp.unblock({ operation: [...restrictedLoaders] });
+      }
+    }
+
+    return Sharp;
   });
 
   const getSVGO = cachedPromise(async () => {
@@ -455,6 +718,20 @@ export function createIPX(userOptions: IPXOptions): IPX {
           statusCode: 400,
           statusText: `IPX_INVALID_IMAGE`,
           message: `Cannot parse image metadata: ${id}`,
+        });
+      }
+
+      // Checked before the bytes reach sharp or SVGO, so a disallowed format
+      // is never decoded. A source `image-meta` cannot identify was already
+      // rejected above.
+      if (
+        allowedInputFormats &&
+        !allowedInputFormats.has(imageMeta.type || "")
+      ) {
+        throw new HTTPError({
+          statusCode: 403,
+          statusText: `IPX_FORBIDDEN_INPUT_FORMAT`,
+          message: `Input format is not allowed: ${imageMeta.type}`,
         });
       }
 

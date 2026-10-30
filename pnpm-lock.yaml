@@ -18,6 +18,9 @@ importers:
       '@fastify/accept-negotiator':
         specifier: ^2.1.2
         version: 2.1.2
+      '@img/colour':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@types/etag':
         specifier: ^1.8.4
         version: 1.8.4

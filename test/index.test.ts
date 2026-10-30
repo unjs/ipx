@@ -1,4 +1,12 @@
-import { describe, it, expect, beforeAll, vi } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  beforeEach,
+  afterEach,
+  vi,
+} from "vitest";
 import { resolve } from "node:path";
 import { serve } from "srvx";
 import { staticMiddleware } from "srvx/static";
@@ -12,6 +20,7 @@ import {
   createIPXFetchHandler,
   ipxFSStorage,
   ipxHttpStorage,
+  WEB_INPUT_FORMATS,
 } from "../src/index.ts";
 
 describe("ipx", () => {
@@ -547,6 +556,356 @@ describe("ipx", () => {
       expect(
         (await handler("http://localhost/w_100,blur_5/bliss.jpg")).status,
       ).toBe(400);
+    });
+  });
+
+  describe("input formats", () => {
+    const bufferStorage = (data: Buffer): IPXStorage => ({
+      name: "buffer",
+      getMeta: () => ({}),
+      getData: () => data,
+    });
+
+    let sharp: typeof import("sharp").default;
+    let sources: Record<"jpeg" | "png" | "webp" | "avif" | "tiff", Buffer>;
+    beforeAll(async () => {
+      sharp = await import("sharp").then((r) => r.default);
+      const base = () =>
+        sharp({
+          create: { width: 8, height: 8, channels: 3, background: "red" },
+        });
+      sources = {
+        jpeg: await base().jpeg().toBuffer(),
+        png: await base().png().toBuffer(),
+        webp: await base().webp().toBuffer(),
+        avif: await base().avif().toBuffer(),
+        tiff: await base().tiff().toBuffer(),
+      };
+    });
+
+    const forbidden = {
+      statusCode: 403,
+      statusText: "IPX_FORBIDDEN_INPUT_FORMAT",
+    };
+
+    describe("allowedInputFormats", () => {
+      const processWith = (
+        source: Buffer,
+        allowedInputFormats?: IPXOptions["allowedInputFormats"],
+      ) =>
+        createIPX({ storage: bufferStorage(source), allowedInputFormats })(
+          "image",
+          { f: "png" },
+        ).process();
+
+      it("allows every format by default", async () => {
+        const { format } = await processWith(sources.tiff);
+        expect(format).toBe("png");
+      });
+
+      it("rejects a format that is not listed before decoding it", async () => {
+        const toBuffer = vi.spyOn(sharp.prototype, "toBuffer");
+        const metadata = vi.spyOn(sharp.prototype, "metadata");
+        try {
+          await expect(
+            processWith(sources.tiff, WEB_INPUT_FORMATS),
+          ).rejects.toMatchObject(forbidden);
+          expect(toBuffer).not.toHaveBeenCalled();
+          expect(metadata).not.toHaveBeenCalled();
+        } finally {
+          toBuffer.mockRestore();
+          metadata.mockRestore();
+        }
+      });
+
+      it.each(["jpeg", "webp", "avif"] as const)(
+        "processes an allowed %s source",
+        async (type) => {
+          const { data, format } = await processWith(
+            sources[type],
+            WEB_INPUT_FORMATS,
+          );
+          expect(format).toBe("png");
+          expect(imageMeta(data as Uint8Array).type).toBe("png");
+        },
+      );
+
+      it.each(["jpeg", "jpg"] as const)(
+        "treats `%s` as JPEG",
+        async (allowed) => {
+          await expect(
+            processWith(sources.jpeg, [allowed]),
+          ).resolves.toBeDefined();
+          await expect(
+            processWith(sources.webp, [allowed]),
+          ).rejects.toMatchObject(forbidden);
+        },
+      );
+
+      // `heif` is HEIC; AVIF uses the same container but is listed on its own.
+      it("does not allow AVIF through `heif`", async () => {
+        await expect(processWith(sources.avif, ["heif"])).rejects.toMatchObject(
+          forbidden,
+        );
+      });
+
+      it("covers SVG sources, which are not decoded by sharp", async () => {
+        const restricted = createIPX({
+          storage: ipxFSStorage({ dir: resolve(__dirname, "assets") }),
+          allowedInputFormats: ["jpeg"],
+        });
+        await expect(restricted("nuxt.svg").process()).rejects.toMatchObject(
+          forbidden,
+        );
+        await expect(restricted("bliss.jpg").process()).resolves.toBeDefined();
+      });
+
+      it("allows a GIF and an SVG from the web set", async () => {
+        const restricted = createIPX({
+          storage: ipxFSStorage({ dir: resolve(__dirname, "assets") }),
+          allowedInputFormats: WEB_INPUT_FORMATS,
+        });
+        expect((await restricted("giphy.gif").process()).format).toBe("gif");
+        expect((await restricted("nuxt.svg").process()).format).toBe("svg+xml");
+      });
+
+      it("allows nothing when empty", async () => {
+        await expect(processWith(sources.jpeg, [])).rejects.toMatchObject(
+          forbidden,
+        );
+      });
+
+      it("throws on an unknown format name", () => {
+        expect(() =>
+          createIPX({
+            storage: bufferStorage(sources.jpeg),
+            allowedInputFormats: ["jpge" as any],
+          }),
+        ).toThrow("Unknown input format in allowedInputFormats: jpge");
+      });
+
+      it.each([
+        ["a comma-separated list", "JPEG, png"],
+        ["a JSON array", '["jpeg", "png"]'],
+      ])(
+        "can be set with `IPX_ALLOWED_INPUT_FORMATS` as %s",
+        async (_, env) => {
+          vi.stubEnv("IPX_ALLOWED_INPUT_FORMATS", env);
+          try {
+            await expect(processWith(sources.jpeg)).resolves.toBeDefined();
+            await expect(processWith(sources.tiff)).rejects.toMatchObject(
+              forbidden,
+            );
+          } finally {
+            vi.unstubAllEnvs();
+          }
+        },
+      );
+
+      it("prefers the option over `IPX_ALLOWED_INPUT_FORMATS`", async () => {
+        vi.stubEnv("IPX_ALLOWED_INPUT_FORMATS", "jpeg");
+        try {
+          await expect(
+            processWith(sources.tiff, ["tiff"]),
+          ).resolves.toBeDefined();
+        } finally {
+          vi.unstubAllEnvs();
+        }
+      });
+
+      it.each(["null", "1", "true", '{"jpeg":true}'])(
+        "throws on a non-list `IPX_ALLOWED_INPUT_FORMATS=%s`",
+        (value) => {
+          vi.stubEnv("IPX_ALLOWED_INPUT_FORMATS", value);
+          try {
+            expect(() =>
+              createIPX({ storage: bufferStorage(sources.jpeg) }),
+            ).toThrow(
+              "allowedInputFormats must be an array or a comma-separated string",
+            );
+          } finally {
+            vi.unstubAllEnvs();
+          }
+        },
+      );
+
+      it("responds with a 403 from the server", async () => {
+        const handler = createIPXFetchHandler(
+          createIPX({
+            storage: bufferStorage(sources.tiff),
+            allowedInputFormats: WEB_INPUT_FORMATS,
+          }),
+        );
+        const res = await handler("http://localhost/w_4/image.tiff");
+        expect(res.status).toBe(403);
+      });
+    });
+
+    // `restrictDecoders` changes process-wide libvips state, so every test
+    // restores it to keep the rest of the suite (and other files) unaffected,
+    // and gets a fresh ipx module, which tracks the loaders it re-enabled.
+    describe("restrictDecoders", () => {
+      let createIPX: typeof import("../src/index.ts").createIPX;
+      beforeEach(async () => {
+        vi.resetModules();
+        ({ createIPX } = await import("../src/index.ts"));
+      });
+      afterEach(() => {
+        sharp.unblock({ operation: ["VipsForeignLoad"] });
+      });
+
+      const decode = (source: Buffer) => sharp(source).png().toBuffer();
+
+      it("blocks the libvips decoders of other formats", async () => {
+        const { format } = await createIPX({
+          storage: bufferStorage(sources.jpeg),
+          restrictDecoders: true,
+        })("image", { f: "png" }).process();
+        expect(format).toBe("png");
+
+        // A direct decode, bypassing the ipx format check, is refused by
+        // libvips itself.
+        await expect(decode(sources.tiff)).rejects.toThrow(
+          "unsupported image format",
+        );
+        await expect(decode(sources.jpeg)).resolves.toBeInstanceOf(Buffer);
+        await expect(decode(sources.avif)).resolves.toBeInstanceOf(Buffer);
+      });
+
+      it("defaults the allowed input formats to the web set", async () => {
+        await expect(
+          createIPX({
+            storage: bufferStorage(sources.tiff),
+            restrictDecoders: true,
+          })("image", { f: "png" }).process(),
+        ).rejects.toMatchObject(forbidden);
+      });
+
+      it("keeps the decoders of the allowed input formats", async () => {
+        const restricted = (source: Buffer) =>
+          createIPX({
+            storage: bufferStorage(source),
+            restrictDecoders: true,
+            allowedInputFormats: ["jpeg", "tiff"],
+          })("image", { f: "png" }).process();
+        await expect(restricted(sources.tiff)).resolves.toBeDefined();
+        await expect(restricted(sources.webp)).rejects.toMatchObject(forbidden);
+        await expect(decode(sources.webp)).rejects.toThrow(
+          "unsupported image format",
+        );
+      });
+
+      // A later instance re-enables its own loaders on top of the earlier
+      // ones, so it never takes a format away from an instance already
+      // serving it.
+      it("never narrows the decoders of an earlier instance", async () => {
+        const web = createIPX({
+          storage: bufferStorage(sources.png),
+          restrictDecoders: true,
+        });
+        await web("image", { f: "jpeg" }).process();
+        await createIPX({
+          storage: bufferStorage(sources.jpeg),
+          restrictDecoders: true,
+          allowedInputFormats: ["jpeg"],
+        })("image", { f: "png" }).process();
+        await expect(
+          web("image", { f: "jpeg" }).process(),
+        ).resolves.toBeDefined();
+        await expect(decode(sources.tiff)).rejects.toThrow(
+          "unsupported image format",
+        );
+      });
+
+      // `opacity` with a `background` composites a generated overlay, which
+      // must not need a decoder that the allowed formats leave blocked.
+      it("keeps `opacity` with a `background` working", async () => {
+        const { format } = await createIPX({
+          storage: bufferStorage(sources.jpeg),
+          restrictDecoders: true,
+          allowedInputFormats: ["jpeg", "png", "webp"],
+        })("image", { opacity: "0.5", b: "blue", f: "png" }).process();
+        expect(format).toBe("png");
+      });
+
+      it("can be enabled with `IPX_RESTRICT_DECODERS`", async () => {
+        vi.stubEnv("IPX_RESTRICT_DECODERS", "true");
+        try {
+          await createIPX({ storage: bufferStorage(sources.jpeg) })(
+            "image",
+          ).process();
+          await expect(decode(sources.tiff)).rejects.toThrow(
+            "unsupported image format",
+          );
+        } finally {
+          vi.unstubAllEnvs();
+        }
+      });
+
+      it("leaves libvips alone when disabled", async () => {
+        vi.stubEnv("IPX_RESTRICT_DECODERS", "false");
+        try {
+          await createIPX({ storage: bufferStorage(sources.jpeg) })(
+            "image",
+          ).process();
+          await expect(decode(sources.tiff)).resolves.toBeInstanceOf(Buffer);
+        } finally {
+          vi.unstubAllEnvs();
+        }
+      });
+
+      // A default instance must never call `unblock`, or it would undo a
+      // block the host app set up on purpose.
+      it("keeps a block the host app set when disabled", async () => {
+        sharp.block({ operation: ["VipsForeignLoadTiff"] });
+        await createIPX({ storage: bufferStorage(sources.jpeg) })(
+          "image",
+        ).process();
+        await expect(decode(sources.tiff)).rejects.toThrow(
+          "unsupported image format",
+        );
+      });
+
+      // libvips decodes GIF with a loader whose name differs between builds,
+      // so this catches a wrong entry in the loader list.
+      it("keeps GIF working", async () => {
+        const restricted = createIPX({
+          storage: ipxFSStorage({ dir: resolve(__dirname, "assets") }),
+          restrictDecoders: true,
+        });
+        expect((await restricted("giphy.gif").process()).format).toBe("gif");
+        expect(
+          (await restricted("giphy.gif", { f: "png" }).process()).format,
+        ).toBe("png");
+      });
+
+      it.each(["1", "0", "true", "false"])(
+        "accepts `IPX_RESTRICT_DECODERS=%s`",
+        (value) => {
+          vi.stubEnv("IPX_RESTRICT_DECODERS", value);
+          try {
+            expect(() =>
+              createIPX({ storage: bufferStorage(sources.jpeg) }),
+            ).not.toThrow();
+          } finally {
+            vi.unstubAllEnvs();
+          }
+        },
+      );
+
+      it.each(["False", "off", "no", "yes", "2"])(
+        "throws on `IPX_RESTRICT_DECODERS=%s`",
+        (value) => {
+          vi.stubEnv("IPX_RESTRICT_DECODERS", value);
+          try {
+            expect(() =>
+              createIPX({ storage: bufferStorage(sources.jpeg) }),
+            ).toThrow("restrictDecoders must be true or false");
+          } finally {
+            vi.unstubAllEnvs();
+          }
+        },
+      );
     });
   });
 

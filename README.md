@@ -476,17 +476,30 @@ Every option can also be set universally with an `IPX_*` environment variable, w
 
 ### General
 
-| Option               | Environment variable       | Default | Description                                               |
-| -------------------- | -------------------------- | ------- | --------------------------------------------------------- |
-| `alias`              | `IPX_ALIAS`                | `{}`    | Map URL prefixes to other prefixes or remote origins.     |
-| `maxOutputDimension` | `IPX_MAX_OUTPUT_DIMENSION` | `8192`  | Maximum width and height (in pixels) of the output image. |
-| `allowedModifiers`   | `IPX_ALLOWED_MODIFIERS`    | (all)   | Modifiers that requests are allowed to use.               |
+| Option                | Environment variable        | Default | Description                                                            |
+| --------------------- | --------------------------- | ------- | ---------------------------------------------------------------------- |
+| `alias`               | `IPX_ALIAS`                 | `{}`    | Map URL prefixes to other prefixes or remote origins.                  |
+| `maxOutputDimension`  | `IPX_MAX_OUTPUT_DIMENSION`  | `8192`  | Maximum width and height (in pixels) of the output image.              |
+| `allowedModifiers`    | `IPX_ALLOWED_MODIFIERS`     | (all)   | Modifiers that requests are allowed to use.                            |
+| `allowedInputFormats` | `IPX_ALLOWED_INPUT_FORMATS` | (all)\* | Source image formats that are allowed to be processed.                 |
+| `restrictDecoders`    | `IPX_RESTRICT_DECODERS`     | `false` | Also block the libvips decoders of every other format (`sharp.block`). |
+
+\* With `restrictDecoders`, `allowedInputFormats` defaults to the web formats instead (`WEB_INPUT_FORMATS`).
 
 Requested `width`, `height` and `resize` dimensions are clamped to `maxOutputDimension`, preserving the requested aspect ratio, and `extend` edges are clamped so the extended canvas stays within it. This bounds how much memory a single request can allocate: sharp only limits the _input_ size, so without it `/enlarge,s_20000x20000/image.jpg` (or `/extend_10000_10000_10000_10000/image.jpg`) allocates gigabytes from a small source image. Set to `false` to disable, which is only safe when modifiers come from a trusted source.
 
 When all pages of a multi-page image are decoded (`animated`, GIF output, or `animated` / `pages` in `sharpOptions`), the total height (page height × number of pages) must stay below libvips' `VIPS_MAX_COORD` (default `100000000`), or the request is rejected with `400 IPX_INVALID_IMAGE` before any page is decoded. Like `maxOutputDimension`, this bounds what a single request can make the decoder produce. Setting the `VIPS_MAX_COORD` environment variable to a smaller number lowers the limit; it cannot raise it.
 
 `allowedModifiers` restricts a public endpoint to the modifiers a site actually uses, for example `allowedModifiers: ["width", "height", "format", "quality"]` or `IPX_ALLOWED_MODIFIERS=width,height,format,quality`. Aliases follow their modifier (allowing `width` also allows `w`). Any other modifier, including an unknown one, is rejected with a `400` before the source is fetched, so expensive operations (`blur`, `median`, ...) cannot be triggered. Only modifier names are checked, not their values: allowing `format` allows every supported output format, including the slow-to-encode `avif`. The same image also stays reachable under many URLs (`?cb=1`, `w_10` vs `w_1e1`, ...), so this does not prevent busting a CDN cache.
+
+The source bytes are as untrusted as the URL, and libvips ships a decoder for many more formats than a site usually serves. `allowedInputFormats` keeps the rarely-used ones out of reach, for example `allowedInputFormats: WEB_INPUT_FORMATS` (`jpeg`, `png`, `webp`, `gif`, `svg`, `avif`, `heic`) or `IPX_ALLOWED_INPUT_FORMATS=jpeg,png,webp`. The format is the one detected from the source bytes, not the file extension (`jpeg`/`jpg` and `heif`/`heic` are interchangeable). A source of any other format is rejected with `403 IPX_FORBIDDEN_INPUT_FORMAT` before sharp or SVGO see any of it. Detection only looks at the first bytes, so a file can be crafted to be detected as an allowed format while libvips reads it as another; `restrictDecoders` closes that gap.
+
+`restrictDecoders` adds a second layer: it blocks every libvips decoder except those of `allowedInputFormats` (which then defaults to `WEB_INPUT_FORMATS`), so libvips refuses a blocked format even if a file is crafted to look like an allowed one. Formats that libvips only reads through ImageMagick in custom builds (`bmp`, `ico`, `psd`, ...) stay blocked. Output formats are not affected.
+
+> [!WARNING]
+> `restrictDecoders` uses `sharp.block()` / `sharp.unblock()`, which change **process-wide** libvips state. It affects every user of sharp in the process, not only IPX: in a host app (such as Nuxt), the app's own sharp code can no longer decode the blocked formats either, and the decoders IPX re-enables override any the app blocked on purpose. The block is applied when an instance first hands an image to sharp, so nothing is blocked before that. The decoders left enabled are the union of every such instance's formats: a later instance can widen the set for the whole process but never narrows it, and each instance's own format check still applies. An allowed SVG can still embed PNG or JPEG images, which the SVG renderer decodes on its own. `IPX_RESTRICT_DECODERS` accepts only `true`/`false` (or `1`/`0`). Only enable it when IPX owns the process, or when the whole app agrees with the policy. The format check of `allowedInputFormats` itself is per instance and touches no global state.
+
+The `ipx serve` CLI owns its process, so it is a good fit for `IPX_RESTRICT_DECODERS=true`. Combine it with `IPX_ALLOWED_INPUT_FORMATS` to change the allowed formats (for example to add `tiff`).
 
 ### Server (`createIPXFetchHandler`, `createIPXNodeHandler`, `serveIPX`)
 

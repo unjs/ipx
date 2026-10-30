@@ -1,7 +1,9 @@
 export {
   type IPX,
+  type IPXInputFormat,
   type IPXModifiers,
   type IPXOptions,
+  WEB_INPUT_FORMATS,
   createIPX,
 } from "./ipx.ts";
 

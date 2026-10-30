@@ -1,7 +1,12 @@
+import colour from "@img/colour";
 import { HTTPError } from "h3";
 import type { Sharp } from "sharp";
 import type { Handler, HandlerContext } from "../types.ts";
 import * as Handlers from "./handlers.ts";
+
+// `@img/colour` is CommonJS exporting the function itself, while its types
+// declare it as an ES default export.
+const parseColour = colour as unknown as typeof colour.default;
 
 /**
  * Loosely coerces a raw modifier argument to a boolean, number, string or null.
@@ -286,10 +291,16 @@ export function asModifierError(error: unknown): Error {
   });
 }
 
-// The colour below is interpolated into an SVG attribute. `VColor` only lets a
-// hex, functional or named colour through, none of which can contain a quote or
-// an angle bracket, so they cannot break out of the attribute.
-const SVG_NS = "http://www.w3.org/2000/svg";
+// One RGBA pixel of `colour`, with its own alpha scaled by `opacity`.
+function backgroundPixel(colour: string, opacity: number): Buffer {
+  const parsed = parseColour(colour);
+  return Buffer.from([
+    Math.round(parsed.red()),
+    Math.round(parsed.green()),
+    Math.round(parsed.blue()),
+    Math.round(parsed.alpha() * opacity * 255),
+  ]);
+}
 
 /**
  * Builds the single pixel overlay that the `opacity` modifier tiles over the
@@ -303,10 +314,12 @@ export function opacityOverlay(opacity: number, background?: string) {
   return background
     ? // Blending the background over the image at `1 - opacity` leaves an
       // opaque result, so formats without an alpha channel work too.
+      // The pixel is raw so that no decoder is involved, which keeps this
+      // working when `restrictDecoders` blocks the SVG one. The colour is
+      // parsed by the same library sharp uses for its own colour options.
       {
-        input: Buffer.from(
-          `<svg xmlns="${SVG_NS}" width="1" height="1"><rect width="1" height="1" fill="${background}" fill-opacity="${1 - opacity}"/></svg>`,
-        ),
+        input: backgroundPixel(background, 1 - opacity),
+        raw: { width: 1, height: 1, channels: 4 as const },
         tile: true,
         blend: "over" as const,
       }
