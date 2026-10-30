@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v3.1.3
+
+[compare changes](https://github.com/unjs/ipx/compare/v3.1.2...v3.1.3)
+
+### 🩹 Fixes
+
+- Limit total decoded height of multi-page images ([e22e826](https://github.com/unjs/ipx/commit/e22e826))
+- Respond with 400 when image processing fails ([6a07650](https://github.com/unjs/ipx/commit/6a07650))
+
+### 🏡 Chore
+
+- Update non-major dependencies ([ef76434](https://github.com/unjs/ipx/commit/ef76434))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+
 ## v3.1.2
 
 [compare changes](https://github.com/unjs/ipx/compare/v3.1.1...v3.1.2)
