@@ -235,6 +235,13 @@ export type IPXOptions = {
 // which bounds what a single request can allocate.
 const DEFAULT_MAX_OUTPUT_DIMENSION = 8192;
 
+// libvips' default `VIPS_MAX_COORD`: the largest image dimension it accepts.
+// An all-pages ("animated") decode stacks every page into one canvas of height
+// `pageHeight * nPages`, so ipx applies the same bound to that total. Like
+// `maxOutputDimension`, it bounds what a single request can make the decoder
+// produce.
+const VIPS_MAX_COORD = 100_000_000;
+
 // `format` and `animated` are read directly by `createIPX` rather than through
 // a handler, so their aliases are spelled out here.
 const NON_HANDLER_MODIFIERS = new Map([
@@ -319,6 +326,18 @@ export function createIPX(userOptions: IPXOptions): IPX {
   const allowedModifiers = resolveAllowedModifiers(
     userOptions.allowedModifiers ?? getEnv("IPX_ALLOWED_MODIFIERS"),
   );
+
+  // Largest decoded image height (`pageHeight * nPages` in all-pages mode) the
+  // multi-page limit will allow. A numeric `VIPS_MAX_COORD` can lower it but
+  // never raise it above the default; any other value is ignored (see
+  // `VIPS_MAX_COORD`).
+  const envMaxCoord = getEnv<number>("VIPS_MAX_COORD");
+  const maxImageHeight =
+    typeof envMaxCoord === "number" &&
+    envMaxCoord > 0 &&
+    envMaxCoord < VIPS_MAX_COORD
+      ? envMaxCoord
+      : VIPS_MAX_COORD;
 
   // Normalize alias to start with leading slash
   options.alias = Object.fromEntries(
@@ -512,7 +531,55 @@ export function createIPX(userOptions: IPXOptions): IPX {
         format === "gif";
 
       const Sharp = await getSharp();
-      let sharp = Sharp(sourceData, { animated, ...options.sharpOptions });
+
+      // `sharpOptions` is spread last, so an operator setting `animated` or
+      // `pages` there turns on a multi-page decode that `animated` alone would
+      // not reveal. The limit below must key off these effective options.
+      const inputOptions: SharpOptions = { animated, ...options.sharpOptions };
+      const multiPage =
+        inputOptions.animated === true ||
+        inputOptions.pages === -1 ||
+        (inputOptions.pages ?? 1) > 1;
+
+      // Enforce the total-height limit (see `VIPS_MAX_COORD`) before the
+      // all-pages decode runs, from a cheap single-page metadata read, so an
+      // over-large multi-page input (TIFF, GIF, WebP, HEIF) is rejected before
+      // any page is decoded. Counting every page (rather than just the
+      // requested `pages`/`page` window) over-estimates, which is the safe
+      // direction.
+      if (multiPage) {
+        // In a single-page read `pages` is the true frame count and `height`
+        // the page height. The operator's `sharpOptions` (e.g. `density`) still
+        // apply, so the page height matches what the real decode will use.
+        // Constructing it only validates those options, so a misconfiguration
+        // still throws as such rather than as a bad image.
+        const probe = Sharp(sourceData, {
+          ...inputOptions,
+          animated: false,
+          pages: 1,
+        });
+        let total = 0;
+        try {
+          const srcMeta = await probe.metadata();
+          total = (srcMeta.height || 0) * (srcMeta.pages || 1);
+        } catch {
+          // A source libvips can't parse is a bad image, not a bad modifier.
+          throw new HTTPError({
+            statusCode: 400,
+            statusText: `IPX_INVALID_IMAGE`,
+            message: `Cannot parse image metadata: ${id}`,
+          });
+        }
+        if (total >= maxImageHeight) {
+          throw new HTTPError({
+            statusCode: 400,
+            statusText: `IPX_INVALID_IMAGE`,
+            message: `Animated image total height is too large: ${id}`,
+          });
+        }
+      }
+
+      let sharp = Sharp(sourceData, inputOptions);
       Object.assign(
         (sharp as unknown as { options: SharpOptions }).options,
         options.sharpOptions,
