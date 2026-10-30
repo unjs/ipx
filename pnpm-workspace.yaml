@@ -3,3 +3,4 @@ allowBuilds:
   sharp: true
 minimumReleaseAgeExclude:
   - unstorage@1.17.6
+  - image-meta@0.3.1
