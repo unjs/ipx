@@ -1,7 +1,7 @@
 import { defu } from "defu";
 import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import type { SharpOptions } from "sharp";
-import { createError } from "h3";
+import { createError, isError } from "h3";
 import { imageMeta as getImageMeta, type ImageMeta } from "image-meta";
 import type { Config as SVGOConfig } from "svgo";
 import type { IPXStorage } from "./types";
@@ -344,21 +344,39 @@ export function createIPX(userOptions: IPXOptions): IPX {
           return aKey.localeCompare(bKey);
         });
 
-      // Apply handlers
-      const handlerContext: any = { meta: imageMeta };
-      for (const h of handlers) {
-        sharp = applyHandler(handlerContext, sharp, h.handler, h.args) || sharp;
-      }
+      // The source and modifiers are user input. sharp validates modifier
+      // arguments when they are applied, and libvips validates some of the
+      // rest only once it runs (pixel limit, output size, ...), so a failure
+      // in either step is a `400` rather than an unhandled `500`.
+      let processedImage: Buffer;
+      try {
+        // Apply handlers
+        const handlerContext: any = { meta: imageMeta };
+        for (const h of handlers) {
+          sharp =
+            applyHandler(handlerContext, sharp, h.handler, h.args) || sharp;
+        }
 
-      // Apply format
-      if (SUPPORTED_FORMATS.has(format || "")) {
-        sharp = sharp.toFormat(format as any, {
-          quality: handlerContext.quality,
+        // Apply format
+        if (SUPPORTED_FORMATS.has(format || "")) {
+          sharp = sharp.toFormat(format as any, {
+            quality: handlerContext.quality,
+          });
+        }
+
+        // Convert to buffer
+        processedImage = await sharp.toBuffer();
+      } catch (error) {
+        if (isError(error)) {
+          throw error;
+        }
+        throw createError({
+          statusCode: 400,
+          statusText: `IPX_INVALID_MODIFIER`,
+          message: `Cannot apply modifier: ${(error as Error)?.message || error}`,
+          cause: error,
         });
       }
-
-      // Convert to buffer
-      const processedImage = await sharp.toBuffer();
 
       return {
         data: processedImage,

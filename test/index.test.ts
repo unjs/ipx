@@ -6,6 +6,7 @@ import {
   IPX,
   IPXStorage,
   createIPX,
+  createIPXWebServer,
   ipxFSStorage,
   ipxHttpStorage,
 } from "../src";
@@ -38,6 +39,46 @@ describe("ipx", () => {
     const { data, format } = await source.process();
     expect(data).toBeInstanceOf(Buffer);
     expect(format).toBe("jpeg");
+  });
+
+  // libvips rejects some inputs only once the pipeline runs. Those are user
+  // input, so they must surface as a `400`, not an unhandled `500`.
+  describe("processing errors", () => {
+    const limited = () =>
+      createIPX({
+        storage: ipxFSStorage({ dir: resolve(__dirname, "assets") }),
+        sharpOptions: { limitInputPixels: 1 },
+      });
+
+    it("rejects with a 400", async () => {
+      await expect(limited()("bliss.jpg").process()).rejects.toMatchObject({
+        statusCode: 400,
+        statusMessage: "IPX_INVALID_MODIFIER",
+        message: expect.stringContaining("Input image exceeds pixel limit"),
+      });
+    });
+
+    it("responds with a 400 from the server", async () => {
+      const handler = createIPXWebServer(limited());
+      const res = await handler(new Request("http://localhost/_/bliss.jpg"));
+      expect(res.status).toBe(400);
+    });
+
+    // sharp rejects some modifier arguments as soon as they are applied.
+    it.each(["w_-5", "blur_abc", "rotate_x", "tint_notacolor"])(
+      "rejects an invalid modifier argument (%s) with a 400",
+      async (modifier) => {
+        const handler = createIPXWebServer(
+          createIPX({
+            storage: ipxFSStorage({ dir: resolve(__dirname, "assets") }),
+          }),
+        );
+        const res = await handler(
+          new Request(`http://localhost/${modifier}/bliss.jpg`),
+        );
+        expect(res.status).toBe(400);
+      },
+    );
   });
 
   // An all-pages ("animated") decode stacks every page into one canvas of
