@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## v4.1.0
+
+[compare changes](https://github.com/unjs/ipx/compare/v4.0.0...v4.1.0)
+
+### 🚀 Enhancements
+
+- Add `allowedInputFormats` and `restrictDecoders` options ([7c7fb79](https://github.com/unjs/ipx/commit/7c7fb79))
+
+### 🩹 Fixes
+
+- Limit total decoded height of multi-page images ([a3bd13a](https://github.com/unjs/ipx/commit/a3bd13a))
+
+### 🏡 Chore
+
+- Update release script ([69bf249](https://github.com/unjs/ipx/commit/69bf249))
+
+### ❤️ Contributors
+
+- Pooya Parsa ([@pi0](https://github.com/pi0))
+
 ## v4.0.0
 
 [compare changes](https://github.com/unjs/ipx/compare/v4.0.0-beta.1...v4.0.0)
