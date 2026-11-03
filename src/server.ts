@@ -232,9 +232,17 @@ function createIPXHandler(
         sourceMeta.mtime.toUTCString(),
       );
 
-      // Check for last-modified request header
-      const _ifModifiedSince = event.req.headers.get("if-modified-since");
-      if (_ifModifiedSince && new Date(_ifModifiedSince) >= sourceMeta.mtime) {
+      // Check for last-modified request header. It must be ignored when
+      // if-none-match is present (RFC 9110, 13.1.3), and since HTTP dates have
+      // second precision, mtime is compared at that precision too.
+      const _ifModifiedSince = ifNoneMatch
+        ? undefined
+        : event.req.headers.get("if-modified-since");
+      if (
+        _ifModifiedSince &&
+        Date.parse(_ifModifiedSince) >=
+          Math.floor(sourceMeta.mtime.getTime() / 1000) * 1000
+      ) {
         event.res.status = 304;
         return;
       }
